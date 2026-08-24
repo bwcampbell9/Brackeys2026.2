@@ -34,6 +34,7 @@
 
 ## Design For Games
 
+- Use C# for all game and project code wherever Godot supports the required feature. Use GDScript only when the feature is unavailable in C#; keep that boundary minimal and document the reason.
 - Keep the smallest direct design that supports the behavior proven necessary today.
 - Separate deterministic game rules and state transitions from engine callbacks, input sampling, rendering, audio, and persistence where practical.
 - Put physics-affecting work in fixed physics ticks. Keep presentation work in render-time processing.
