@@ -5,12 +5,6 @@ extends "res://addons/godot_ai/testing/test_suite.gd"
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const PICKUP_ITEM_SCENE := preload("res://scenes/pickup_item.tscn")
-const EXPECTED_BOUNDARIES := {
-	"LeftCollision": {"position": Vector2(20, 270), "size": Vector2(40, 540)},
-	"RightCollision": {"position": Vector2(940, 270), "size": Vector2(40, 540)},
-	"TopCollision": {"position": Vector2(480, 20), "size": Vector2(960, 40)},
-	"BottomCollision": {"position": Vector2(480, 520), "size": Vector2(960, 40)},
-}
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
@@ -26,18 +20,17 @@ func suite_name() -> String:
 func test_main_scene_has_a_bounded_csharp_player() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var player := level.get_node_or_null("Player") as CharacterBody2D
-	var walls := level.get_node_or_null("Walls") as StaticBody2D
+	var room_tiles := level.get_node_or_null("RoomTiles") as TileMapLayer
 
 	assert_true(player != null, "The level must contain a CharacterBody2D player.")
-	assert_true(walls != null, "The level must contain static boundary walls.")
-	if player == null or walls == null:
+	assert_true(room_tiles != null, "The level must contain a TileMapLayer room.")
+	if player == null or room_tiles == null:
 		return
 
 	assert_eq(player.get_script().resource_path, "res://src/Player.cs")
 	assert_true(float(player.get("Speed")) > 0.0, "Player speed must be positive.")
 	assert_eq(player.collision_layer, 4)
 	assert_eq(player.collision_mask, 1)
-	assert_eq(walls.collision_layer, 1)
 
 	var player_shape := player.get_node("CollisionShape2D") as CollisionShape2D
 	assert_true(player_shape != null, "Player must have a collision shape.")
@@ -48,23 +41,13 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 			"Player collision must use a CircleShape2D.",
 		)
 
-	var collision_shapes: Array[CollisionShape2D] = []
-	for child in walls.get_children():
-		if child is CollisionShape2D:
-			collision_shapes.append(child)
-	assert_eq(collision_shapes.size(), EXPECTED_BOUNDARIES.size())
-
-	for collision_shape in collision_shapes:
-		var expected: Dictionary = EXPECTED_BOUNDARIES.get(collision_shape.name, {})
-		assert_false(expected.is_empty(), "Every wall collision must be intentional.")
-		assert_false(collision_shape.disabled)
-		assert_true(
-			collision_shape.shape is RectangleShape2D,
-			"%s must use a RectangleShape2D." % collision_shape.name,
-		)
-		if not expected.is_empty() and collision_shape.shape is RectangleShape2D:
-			assert_eq(collision_shape.position, expected.position)
-			assert_eq((collision_shape.shape as RectangleShape2D).size, expected.size)
+	assert_eq(room_tiles.position, Vector2(0, 14))
+	assert_true(room_tiles.tile_set != null, "The room must use a saved TileSet resource.")
+	assert_eq(room_tiles.tile_set.tile_size, Vector2i(64, 64))
+	assert_eq(room_tiles.tile_set.get_physics_layers_count(), 1)
+	assert_eq(room_tiles.get_used_cells().size(), 120)
+	var wall_data = room_tiles.tile_set.get_source(0).get_tile_data(Vector2i(1, 0), 0)
+	assert_eq(wall_data.get_collision_polygons_count(0), 1)
 
 	var project_config := ConfigFile.new()
 	assert_eq(project_config.load("res://project.godot"), OK)
