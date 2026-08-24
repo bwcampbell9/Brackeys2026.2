@@ -12,7 +12,7 @@ public partial class PickupCarrier : Node2D
     public float PickupRange { get; set; } = 140.0f;
 
     [Export(PropertyHint.Range, "1,360,1,degrees")]
-    public float PickupConeDegrees { get; set; } = 100.0f;
+    public float PickupConeDegrees { get; set; } = 140.0f;
 
     [Export(PropertyHint.Range, "0,2000,1,or_greater")]
     public float ThrowForce { get; set; } = 650.0f;

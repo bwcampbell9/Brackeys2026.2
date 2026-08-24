@@ -107,7 +107,7 @@ func test_player_has_reusable_pickup_carrier() -> void:
 
 	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
 	assert_true(float(carrier.get("PickupRange")) > 0.0)
-	assert_true(float(carrier.get("PickupConeDegrees")) > 0.0)
+	assert_eq(float(carrier.get("PickupConeDegrees")), 140.0)
 	assert_true(float(carrier.get("ThrowForce")) > 0.0)
 	assert_true(carrier.get_node_or_null("HoldPoint") is Node2D)
 
@@ -130,7 +130,7 @@ func test_pickup_item_has_top_down_physics_contract() -> void:
 
 	assert_eq(item.get_script().resource_path, "res://src/PickupItem.cs")
 	assert_eq(item.collision_layer, 2)
-	assert_eq(item.collision_mask, 1)
+	assert_eq(item.collision_mask, 0)
 	assert_eq(item.gravity_scale, 0.0)
 	assert_true(item.get_node("CollisionShape2D").shape is CircleShape2D)
 
