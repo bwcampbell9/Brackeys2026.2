@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://b688vrtt4173h"]
 
 [ext_resource type="Script" uid="uid://ctmeerlksnla3" path="res://src/Player.cs" id="1_3vyb7"]
-[ext_resource type="Texture2D" uid="uid://mre7p2m0i11" path="res://assets/sprites/Player.png" id="2_g2els"]
+[ext_resource type="Texture2D" path="res://assets/sprites/Potato.png" id="2_g2els"]
 [ext_resource type="Script" path="res://src/PickupCarrier.cs" id="3_carrier"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_vk56l"]
@@ -11,6 +11,7 @@ radius = 32.01562
 radius = 140.0
 
 [node name="Player" type="CharacterBody2D" unique_id=1644566602]
+collision_layer = 4
 script = ExtResource("1_3vyb7")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1979022979]

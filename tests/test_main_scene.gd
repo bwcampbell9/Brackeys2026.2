@@ -35,14 +35,17 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 
 	assert_eq(player.get_script().resource_path, "res://src/Player.cs")
 	assert_true(float(player.get("Speed")) > 0.0, "Player speed must be positive.")
+	assert_eq(player.collision_layer, 4)
+	assert_eq(player.collision_mask, 1)
+	assert_eq(walls.collision_layer, 1)
 
 	var player_shape := player.get_node("CollisionShape2D") as CollisionShape2D
 	assert_true(player_shape != null, "Player must have a collision shape.")
 	if player_shape != null:
 		assert_false(player_shape.disabled)
 		assert_true(
-			player_shape.shape is RectangleShape2D,
-			"Player collision must use a RectangleShape2D.",
+			player_shape.shape is CircleShape2D,
+			"Player collision must use a CircleShape2D.",
 		)
 
 	var collision_shapes: Array[CollisionShape2D] = []
@@ -108,6 +111,7 @@ func test_player_has_reusable_pickup_carrier() -> void:
 	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
 	assert_true(float(carrier.get("PickupRange")) > 0.0)
 	assert_eq(float(carrier.get("PickupConeDegrees")), 140.0)
+	assert_eq(float(carrier.get("PickupDuration")), 0.2)
 	assert_true(float(carrier.get("ThrowForce")) > 0.0)
 	assert_true(carrier.get_node_or_null("HoldPoint") is Node2D)
 
@@ -130,7 +134,7 @@ func test_pickup_item_has_top_down_physics_contract() -> void:
 
 	assert_eq(item.get_script().resource_path, "res://src/PickupItem.cs")
 	assert_eq(item.collision_layer, 2)
-	assert_eq(item.collision_mask, 0)
+	assert_eq(item.collision_mask, 1)
 	assert_eq(item.gravity_scale, 0.0)
 	assert_true(item.get_node("CollisionShape2D").shape is CircleShape2D)
 

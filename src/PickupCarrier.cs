@@ -14,6 +14,9 @@ public partial class PickupCarrier : Node2D
     [Export(PropertyHint.Range, "1,360,1,degrees")]
     public float PickupConeDegrees { get; set; } = 140.0f;
 
+    [Export(PropertyHint.Range, "0.01,2,0.01,or_greater")]
+    public float PickupDuration { get; set; } = 0.2f;
+
     [Export(PropertyHint.Range, "0,2000,1,or_greater")]
     public float ThrowForce { get; set; } = 650.0f;
 
@@ -58,7 +61,7 @@ public partial class PickupCarrier : Node2D
         }
 
         PickupItem? target = FindBestPickup();
-        if (target is null || !target.TryPickUp(_holdPoint))
+        if (target is null || !target.TryPickUp(_holdPoint, PickupDuration))
         {
             return false;
         }
