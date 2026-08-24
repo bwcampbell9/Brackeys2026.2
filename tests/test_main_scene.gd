@@ -92,7 +92,6 @@ func test_player_has_reusable_pickup_carrier() -> void:
 		return
 
 	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
-	assert_eq(float(carrier.get("PickupRange")), 97.0)
 	assert_eq(float(carrier.get("PickupConeDegrees")), 140.0)
 	assert_eq(float(carrier.get("PickupDuration")), 0.2)
 	assert_true(float(carrier.get("ThrowForce")) > 0.0)
@@ -102,10 +101,13 @@ func test_player_has_reusable_pickup_carrier() -> void:
 	assert_true(pickup_area != null)
 	if pickup_area != null:
 		assert_eq(pickup_area.collision_mask, 2)
+		var pickup_shape := pickup_area.get_node("CollisionShape2D").shape
 		assert_true(
-			pickup_area.get_node("CollisionShape2D").shape is CircleShape2D,
+			pickup_shape is CircleShape2D,
 			"The pickup range must use a circular broad-phase area.",
 		)
+		if pickup_shape is CircleShape2D:
+			assert_eq(pickup_shape.radius, 97.0)
 
 	var close_pickup_area := carrier.get_node_or_null("ClosePickupArea") as Area2D
 	assert_true(close_pickup_area != null)

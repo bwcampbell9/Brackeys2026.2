@@ -10,9 +10,6 @@ public partial class PickupCarrier : Node2D
     private Vector2 _facingDirection = Vector2.Up;
     private PickupItem? _heldItem;
 
-    [Export(PropertyHint.Range, "1,500,1,or_greater")]
-    public float PickupRange { get; set; } = 97.0f;
-
     [Export(PropertyHint.Range, "1,360,1,degrees")]
     public float PickupConeDegrees { get; set; } = 140.0f;
 
@@ -48,10 +45,10 @@ public partial class PickupCarrier : Node2D
         CollisionShape2D pickupCollision = _pickupArea.GetNode<CollisionShape2D>(
             "CollisionShape2D"
         );
-        CircleShape2D pickupShape = pickupCollision.Shape?.Duplicate() as CircleShape2D
-            ?? throw new InvalidOperationException("PickupArea requires a CircleShape2D.");
-        pickupShape.Radius = PickupRange;
-        pickupCollision.Shape = pickupShape;
+        if (pickupCollision.Shape is null)
+        {
+            throw new InvalidOperationException("PickupArea requires a collision shape.");
+        }
     }
 
     public bool Interact()
