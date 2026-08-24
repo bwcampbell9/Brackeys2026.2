@@ -8,7 +8,7 @@
 radius = 32.01562
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup_range"]
-radius = 140.0
+radius = 97.0
 
 [node name="Player" type="CharacterBody2D" unique_id=1644566602]
 collision_layer = 4
@@ -31,12 +31,12 @@ monitorable = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PickupCarrier/PickupArea" unique_id=961191588]
 shape = SubResource("CircleShape2D_pickup_range")
 
-[node name="ClosePickupArea" type="Area2D" parent="PickupCarrier"]
+[node name="ClosePickupArea" type="Area2D" parent="PickupCarrier" unique_id=1759022621]
 collision_layer = 0
 collision_mask = 2
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupCarrier/ClosePickupArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupCarrier/ClosePickupArea" unique_id=890743803]
 shape = SubResource("CircleShape2D_vk56l")
 
 [node name="HoldPoint" type="Node2D" parent="PickupCarrier" unique_id=1355219190]
