@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://erohstqkk6hk"]
+
+[ext_resource type="PackedScene" uid="uid://b688vrtt4173h" path="res://scenes/player.tscn" id="1_o5qli"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0wfyh"]
+size = Vector2(40, 540)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sugp2"]
+size = Vector2(40, 540)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jyhfs"]
+size = Vector2(960, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tbgi4"]
+size = Vector2(960, 40)
+
+[node name="Kitchen" type="Node2D" unique_id=1599987340]
+
+[node name="Background" type="Polygon2D" parent="." unique_id=461370302]
+color = Color(0.1, 0.14, 0.17, 1)
+polygon = PackedVector2Array(0, 0, 960, 0, 960, 540, 0, 540)
+
+[node name="Floor" type="Polygon2D" parent="." unique_id=814538971]
+color = Color(0.2, 0.27, 0.28, 1)
+polygon = PackedVector2Array(40, 40, 920, 40, 920, 500, 40, 500)
+
+[node name="Walls" type="StaticBody2D" parent="." unique_id=1492953201]
+
+[node name="LeftCollision" type="CollisionShape2D" parent="Walls" unique_id=1556165970]
+position = Vector2(20, 270)
+shape = SubResource("RectangleShape2D_0wfyh")
+
+[node name="LeftVisual" type="Polygon2D" parent="Walls" unique_id=616533929]
+position = Vector2(20, 270)
+color = Color(0.36, 0.45, 0.46, 1)
+polygon = PackedVector2Array(-20, -270, 20, -270, 20, 270, -20, 270)
+
+[node name="RightCollision" type="CollisionShape2D" parent="Walls" unique_id=375143307]
+position = Vector2(940, 270)
+shape = SubResource("RectangleShape2D_sugp2")
+
+[node name="RightVisual" type="Polygon2D" parent="Walls" unique_id=1495185342]
+position = Vector2(940, 270)
+color = Color(0.36, 0.45, 0.46, 1)
+polygon = PackedVector2Array(-20, -270, 20, -270, 20, 270, -20, 270)
+
+[node name="TopCollision" type="CollisionShape2D" parent="Walls" unique_id=587501632]
+position = Vector2(480, 20)
+shape = SubResource("RectangleShape2D_jyhfs")
+
+[node name="TopVisual" type="Polygon2D" parent="Walls" unique_id=248230735]
+position = Vector2(480, 20)
+color = Color(0.36, 0.45, 0.46, 1)
+polygon = PackedVector2Array(-480, -20, 480, -20, 480, 20, -480, 20)
+
+[node name="BottomCollision" type="CollisionShape2D" parent="Walls" unique_id=1356980184]
+position = Vector2(480, 520)
+shape = SubResource("RectangleShape2D_tbgi4")
+
+[node name="BottomVisual" type="Polygon2D" parent="Walls" unique_id=2053041284]
+position = Vector2(480, 520)
+color = Color(0.36, 0.45, 0.46, 1)
+polygon = PackedVector2Array(-480, -20, 480, -20, 480, 20, -480, 20)
+
+[node name="Player" parent="." unique_id=1644566602 instance=ExtResource("1_o5qli")]
+position = Vector2(480, 270)
+
+[node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
+
+[node name="Title" type="Label" parent="Hud" unique_id=510205867]
+offset_left = 56.0
+offset_top = 48.0
+offset_right = 57.0
+offset_bottom = 71.0
+theme_override_colors/font_color = Color(0.96, 0.96, 0.91, 1)
+theme_override_font_sizes/font_size = 24
+text = "Kitchen Training Room"
+
+[node name="Instructions" type="Label" parent="Hud" unique_id=1497495389]
+offset_left = 56.0
+offset_top = 82.0
+offset_right = 57.0
+offset_bottom = 105.0
+theme_override_colors/font_color = Color(0.74, 0.83, 0.83, 1)
+theme_override_font_sizes/font_size = 16
+text = "WASD / Arrow Keys / Left Stick to move"
