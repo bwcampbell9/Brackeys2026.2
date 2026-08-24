@@ -92,7 +92,7 @@ func test_player_has_reusable_pickup_carrier() -> void:
 		return
 
 	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
-	assert_true(float(carrier.get("PickupRange")) > 0.0)
+	assert_eq(float(carrier.get("PickupRange")), 97.0)
 	assert_eq(float(carrier.get("PickupConeDegrees")), 140.0)
 	assert_eq(float(carrier.get("PickupDuration")), 0.2)
 	assert_true(float(carrier.get("ThrowForce")) > 0.0)

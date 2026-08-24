@@ -11,7 +11,7 @@ public partial class PickupCarrier : Node2D
     private PickupItem? _heldItem;
 
     [Export(PropertyHint.Range, "1,500,1,or_greater")]
-    public float PickupRange { get; set; } = 140.0f;
+    public float PickupRange { get; set; } = 97.0f;
 
     [Export(PropertyHint.Range, "1,360,1,degrees")]
     public float PickupConeDegrees { get; set; } = 140.0f;
