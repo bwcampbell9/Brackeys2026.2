@@ -1,6 +1,7 @@
-[gd_scene format=3 uid="uid://erohstqkk6hk"]
+[gd_scene load_steps=7 format=3 uid="uid://erohstqkk6hk"]
 
 [ext_resource type="PackedScene" uid="uid://b688vrtt4173h" path="res://scenes/player.tscn" id="1_o5qli"]
+[ext_resource type="PackedScene" path="res://scenes/pickup_item.tscn" id="2_pickup"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0wfyh"]
 size = Vector2(40, 540)
@@ -65,6 +66,15 @@ polygon = PackedVector2Array(-480, -20, 480, -20, 480, 20, -480, 20)
 [node name="Player" parent="." unique_id=1644566602 instance=ExtResource("1_o5qli")]
 position = Vector2(480, 270)
 
+[node name="PickupItemCenter" parent="." instance=ExtResource("2_pickup")]
+position = Vector2(480, 150)
+
+[node name="PickupItemLeft" parent="." instance=ExtResource("2_pickup")]
+position = Vector2(390, 180)
+
+[node name="PickupItemRight" parent="." instance=ExtResource("2_pickup")]
+position = Vector2(570, 180)
+
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
 
 [node name="Title" type="Label" parent="Hud" unique_id=510205867]
@@ -83,4 +93,4 @@ offset_right = 57.0
 offset_bottom = 105.0
 theme_override_colors/font_color = Color(0.74, 0.83, 0.83, 1)
 theme_override_font_sizes/font_size = 16
-text = "WASD / Arrow Keys / Left Stick to move"
+text = "Move: WASD / Arrows / Left Stick    Pick up / Throw: E / Controller South"

@@ -1,10 +1,14 @@
-[gd_scene format=3 uid="uid://b688vrtt4173h"]
+[gd_scene load_steps=4 format=3 uid="uid://b688vrtt4173h"]
 
 [ext_resource type="Script" uid="uid://ctmeerlksnla3" path="res://src/Player.cs" id="1_3vyb7"]
 [ext_resource type="Texture2D" uid="uid://mre7p2m0i11" path="res://assets/sprites/Player.png" id="2_g2els"]
+[ext_resource type="Script" path="res://src/PickupCarrier.cs" id="3_carrier"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_vk56l"]
 radius = 32.01562
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pickup_range"]
+radius = 140.0
 
 [node name="Player" type="CharacterBody2D" unique_id=1644566602]
 script = ExtResource("1_3vyb7")
@@ -14,3 +18,17 @@ shape = SubResource("CircleShape2D_vk56l")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=159589977]
 texture = ExtResource("2_g2els")
+
+[node name="PickupCarrier" type="Node2D" parent="."]
+script = ExtResource("3_carrier")
+
+[node name="PickupArea" type="Area2D" parent="PickupCarrier"]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupCarrier/PickupArea"]
+shape = SubResource("CircleShape2D_pickup_range")
+
+[node name="HoldPoint" type="Node2D" parent="PickupCarrier"]
+position = Vector2(0, -72)
