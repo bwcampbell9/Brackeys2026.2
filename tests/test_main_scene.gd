@@ -124,6 +124,16 @@ func test_player_has_reusable_pickup_carrier() -> void:
 			"The pickup range must use a circular broad-phase area.",
 		)
 
+	var close_pickup_area := carrier.get_node_or_null("ClosePickupArea") as Area2D
+	assert_true(close_pickup_area != null)
+	if close_pickup_area != null:
+		assert_eq(close_pickup_area.collision_mask, 2)
+		assert_eq(
+			close_pickup_area.get_node("CollisionShape2D").shape,
+			player.get_node("CollisionShape2D").shape,
+			"The omnidirectional pickup area must match the player collision footprint.",
+		)
+
 
 func test_pickup_item_has_top_down_physics_contract() -> void:
 	var item := track(PICKUP_ITEM_SCENE.instantiate()) as RigidBody2D

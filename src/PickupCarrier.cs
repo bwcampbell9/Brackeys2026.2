@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 public partial class PickupCarrier : Node2D
 {
     private Area2D _pickupArea = null!;
+    private Area2D _closePickupArea = null!;
     private Node2D _holdPoint = null!;
     private Vector2 _facingDirection = Vector2.Up;
     private PickupItem? _heldItem;
@@ -40,6 +42,7 @@ public partial class PickupCarrier : Node2D
     public override void _Ready()
     {
         _pickupArea = GetNode<Area2D>("PickupArea");
+        _closePickupArea = GetNode<Area2D>("ClosePickupArea");
         _holdPoint = GetNode<Node2D>("HoldPoint");
 
         CollisionShape2D pickupCollision = _pickupArea.GetNode<CollisionShape2D>(
@@ -73,22 +76,27 @@ public partial class PickupCarrier : Node2D
     private PickupItem? FindBestPickup()
     {
         float minimumAlignment = Mathf.Cos(Mathf.DegToRad(PickupConeDegrees * 0.5f));
-        float bestAlignment = minimumAlignment;
+        float bestAlignment = float.NegativeInfinity;
         float bestDistanceSquared = float.PositiveInfinity;
         PickupItem? bestItem = null;
+        HashSet<PickupItem> candidates = new();
 
-        foreach (Node2D body in _pickupArea.GetOverlappingBodies())
+        AddAvailablePickups(_pickupArea, candidates);
+        AddAvailablePickups(_closePickupArea, candidates);
+
+        foreach (PickupItem item in candidates)
         {
-            if (body is not PickupItem item || !item.IsAvailable)
-            {
-                continue;
-            }
-
             Vector2 offset = item.GlobalPosition - GlobalPosition;
             float distanceSquared = offset.LengthSquared();
             float alignment = distanceSquared <= Mathf.Epsilon
                 ? 1.0f
                 : _facingDirection.Dot(offset / Mathf.Sqrt(distanceSquared));
+            bool isEligible = alignment >= minimumAlignment
+                || _closePickupArea.OverlapsBody(item);
+            if (!isEligible)
+            {
+                continue;
+            }
 
             bool isBetterAligned = alignment > bestAlignment;
             bool isCloserTie = alignment == bestAlignment
@@ -104,5 +112,19 @@ public partial class PickupCarrier : Node2D
         }
 
         return bestItem;
+    }
+
+    private static void AddAvailablePickups(
+        Area2D area,
+        HashSet<PickupItem> candidates
+    )
+    {
+        foreach (Node2D body in area.GetOverlappingBodies())
+        {
+            if (body is PickupItem item && item.IsAvailable)
+            {
+                candidates.Add(item);
+            }
+        }
     }
 }
