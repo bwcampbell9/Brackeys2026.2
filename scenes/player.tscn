@@ -1,16 +1,16 @@
-[gd_scene load_steps=7 format=3 uid="uid://b688vrtt4173h"]
+[gd_scene format=3 uid="uid://b688vrtt4173h"]
 
 [ext_resource type="Script" uid="uid://ctmeerlksnla3" path="res://src/Player.cs" id="1_3vyb7"]
 [ext_resource type="Texture2D" uid="uid://mre7p2m0i11" path="res://assets/sprites/Player.png" id="2_g2els"]
 [ext_resource type="Script" uid="uid://da23ug7lkfcpv" path="res://src/PickupCarrier.cs" id="3_carrier"]
-[ext_resource type="Script" path="res://src/PlayerInteractor.cs" id="4_interactor"]
-[ext_resource type="Script" path="res://src/PlayerInputManager.cs" id="5_input_manager"]
+[ext_resource type="Script" uid="uid://cegdgwgjjqtc6" path="res://src/PlayerInteractor.cs" id="4_interactor"]
+[ext_resource type="Script" uid="uid://bywui5r73mebh" path="res://src/PlayerInputManager.cs" id="5_input_manager"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_vk56l"]
 radius = 32.01562
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup_range"]
-radius = 97.0
+radius = 73.00685
 
 [node name="Player" type="CharacterBody2D" unique_id=1644566602]
 collision_layer = 4
@@ -28,24 +28,24 @@ script = ExtResource("3_carrier")
 [node name="HoldPoint" type="Node2D" parent="PickupCarrier" unique_id=1355219190]
 position = Vector2(0, -58)
 
-[node name="Interactor" type="Node2D" parent="."]
+[node name="Interactor" type="Node2D" parent="." unique_id=1574406776]
 script = ExtResource("4_interactor")
 
-[node name="InteractionArea" type="Area2D" parent="Interactor"]
+[node name="InteractionArea" type="Area2D" parent="Interactor" unique_id=1331226837]
 collision_layer = 0
 collision_mask = 8
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactor/InteractionArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactor/InteractionArea" unique_id=1171871335]
 shape = SubResource("CircleShape2D_pickup_range")
 
-[node name="CloseInteractionArea" type="Area2D" parent="Interactor"]
+[node name="CloseInteractionArea" type="Area2D" parent="Interactor" unique_id=1727957777]
 collision_layer = 0
 collision_mask = 8
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactor/CloseInteractionArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactor/CloseInteractionArea" unique_id=1294986653]
 shape = SubResource("CircleShape2D_vk56l")
 
-[node name="InputManager" type="Node" parent="."]
+[node name="InputManager" type="Node" parent="." unique_id=849512019]
 script = ExtResource("5_input_manager")
