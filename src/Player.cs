@@ -6,10 +6,9 @@ public partial class Player : CharacterBody2D
     private static readonly StringName MoveRightAction = "move_right";
     private static readonly StringName MoveUpAction = "move_up";
     private static readonly StringName MoveDownAction = "move_down";
-    private static readonly StringName InteractAction = "interact";
-
     private Sprite2D _sprite = null!;
     private PickupCarrier _pickupCarrier = null!;
+    private PlayerInteractor _interactor = null!;
     private float _facingRotation;
 
     [Export(PropertyHint.Range, "1,1000,1,or_greater")]
@@ -22,8 +21,11 @@ public partial class Player : CharacterBody2D
     {
         _sprite = GetNode<Sprite2D>("Sprite2D");
         _pickupCarrier = GetNode<PickupCarrier>("PickupCarrier");
+        _interactor = GetNode<PlayerInteractor>("Interactor");
         _facingRotation = _sprite.Rotation;
-        _pickupCarrier.FacingDirection = Vector2.Up.Rotated(_facingRotation);
+        Vector2 facingDirection = Vector2.Up.Rotated(_facingRotation);
+        _pickupCarrier.FacingDirection = facingDirection;
+        _interactor.FacingDirection = facingDirection;
     }
 
     public override void _PhysicsProcess(double delta)
@@ -45,12 +47,9 @@ public partial class Player : CharacterBody2D
                 interpolationWeight
             );
             _sprite.Rotation = _facingRotation;
-            _pickupCarrier.FacingDirection = Vector2.Up.Rotated(_facingRotation);
-        }
-
-        if (Input.IsActionJustPressed(InteractAction))
-        {
-            _pickupCarrier.Interact();
+            Vector2 facingDirection = Vector2.Up.Rotated(_facingRotation);
+            _pickupCarrier.FacingDirection = facingDirection;
+            _interactor.FacingDirection = facingDirection;
         }
 
         Velocity = direction * Speed;

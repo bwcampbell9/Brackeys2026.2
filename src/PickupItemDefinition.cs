@@ -1,0 +1,57 @@
+using Godot;
+using Godot.Collections;
+
+[GlobalClass]
+public partial class PickupItemDefinition : Resource
+{
+    [Export]
+    public StringName Id { get; set; } = new();
+
+    [Export]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [Export]
+    public Texture2D? Texture { get; set; }
+
+    [Export]
+    public Color Modulate { get; set; } = Colors.White;
+
+    [Export]
+    public Vector2 VisualScale { get; set; } = Vector2.One;
+
+    [Export]
+    public Material? VisualMaterial { get; set; }
+
+    [Export]
+    public Array<StringName> AppliedTransformationIds { get; set; } = new();
+
+    [Export]
+    public Array<ItemTransformationOverride> TransformationOverrides { get; set; } =
+        new();
+
+    public bool HasAppliedTransformation(StringName transformationId)
+    {
+        return AppliedTransformationIds.Contains(transformationId);
+    }
+
+    public ItemTransformationOverride? FindTransformationOverride(
+        StringName transformationId
+    )
+    {
+        foreach (
+            ItemTransformationOverride? transformationOverride
+            in TransformationOverrides
+        )
+        {
+            if (
+                transformationOverride is not null
+                && transformationOverride.TransformationId == transformationId
+            )
+            {
+                return transformationOverride;
+            }
+        }
+
+        return null;
+    }
+}

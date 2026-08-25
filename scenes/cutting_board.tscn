@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://bwnef5k3486q"]
+
+[ext_resource type="Script" uid="uid://bfv3ehapyq5le" path="res://src/PickupSocket.cs" id="1_socket"]
+[ext_resource type="Script" uid="uid://danmdb4xmbt07" path="res://src/InteractionTarget.cs" id="2_target"]
+[ext_resource type="Script" uid="uid://t64dona7dy2s" path="res://src/SlotTransferAction.cs" id="3_transfer"]
+[ext_resource type="Script" uid="uid://df0god6j7t1d8" path="res://src/TimedItemProcessAction.cs" id="4_process"]
+[ext_resource type="Resource" path="res://resources/recipes/chop.tres" id="5_recipe"]
+[ext_resource type="Texture2D" uid="uid://vqjtsc8lugm1" path="res://assets/sprites/workstations_tilemap/workstations.png" id="6_texture"]
+[ext_resource type="Script" path="res://src/CuttingBoardProcessPresentation.cs" id="7_presentation"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_board"]
+atlas = ExtResource("6_texture")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_board"]
+size = Vector2(64, 64)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 32.06244
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_background"]
+bg_color = Color(0.08, 0.1, 0.12, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(0.94, 0.72, 0.28, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="CuttingBoard" type="StaticBody2D" unique_id=932346822]
+collision_mask = 0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=248353075]
+texture = SubResource("AtlasTexture_board")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1568811181]
+shape = SubResource("RectangleShape2D_board")
+
+[node name="PickupSocket" type="Node2D" parent="." unique_id=241161687]
+position = Vector2(0, -8)
+script = ExtResource("1_socket")
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+visible = false
+offset_left = -27.0
+offset_top = 23.0
+offset_right = 27.0
+offset_bottom = 30.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+show_percentage = false
+
+[node name="InteractionTarget" type="Area2D" parent="." unique_id=1826123472]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 2
+script = ExtResource("2_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget" unique_id=1864369131]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="TransferItemAction" type="Node" parent="InteractionTarget" unique_id=1409940106]
+script = ExtResource("3_transfer")
+
+[node name="ProcessItemAction" type="Node" parent="InteractionTarget" unique_id=766050956]
+script = ExtResource("4_process")
+Recipe = ExtResource("5_recipe")
+
+[node name="ProcessPresentation" type="Node" parent="."]
+script = ExtResource("7_presentation")
