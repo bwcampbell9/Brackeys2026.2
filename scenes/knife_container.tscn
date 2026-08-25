@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/knife_item.tscn" id="3_knife"]
 [ext_resource type="Texture2D" uid="uid://vqjtsc8lugm1" path="res://assets/sprites/workstations_tilemap/workstations.png" id="4_texture"]
 [ext_resource type="Resource" path="res://resources/items/knife.tres" id="5_definition"]
+[ext_resource type="Script" uid="uid://bmskh3wugwgoy" path="res://src/ContainerItemSource.cs" id="6_npc_source"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_container"]
 atlas = ExtResource("4_texture")
@@ -40,3 +41,8 @@ shape = SubResource("CircleShape2D_interaction")
 script = ExtResource("2_action")
 PickupScene = ExtResource("3_knife")
 AcceptedItem = ExtResource("5_definition")
+
+[node name="NpcItemSource" type="Node2D" parent="."]
+position = Vector2(0, 64)
+script = ExtResource("6_npc_source")
+ItemDefinition = ExtResource("5_definition")

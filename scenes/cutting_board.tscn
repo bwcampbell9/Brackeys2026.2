@@ -7,6 +7,10 @@
 [ext_resource type="Resource" path="res://resources/recipes/chop.tres" id="5_recipe"]
 [ext_resource type="Texture2D" uid="uid://vqjtsc8lugm1" path="res://assets/sprites/workstations_tilemap/workstations.png" id="6_texture"]
 [ext_resource type="Script" path="res://src/CuttingBoardProcessPresentation.cs" id="7_presentation"]
+[ext_resource type="Script" uid="uid://c11srsvcex0r4" path="res://src/WorkstationTaskPublisher.cs" id="8_task_publisher"]
+[ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="9_fetch_task"]
+[ext_resource type="Resource" path="res://resources/tasks/process_workstation_item.tres" id="10_action_task"]
+[ext_resource type="Resource" uid="uid://bjolwtrgs7uqf" path="res://resources/items/potato.tres" id="11_potato"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_board"]
 atlas = ExtResource("6_texture")
@@ -75,3 +79,10 @@ Recipe = ExtResource("5_recipe")
 
 [node name="ProcessPresentation" type="Node" parent="."]
 script = ExtResource("7_presentation")
+
+[node name="WorkstationTaskPublisher" type="Node2D" parent="."]
+position = Vector2(0, 64)
+script = ExtResource("8_task_publisher")
+FetchTask = ExtResource("9_fetch_task")
+ActionTask = ExtResource("10_action_task")
+RequestedItem = ExtResource("11_potato")
