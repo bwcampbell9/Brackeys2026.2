@@ -98,6 +98,34 @@ public partial class PlayerInteractor : Node2D
         return true;
     }
 
+    public bool HasTargetWithAction(
+        Array<StringName> actionIds,
+        InteractionInputTrigger trigger,
+        InteractionContext context
+    )
+    {
+        foreach (InteractionTarget target in GetTargetsInRange())
+        {
+            if (
+                target.TargetOwner == context.Carrier.HeldItem
+                || !IsTargetSelectable(target)
+            )
+            {
+                continue;
+            }
+
+            foreach (StringName actionId in actionIds)
+            {
+                if (target.HasAction(actionId, trigger))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public void UpdateActiveInteraction(double delta)
     {
         if (
@@ -201,17 +229,14 @@ public partial class PlayerInteractor : Node2D
                 continue;
             }
 
-            Vector2 offset = target.GlobalPosition - GlobalPosition;
-            float distanceSquared = offset.LengthSquared();
-            float alignment = distanceSquared <= Mathf.Epsilon
-                ? 1.0f
-                : _facingDirection.Dot(offset / Mathf.Sqrt(distanceSquared));
-            bool isClose = _closeInteractionArea.OverlapsArea(target);
-            if (!isClose && alignment < minimumAlignment)
+            if (!IsTargetSelectable(target, minimumAlignment))
             {
                 continue;
             }
 
+            float distanceSquared = target.GlobalPosition.DistanceSquaredTo(
+                GlobalPosition
+            );
             int priority = UseTargetPriority ? target.Priority : 0;
             float focusDistanceSquared = target.GlobalPosition.DistanceSquaredTo(
                 focusPosition
@@ -248,6 +273,32 @@ public partial class PlayerInteractor : Node2D
         }
 
         return bestAction;
+    }
+
+    private bool IsTargetSelectable(InteractionTarget target)
+    {
+        float minimumAlignment = Mathf.Cos(
+            Mathf.DegToRad(InteractionConeDegrees * 0.5f)
+        );
+        return IsTargetSelectable(target, minimumAlignment);
+    }
+
+    private bool IsTargetSelectable(
+        InteractionTarget target,
+        float minimumAlignment
+    )
+    {
+        if (_closeInteractionArea.OverlapsArea(target))
+        {
+            return true;
+        }
+
+        Vector2 offset = target.GlobalPosition - GlobalPosition;
+        float distanceSquared = offset.LengthSquared();
+        float alignment = distanceSquared <= Mathf.Epsilon
+            ? 1.0f
+            : _facingDirection.Dot(offset / Mathf.Sqrt(distanceSquared));
+        return alignment >= minimumAlignment;
     }
 
     private HashSet<InteractionTarget> GetTargetsInRange()

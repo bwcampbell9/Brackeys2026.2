@@ -25,4 +25,24 @@ public partial class InteractionTarget : Area2D
 
         return null;
     }
+
+    public bool HasAction(
+        StringName actionId,
+        InteractionInputTrigger trigger
+    )
+    {
+        foreach (Node child in GetChildren())
+        {
+            if (
+                child is InteractionAction action
+                && action.ActionId == actionId
+                && action.Trigger == trigger
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

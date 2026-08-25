@@ -55,9 +55,18 @@ public partial class PlayerInputManager : Node
         {
             StringName inputAction = entry.Key;
             InputState state = entry.Value;
+            bool justPressed = Input.IsActionJustPressed(inputAction);
+            bool justReleased = Input.IsActionJustReleased(inputAction);
+            bool wasHoldActivated = state.HoldActivated;
+            bool wasHoldThresholdReached = state.HoldThresholdReached;
 
-            if (Input.IsActionJustPressed(inputAction))
+            if (justPressed)
             {
+                if (wasHoldActivated)
+                {
+                    _interactor.CancelActiveInteraction();
+                }
+
                 state.HeldTime = 0.0f;
                 state.HoldActivated = false;
                 state.HoldThresholdReached = false;
@@ -87,26 +96,33 @@ public partial class PlayerInputManager : Node
                 }
             }
 
-            if (!Input.IsActionJustReleased(inputAction))
+            if (!justReleased)
             {
                 continue;
             }
 
-            if (state.HoldActivated)
+            if (wasHoldActivated)
             {
-                _interactor.CancelActiveInteraction();
+                if (!justPressed)
+                {
+                    _interactor.CancelActiveInteraction();
+                }
             }
             else if (
-                !state.HoldThresholdReached
+                !wasHoldThresholdReached
                 && !TryExecuteMappedTap(inputAction)
+                && !HasMappedTapTarget(inputAction)
             )
             {
                 _carrier.Throw();
             }
 
-            state.HeldTime = 0.0f;
-            state.HoldActivated = false;
-            state.HoldThresholdReached = false;
+            if (!justPressed)
+            {
+                state.HeldTime = 0.0f;
+                state.HoldActivated = false;
+                state.HoldThresholdReached = false;
+            }
         }
     }
 
@@ -137,6 +153,28 @@ public partial class PlayerInputManager : Node
                 binding.InputAction == inputAction
                 && binding.Trigger == InteractionInputTrigger.Hold
                 && _interactor.TryBegin(binding.ActionIds, context)
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasMappedTapTarget(StringName inputAction)
+    {
+        InteractionContext context = new(_actor, _carrier);
+        foreach (InteractionInputBinding binding in InteractionInputs)
+        {
+            if (
+                binding.InputAction == inputAction
+                && binding.Trigger == InteractionInputTrigger.Tap
+                && _interactor.HasTargetWithAction(
+                    binding.ActionIds,
+                    InteractionInputTrigger.Tap,
+                    context
+                )
             )
             {
                 return true;

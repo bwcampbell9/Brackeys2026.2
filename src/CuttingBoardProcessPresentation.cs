@@ -133,9 +133,12 @@ public partial class CuttingBoardProcessPresentation : Node
 
     private void ResetPresentation()
     {
-        if (GodotObject.IsInstanceValid(_knife))
+        if (
+            GodotObject.IsInstanceValid(_knife)
+            && !_knife!.IsAvailable
+        )
         {
-            _knife!.ResetAttachmentPresentation();
+            _knife.ResetAttachmentPresentation();
         }
         else
         {

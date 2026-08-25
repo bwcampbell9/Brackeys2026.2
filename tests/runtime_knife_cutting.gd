@@ -1,6 +1,7 @@
 extends SceneTree
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
+const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 
 var _failed := false
 
@@ -107,11 +108,24 @@ func _run() -> void:
 		"The held knife must animate over the cutting board.",
 	)
 	Input.action_release("interact")
+	Input.action_press("interact")
 	await _wait_physics_frames(2)
 	_check(_socket_item_id(board_socket) == &"potato", "Canceled cutting must keep raw potato.")
 	_check(not progress_bar.visible, "Canceled cutting must hide the progress bar.")
 	_check(is_zero_approx(progress_bar.value), "Canceled cutting must reset progress.")
-	_check(knife.position.is_zero_approx(), "Canceled cutting must restore the held knife.")
+	_check(_held_item_id(hold_point) == &"knife", "A coalesced re-press must keep the tool held.")
+
+	Input.action_release("interact")
+	await _wait_physics_frames(14)
+	_check(
+		_socket_item_id(board_socket) == &"potato",
+		"A busy board must reject the held tool without replacing its item.",
+	)
+	_check(
+		_held_item_id(hold_point) == &"knife",
+		"A busy board interaction must not throw the held tool.",
+	)
+	_check(knife.position.is_zero_approx(), "A rejected tool must settle at the hold point.")
 
 	Input.action_press("interact")
 	await _wait_physics_frames(120)
@@ -208,6 +222,26 @@ func _run() -> void:
 		"The same transformation must not be applied twice.",
 	)
 	_check(not progress_bar.visible, "An already chopped item must not start processing.")
+
+	var free_board := CUTTING_BOARD_SCENE.instantiate() as StaticBody2D
+	level.add_child(free_board)
+	free_board.global_position = Vector2(712, 302)
+	var free_socket := free_board.get_node("PickupSocket") as Node2D
+	player.global_position = Vector2(672, 350)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(
+		_socket_item_id(board_socket) == &"chopped_knife",
+		"The closer busy board must retain its item.",
+	)
+	_check(
+		_socket_item_id(free_socket) == &"knife",
+		"A farther available board must win over a closer busy board.",
+	)
+	_check(
+		_held_item_id(hold_point).is_empty(),
+		"Placing at the available board must empty the carrier.",
+	)
 
 	level.queue_free()
 	await process_frame
