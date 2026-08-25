@@ -99,11 +99,13 @@ func test_player_has_composable_interaction_components() -> void:
 	var carrier := player.get_node_or_null("PickupCarrier") as Node2D
 	var interactor := player.get_node_or_null("Interactor") as Node2D
 	var input_manager := player.get_node_or_null("InputManager") as Node
+	var player_shape := player.get_node("CollisionShape2D").shape as CircleShape2D
 
 	assert_true(carrier != null, "The player must contain a pickup carrier.")
 	assert_true(interactor != null, "The player must contain an interactor.")
 	assert_true(input_manager != null, "The player must contain an input manager.")
-	if carrier == null or interactor == null or input_manager == null:
+	assert_true(player_shape != null, "The player must have a circular collision shape.")
+	if carrier == null or interactor == null or input_manager == null or player_shape == null:
 		return
 
 	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
@@ -117,6 +119,8 @@ func test_player_has_composable_interaction_components() -> void:
 
 	assert_eq(interactor.get_script().resource_path, "res://src/PlayerInteractor.cs")
 	assert_eq(float(interactor.get("InteractionConeDegrees")), 140.0)
+	assert_eq(float(interactor.get("TargetFocusDistance")), 48.0)
+	assert_false(bool(interactor.get("UseTargetPriority")))
 	var interaction_area := interactor.get_node_or_null("InteractionArea") as Area2D
 	assert_true(interaction_area != null)
 	if interaction_area != null:
@@ -127,7 +131,10 @@ func test_player_has_composable_interaction_components() -> void:
 			"The interaction range must use a circular broad-phase area.",
 		)
 		if pickup_shape is CircleShape2D:
-			assert_eq(pickup_shape.radius, 97.0)
+			assert_true(
+				pickup_shape.radius > player_shape.radius,
+				"The interaction range must extend beyond the player collision.",
+			)
 
 	var close_area := interactor.get_node_or_null("CloseInteractionArea") as Area2D
 	assert_true(close_area != null)

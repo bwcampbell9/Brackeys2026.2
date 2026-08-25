@@ -15,6 +15,12 @@ public partial class PlayerInteractor : Node2D
     [Export(PropertyHint.Range, "1,360,1,degrees")]
     public float InteractionConeDegrees { get; set; } = 140.0f;
 
+    [Export(PropertyHint.Range, "0,200,1,or_greater")]
+    public float TargetFocusDistance { get; set; } = 48.0f;
+
+    [Export]
+    public bool UseTargetPriority { get; set; }
+
     public Vector2 FacingDirection
     {
         get => _facingDirection;
@@ -175,8 +181,10 @@ public partial class PlayerInteractor : Node2D
         float minimumAlignment = Mathf.Cos(
             Mathf.DegToRad(InteractionConeDegrees * 0.5f)
         );
+        Vector2 focusPosition =
+            GlobalPosition + _facingDirection * TargetFocusDistance;
         int bestPriority = int.MinValue;
-        float bestAlignment = float.NegativeInfinity;
+        float bestFocusDistanceSquared = float.PositiveInfinity;
         float bestDistanceSquared = float.PositiveInfinity;
         InteractionAction? bestAction = null;
         bestTarget = null;
@@ -204,14 +212,25 @@ public partial class PlayerInteractor : Node2D
                 continue;
             }
 
+            int priority = UseTargetPriority ? target.Priority : 0;
+            float focusDistanceSquared = target.GlobalPosition.DistanceSquaredTo(
+                focusPosition
+            );
+            bool focusDistancesMatch = Mathf.IsEqualApprox(
+                focusDistanceSquared,
+                bestFocusDistanceSquared
+            );
             bool isBetter =
-                target.Priority > bestPriority
+                priority > bestPriority
                 || (
-                    target.Priority == bestPriority
+                    priority == bestPriority
                     && (
-                        alignment > bestAlignment
+                        (
+                            !focusDistancesMatch
+                            && focusDistanceSquared < bestFocusDistanceSquared
+                        )
                         || (
-                            Mathf.IsEqualApprox(alignment, bestAlignment)
+                            focusDistancesMatch
                             && distanceSquared < bestDistanceSquared
                         )
                     )
@@ -221,8 +240,8 @@ public partial class PlayerInteractor : Node2D
                 continue;
             }
 
-            bestPriority = target.Priority;
-            bestAlignment = alignment;
+            bestPriority = priority;
+            bestFocusDistanceSquared = focusDistanceSquared;
             bestDistanceSquared = distanceSquared;
             bestTarget = target;
             bestAction = action;
