@@ -4,8 +4,12 @@ extends "res://addons/godot_ai/testing/test_suite.gd"
 # The Godot AI scene-test runner currently discovers GDScript suites only.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
+const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const PICKUP_ITEM_SCENE := preload("res://scenes/pickup_item.tscn")
 const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
+const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
+const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
+const CHOP_RECIPE := preload("res://resources/recipes/chop_potato.tres")
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
@@ -83,42 +87,75 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	assert_true(_has_button_binding(interaction_events, JOY_BUTTON_A))
 
 
-func test_player_has_reusable_pickup_carrier() -> void:
+func test_player_has_composable_interaction_components() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var player := level.get_node("Player") as CharacterBody2D
 	var carrier := player.get_node_or_null("PickupCarrier") as Node2D
+	var interactor := player.get_node_or_null("Interactor") as Node2D
+	var input_manager := player.get_node_or_null("InputManager") as Node
 
 	assert_true(carrier != null, "The player must contain a pickup carrier.")
-	if carrier == null:
+	assert_true(interactor != null, "The player must contain an interactor.")
+	assert_true(input_manager != null, "The player must contain an input manager.")
+	if carrier == null or interactor == null or input_manager == null:
 		return
 
 	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
-	assert_eq(float(carrier.get("PickupConeDegrees")), 140.0)
 	assert_true(is_equal_approx(float(carrier.get("PickupDuration")), 0.2))
 	assert_true(float(carrier.get("ThrowForce")) > 0.0)
 	assert_true(carrier.get_node_or_null("HoldPoint") is Node2D)
+	assert_true(
+		carrier.get_node_or_null("PickupArea") == null,
+		"The carrier must not own interaction sensing.",
+	)
 
-	var pickup_area := carrier.get_node_or_null("PickupArea") as Area2D
-	assert_true(pickup_area != null)
-	if pickup_area != null:
-		assert_eq(pickup_area.collision_mask, 2)
-		var pickup_shape: Shape2D = pickup_area.get_node("CollisionShape2D").shape
+	assert_eq(interactor.get_script().resource_path, "res://src/PlayerInteractor.cs")
+	assert_eq(float(interactor.get("InteractionConeDegrees")), 140.0)
+	var interaction_area := interactor.get_node_or_null("InteractionArea") as Area2D
+	assert_true(interaction_area != null)
+	if interaction_area != null:
+		assert_eq(interaction_area.collision_mask, 8)
+		var pickup_shape: Shape2D = interaction_area.get_node("CollisionShape2D").shape
 		assert_true(
 			pickup_shape is CircleShape2D,
-			"The pickup range must use a circular broad-phase area.",
+			"The interaction range must use a circular broad-phase area.",
 		)
 		if pickup_shape is CircleShape2D:
 			assert_eq(pickup_shape.radius, 97.0)
 
-	var close_pickup_area := carrier.get_node_or_null("ClosePickupArea") as Area2D
-	assert_true(close_pickup_area != null)
-	if close_pickup_area != null:
-		assert_eq(close_pickup_area.collision_mask, 2)
+	var close_area := interactor.get_node_or_null("CloseInteractionArea") as Area2D
+	assert_true(close_area != null)
+	if close_area != null:
+		assert_eq(close_area.collision_mask, 8)
 		assert_eq(
-			close_pickup_area.get_node("CollisionShape2D").shape,
+			close_area.get_node("CollisionShape2D").shape,
 			player.get_node("CollisionShape2D").shape,
-			"The omnidirectional pickup area must match the player collision footprint.",
+			"The close interaction area must match the player collision footprint.",
 		)
+
+	assert_eq(input_manager.get_script().resource_path, "res://src/PlayerInputManager.cs")
+	assert_true(is_equal_approx(float(input_manager.get("HoldThreshold")), 0.35))
+
+
+func test_input_manager_has_separate_rebindable_tap_and_hold_mappings() -> void:
+	var player := track(PLAYER_SCENE.instantiate()) as CharacterBody2D
+	Engine.get_main_loop().root.add_child(player)
+	var input_manager := player.get_node("InputManager")
+	var mappings: Array = input_manager.get("InteractionInputs")
+
+	assert_eq(mappings.size(), 2)
+	if mappings.size() != 2:
+		return
+
+	var tap_mapping: Resource = mappings[0]
+	var hold_mapping: Resource = mappings[1]
+	assert_ne(tap_mapping, hold_mapping)
+	assert_eq(tap_mapping.get("InputAction"), &"interact")
+	assert_eq(hold_mapping.get("InputAction"), &"interact")
+	assert_eq(int(tap_mapping.get("Trigger")), 0)
+	assert_eq(int(hold_mapping.get("Trigger")), 1)
+	assert_eq(tap_mapping.get("ActionIds"), [&"transfer"])
+	assert_eq(hold_mapping.get("ActionIds"), [&"process"])
 
 
 func test_pickup_item_has_top_down_physics_contract() -> void:
@@ -133,6 +170,17 @@ func test_pickup_item_has_top_down_physics_contract() -> void:
 	assert_eq(item.collision_mask, 1)
 	assert_eq(item.gravity_scale, 0.0)
 	assert_true(item.get_node("CollisionShape2D").shape is CircleShape2D)
+	var definition: Resource = item.get("Definition")
+	assert_true(definition != null)
+	if definition != null:
+		assert_eq(definition.get("Id"), &"potato")
+	var target := item.get_node_or_null("InteractionTarget") as Area2D
+	assert_true(target != null)
+	if target != null:
+		assert_eq(target.collision_layer, 8)
+		var action := target.get_node("PickupTransferAction")
+		assert_eq(action.get("ActionId"), &"transfer")
+		assert_eq(int(action.get("Trigger")), 0)
 
 
 func test_baby_pickup_item_has_crawl_contract() -> void:
@@ -157,12 +205,65 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 		assert_eq(sprite.sprite_frames.get_frame_texture("crawl", 0).get_width(), 64)
 		assert_eq(sprite.sprite_frames.get_frame_texture("crawl", 1).get_width(), 64)
 
+	var target := baby.get_node_or_null("InteractionTarget") as Area2D
+	assert_true(target != null)
+	if target != null:
+		assert_eq(target.collision_layer, 8)
+
 
 func test_main_scene_has_one_baby_pickup() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var baby: Node = level.get_node_or_null("BabyPickupItem")
 
 	assert_true(baby != null)
+
+
+func test_cutting_board_composes_transfer_process_and_socket() -> void:
+	var board := track(CUTTING_BOARD_SCENE.instantiate()) as StaticBody2D
+	var socket := board.get_node_or_null("PickupSocket")
+	var target := board.get_node_or_null("InteractionTarget") as Area2D
+
+	assert_true(socket != null)
+	assert_true(target != null)
+	if socket == null or target == null:
+		return
+
+	assert_eq(socket.get_script().resource_path, "res://src/PickupSocket.cs")
+	assert_eq(target.collision_layer, 8)
+	assert_eq(target.priority, 2)
+
+	var transfer := target.get_node("TransferItemAction")
+	var process := target.get_node("ProcessItemAction")
+	assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
+	assert_eq(process.get_script().resource_path, "res://src/TimedItemProcessAction.cs")
+	assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
+	assert_eq(process.get("SocketPath"), NodePath("../../PickupSocket"))
+	assert_eq(transfer.get("ActionId"), &"transfer")
+	assert_eq(int(transfer.get("Trigger")), 0)
+	assert_eq(process.get("ActionId"), &"process")
+	assert_eq(int(process.get("Trigger")), 1)
+	assert_eq(process.get("Recipe"), CHOP_RECIPE)
+	assert_eq(CHOP_RECIPE.get("Input").get("Id"), &"potato")
+	assert_eq(CHOP_RECIPE.get("Output").get("Id"), &"chopped_potatoes")
+	assert_true(float(CHOP_RECIPE.get("Duration")) > 0.0)
+
+
+func test_main_scene_has_interactable_container_and_cutting_board() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	var container := level.get_node_or_null("PotatoContainer") as Node2D
+	var board := level.get_node_or_null("CuttingBoard") as StaticBody2D
+
+	assert_true(container != null)
+	assert_true(board != null)
+	if container == null or board == null:
+		return
+
+	assert_eq(container.position, Vector2(96, 430))
+	assert_eq(board.position, Vector2(672, 302))
+	assert_eq(
+		container.get_node("InteractionTarget/PickupContainerAction").get("PickupScene"),
+		PICKUP_ITEM_SCENE,
+	)
 
 
 func _has_key_binding(events: Array, keycode: Key) -> bool:

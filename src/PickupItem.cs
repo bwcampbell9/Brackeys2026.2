@@ -6,14 +6,34 @@ public partial class PickupItem : RigidBody2D
     private Node? _worldParent;
     private uint _worldCollisionLayer;
     private uint _worldCollisionMask;
-    private bool _isHeld;
+    private bool _isAttached;
     private Tween? _pickupTween;
+    private PickupItemDefinition? _definition;
 
-    public bool IsAvailable => !_isHeld;
+    [Export]
+    public PickupItemDefinition? Definition
+    {
+        get => _definition;
+        set
+        {
+            _definition = value;
+            if (IsInsideTree())
+            {
+                ApplyDefinition();
+            }
+        }
+    }
+
+    public bool IsAvailable => !_isAttached;
 
     protected virtual void OnPickedUp() { }
 
     protected virtual void OnThrown() { }
+
+    public override void _Ready()
+    {
+        ApplyDefinition();
+    }
 
     public bool TryPickUp(Node2D holdPoint, float duration)
     {
@@ -26,12 +46,12 @@ public partial class PickupItem : RigidBody2D
             );
         }
 
-        if (_isHeld)
+        if (_isAttached)
         {
             return false;
         }
 
-        _isHeld = true;
+        _isAttached = true;
         _worldParent = GetParent();
         _worldCollisionLayer = CollisionLayer;
         _worldCollisionMask = CollisionMask;
@@ -43,19 +63,41 @@ public partial class PickupItem : RigidBody2D
         CollisionMask = 0;
         Reparent(holdPoint, true);
         OnPickedUp();
+        TweenToAttachment(duration);
+        return true;
+    }
 
+    public bool TryMoveAttachment(Node2D attachmentPoint, float duration)
+    {
+        if (!_isAttached)
+        {
+            return false;
+        }
+
+        Reparent(attachmentPoint, true);
+        TweenToAttachment(duration);
+        return true;
+    }
+
+    public void SetDefinition(PickupItemDefinition definition)
+    {
+        Definition = definition;
+    }
+
+    private void TweenToAttachment(float duration)
+    {
+        _pickupTween?.Kill();
         _pickupTween = CreateTween()
             .SetParallel()
             .SetTrans(Tween.TransitionType.Quad)
             .SetEase(Tween.EaseType.Out);
         _pickupTween.TweenProperty(this, new NodePath("position"), Vector2.Zero, duration);
         _pickupTween.TweenProperty(this, new NodePath("rotation"), 0.0f, duration);
-        return true;
     }
 
     public void Throw(Vector2 impulse)
     {
-        if (!_isHeld)
+        if (!_isAttached)
         {
             return;
         }
@@ -77,8 +119,23 @@ public partial class PickupItem : RigidBody2D
         Sleeping = false;
         LinearVelocity = Vector2.Zero;
         AngularVelocity = 0.0f;
-        _isHeld = false;
+        _isAttached = false;
         OnThrown();
         ApplyCentralImpulse(impulse);
+    }
+
+    private void ApplyDefinition()
+    {
+        if (
+            _definition is null
+            || GetNodeOrNull<Sprite2D>("Sprite2D") is not Sprite2D sprite
+        )
+        {
+            return;
+        }
+
+        sprite.Texture = _definition.Texture;
+        sprite.Modulate = _definition.Modulate;
+        sprite.Scale = _definition.VisualScale;
     }
 }

@@ -1,7 +1,9 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://src/BabyPickupItem.cs" id="1_baby"]
 [ext_resource type="Texture2D" path="res://assets/sprites/baby/baby-Sheet.png" id="2_baby_sheet"]
+[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="3_target"]
+[ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="4_transfer"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_baby_0"]
 atlas = ExtResource("2_baby_sheet")
@@ -37,3 +39,15 @@ shape = SubResource("CircleShape2D_baby")
 sprite_frames = SubResource("SpriteFrames_baby")
 animation = &"crawl"
 frame = 0
+
+[node name="InteractionTarget" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
+shape = SubResource("CircleShape2D_baby")
+
+[node name="PickupTransferAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("4_transfer")

@@ -34,6 +34,7 @@ public partial class BabyPickupItem : PickupItem
 
     public override void _Ready()
     {
+        base._Ready();
         _sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
         _random = new RandomNumberGenerator();
         _random.Randomize();

@@ -1,0 +1,51 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://src/PickupSocket.cs" id="1_socket"]
+[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="2_target"]
+[ext_resource type="Script" path="res://src/SlotTransferAction.cs" id="3_transfer"]
+[ext_resource type="Script" path="res://src/TimedItemProcessAction.cs" id="4_process"]
+[ext_resource type="Resource" path="res://resources/recipes/chop_potato.tres" id="5_recipe"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_board"]
+size = Vector2(96, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 70.0
+
+[node name="CuttingBoard" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Board" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-48, -24, 48, -24, 48, 24, -48, 24)
+color = Color(0.65, 0.42, 0.22, 1)
+
+[node name="Inset" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-39, -16, 39, -16, 39, 16, -39, 16)
+color = Color(0.82, 0.64, 0.39, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_board")
+
+[node name="PickupSocket" type="Node2D" parent="."]
+position = Vector2(0, -8)
+script = ExtResource("1_socket")
+
+[node name="InteractionTarget" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 2
+script = ExtResource("2_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="TransferItemAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("3_transfer")
+SocketPath = NodePath("../../PickupSocket")
+
+[node name="ProcessItemAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("4_process")
+SocketPath = NodePath("../../PickupSocket")
+Recipe = ExtResource("5_recipe")
