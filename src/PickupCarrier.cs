@@ -84,4 +84,16 @@ public partial class PickupCarrier : Node2D
         item.Throw(_facingDirection * ThrowForce);
         return true;
     }
+
+    public bool TryRemoveHeldItem(PickupItem item)
+    {
+        if (HeldItem != item)
+        {
+            return false;
+        }
+
+        _heldItem = null;
+        item.QueueFree();
+        return true;
+    }
 }

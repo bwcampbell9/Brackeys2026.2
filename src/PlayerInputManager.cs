@@ -8,6 +8,7 @@ public partial class PlayerInputManager : Node
     {
         public float HeldTime;
         public bool HoldActivated;
+        public bool HoldThresholdReached;
     }
 
     private static readonly StringName DefaultInputAction = "interact";
@@ -59,14 +60,18 @@ public partial class PlayerInputManager : Node
             {
                 state.HeldTime = 0.0f;
                 state.HoldActivated = false;
+                state.HoldThresholdReached = false;
             }
 
             if (Input.IsActionPressed(inputAction))
             {
                 state.HeldTime += (float)delta;
+                state.HoldThresholdReached =
+                    state.HeldTime >= HoldThreshold
+                    && HasMappedHold(inputAction);
                 if (
                     !state.HoldActivated
-                    && state.HeldTime >= HoldThreshold
+                    && state.HoldThresholdReached
                     && TryBeginMappedHold(inputAction)
                 )
                 {
@@ -91,13 +96,17 @@ public partial class PlayerInputManager : Node
             {
                 _interactor.CancelActiveInteraction();
             }
-            else if (!TryExecuteMappedTap(inputAction))
+            else if (
+                !state.HoldThresholdReached
+                && !TryExecuteMappedTap(inputAction)
+            )
             {
                 _carrier.Throw();
             }
 
             state.HeldTime = 0.0f;
             state.HoldActivated = false;
+            state.HoldThresholdReached = false;
         }
     }
 
@@ -128,6 +137,22 @@ public partial class PlayerInputManager : Node
                 binding.InputAction == inputAction
                 && binding.Trigger == InteractionInputTrigger.Hold
                 && _interactor.TryBegin(binding.ActionIds, context)
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasMappedHold(StringName inputAction)
+    {
+        foreach (InteractionInputBinding binding in InteractionInputs)
+        {
+            if (
+                binding.InputAction == inputAction
+                && binding.Trigger == InteractionInputTrigger.Hold
             )
             {
                 return true;

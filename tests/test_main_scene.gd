@@ -7,9 +7,12 @@ const MAIN_SCENE := preload("res://scenes/main.tscn")
 const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const PICKUP_ITEM_SCENE := preload("res://scenes/pickup_item.tscn")
 const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
+const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
+const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
 const CHOP_RECIPE := preload("res://resources/recipes/chop_potato.tres")
+const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
@@ -224,6 +227,23 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 		assert_eq(target.collision_layer, 8)
 
 
+func test_knife_item_has_pickup_definition() -> void:
+	var knife := track(KNIFE_ITEM_SCENE.instantiate()) as RigidBody2D
+
+	assert_true(knife != null)
+	if knife == null:
+		return
+
+	assert_eq(knife.get_script().resource_path, "res://src/PickupItem.cs")
+	assert_eq(knife.get("Definition"), KNIFE_DEFINITION)
+	assert_eq(KNIFE_DEFINITION.get("Id"), &"knife")
+	assert_eq(
+		KNIFE_DEFINITION.get("Texture").resource_path,
+		"res://assets/sprites/knife.png",
+	)
+	assert_true(knife.get_node("InteractionTarget") is Area2D)
+
+
 func test_main_scene_has_one_baby_pickup() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var baby: Node = level.get_node_or_null("BabyPickupItem")
@@ -272,7 +292,20 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	assert_eq(process.get("Recipe"), CHOP_RECIPE)
 	assert_eq(CHOP_RECIPE.get("Input").get("Id"), &"potato")
 	assert_eq(CHOP_RECIPE.get("Output").get("Id"), &"chopped_potatoes")
+	assert_eq(CHOP_RECIPE.get("RequiredTool"), KNIFE_DEFINITION)
 	assert_true(float(CHOP_RECIPE.get("Duration")) > 0.0)
+	var progress_bar := board.get_node_or_null("ProgressBar") as ProgressBar
+	assert_true(progress_bar != null)
+	if progress_bar != null:
+		assert_false(progress_bar.visible)
+		assert_eq(progress_bar.max_value, 100.0)
+	var presentation := board.get_node_or_null("ProcessPresentation")
+	assert_true(presentation != null)
+	if presentation != null:
+		assert_eq(
+			presentation.get_script().resource_path,
+			"res://src/CuttingBoardProcessPresentation.cs",
+		)
 
 
 func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
@@ -302,6 +335,35 @@ func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
 		container.get_node("InteractionTarget/PickupContainerAction").get("PickupScene"),
 		PICKUP_ITEM_SCENE,
 	)
+	assert_eq(
+		container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem").get("Id"),
+		&"potato",
+	)
+
+
+func test_knife_container_supplies_the_knife_scene() -> void:
+	var container := track(KNIFE_CONTAINER_SCENE.instantiate()) as StaticBody2D
+
+	assert_true(container != null)
+	if container == null:
+		return
+
+	var texture := container.get_node("Sprite2D").texture as AtlasTexture
+	assert_true(texture != null)
+	if texture != null:
+		assert_eq(
+			texture.atlas.resource_path,
+			"res://assets/sprites/workstations_tilemap/workstations.png",
+		)
+		assert_eq(texture.region, Rect2(192, 0, 64, 64))
+	assert_eq(
+		container.get_node("InteractionTarget/PickupContainerAction").get("PickupScene"),
+		KNIFE_ITEM_SCENE,
+	)
+	assert_eq(
+		container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem"),
+		KNIFE_DEFINITION,
+	)
 
 
 func test_main_scene_has_interactable_container_and_cutting_board() -> void:
@@ -318,19 +380,26 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 		workstations.tile_set.resource_path,
 		"res://assets/sprites/workstations_tilemap/workstations_tiles.tres",
 	)
-	assert_eq(workstations.get_used_cells(), [Vector2i(1, 6), Vector2i(10, 4)])
+	assert_eq(
+		workstations.get_used_cells(),
+		[Vector2i(1, 6), Vector2i(10, 4), Vector2i(11, 4)],
+	)
 
 	var source := workstations.tile_set.get_source(0) as TileSetScenesCollectionSource
 	assert_true(source != null, "Workstations must use a scene collection tile source.")
 	if source == null:
 		return
 
+	assert_eq(source.get_scene_tiles_count(), 3)
 	assert_eq(workstations.get_cell_atlas_coords(Vector2i(1, 6)), Vector2i.ZERO)
 	assert_eq(workstations.get_cell_atlas_coords(Vector2i(10, 4)), Vector2i.ZERO)
+	assert_eq(workstations.get_cell_atlas_coords(Vector2i(11, 4)), Vector2i.ZERO)
 	var container_tile_id := workstations.get_cell_alternative_tile(Vector2i(1, 6))
 	var board_tile_id := workstations.get_cell_alternative_tile(Vector2i(10, 4))
+	var knife_container_tile_id := workstations.get_cell_alternative_tile(Vector2i(11, 4))
 	assert_eq(source.get_scene_tile_scene(container_tile_id), POTATO_CONTAINER_SCENE)
 	assert_eq(source.get_scene_tile_scene(board_tile_id), CUTTING_BOARD_SCENE)
+	assert_eq(source.get_scene_tile_scene(knife_container_tile_id), KNIFE_CONTAINER_SCENE)
 	assert_eq(
 		workstations.map_to_local(Vector2i(1, 6)) + workstations.position,
 		Vector2(96, 430),
@@ -338,6 +407,10 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 	assert_eq(
 		workstations.map_to_local(Vector2i(10, 4)) + workstations.position,
 		Vector2(672, 302),
+	)
+	assert_eq(
+		workstations.map_to_local(Vector2i(11, 4)) + workstations.position,
+		Vector2(736, 302),
 	)
 
 

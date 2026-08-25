@@ -13,6 +13,9 @@ public partial class PickupContainerAction : InteractionAction
     [Export]
     public PackedScene? PickupScene { get; set; }
 
+    [Export]
+    public PickupItemDefinition? AcceptedItem { get; set; }
+
     public override bool IsAvailable(InteractionContext context)
     {
         return context.Carrier.HeldItem is not null || PickupScene is not null;
@@ -22,6 +25,14 @@ public partial class PickupContainerAction : InteractionAction
     {
         if (context.Carrier.HeldItem is PickupItem heldItem)
         {
+            if (
+                AcceptedItem is not null
+                && heldItem.Definition == AcceptedItem
+            )
+            {
+                return context.Carrier.TryRemoveHeldItem(heldItem);
+            }
+
             Shake(heldItem);
             return true;
         }

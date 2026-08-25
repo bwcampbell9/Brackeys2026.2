@@ -14,7 +14,7 @@ tile_set = ExtResource("1_0wfyh")
 
 [node name="Workstations" type="TileMapLayer" parent="."]
 position = Vector2(0, 14)
-tile_map_data = PackedByteArray(0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1, 0)
+tile_map_data = PackedByteArray(0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1, 0, 11, 0, 4, 0, 0, 0, 0, 0, 0, 0, 2, 0)
 tile_set = ExtResource("3_workstations")
 
 [node name="Player" parent="." unique_id=1644566602 instance=ExtResource("1_o5qli")]
