@@ -29,6 +29,7 @@ public partial class NpcTaskRunner : Node
     private IItemSource? _source;
     private IItemSource? _returnSource;
     private PickupItemDefinition? _selectedDefinition;
+    private NpcTaskFailureMode? _selectedFailureMode;
     private float _retryRemaining;
     private float _wanderWait;
 
@@ -47,8 +48,8 @@ public partial class NpcTaskRunner : Node
         "kitchen",
     };
 
-    [Export(PropertyHint.Range, "0,1,0.01")]
-    public float FetchMistakeChance { get; set; } = 0.35f;
+    [Export]
+    public NpcPersonality? Personality { get; set; }
 
     [Export(PropertyHint.Range, "0.1,10,0.1,or_greater")]
     public float RetryDelay { get; set; } = 1.0f;
@@ -69,6 +70,11 @@ public partial class NpcTaskRunner : Node
         _selectedDefinition?.Id ?? new StringName();
 
     public long CurrentTaskId => _task?.Id ?? 0;
+
+    public int SelectedFailureMode =>
+        _selectedFailureMode.HasValue
+            ? (int)_selectedFailureMode.Value
+            : -1;
 
     public override void _Ready()
     {
@@ -142,6 +148,7 @@ public partial class NpcTaskRunner : Node
         _source = null;
         _returnSource = null;
         _selectedDefinition = null;
+        _selectedFailureMode = null;
         _broker.TasksChanged += OnTasksChanged;
         _motor.Stop();
         SetState(NpcWorkerState.Idle);
@@ -237,6 +244,7 @@ public partial class NpcTaskRunner : Node
                 this,
                 _capabilityTags,
                 _actor.GlobalPosition,
+                IsTaskReady,
                 out NpcTaskRequest? task
             )
             || task is null
@@ -257,10 +265,11 @@ public partial class NpcTaskRunner : Node
                 return true;
             }
 
-            _selectedDefinition = RollFetchDefinition(requestedItem);
+            _selectedDefinition = RollFetchDefinition(task, requestedItem);
         }
         else
         {
+            _selectedFailureMode = null;
             _selectedDefinition = task.RequiredTool;
             if (_selectedDefinition is null)
             {
@@ -274,22 +283,43 @@ public partial class NpcTaskRunner : Node
     }
 
     private PickupItemDefinition RollFetchDefinition(
+        NpcTaskRequest task,
         PickupItemDefinition requestedItem
     )
     {
-        if (
-            _catalog is null
-            || _random.Randf() >= FetchMistakeChance
-        )
+        if (_catalog is null)
         {
             return requestedItem;
         }
 
         List<PickupItemDefinition> alternatives =
             _catalog.GetAvailableDefinitionsExcluding(requestedItem, this);
-        return alternatives.Count == 0
-            ? requestedItem
-            : alternatives[_random.RandiRange(0, alternatives.Count - 1)];
+        _selectedFailureMode = NpcFailurePolicy.Select(
+            task.Definition,
+            Personality,
+            _random,
+            mode =>
+                mode == NpcTaskFailureMode.WrongFetchedItem
+                && alternatives.Count > 0
+        );
+        return _selectedFailureMode == NpcTaskFailureMode.WrongFetchedItem
+            ? alternatives[_random.RandiRange(0, alternatives.Count - 1)]
+            : requestedItem;
+    }
+
+    private bool IsTaskReady(NpcTaskRequest task)
+    {
+        if (_catalog is null)
+        {
+            return false;
+        }
+
+        PickupItemDefinition? requiredItem =
+            task.Definition.Kind == NpcTaskKind.Fetch
+                ? task.RequestedItem
+                : task.RequiredTool;
+        return requiredItem is null
+            || _catalog.HasAvailableSource(requiredItem, this);
     }
 
     private void TrySelectSourceOrWait()
@@ -516,6 +546,7 @@ public partial class NpcTaskRunner : Node
         _task = null;
         _source = null;
         _selectedDefinition = null;
+        _selectedFailureMode = null;
         _wanderWait = WanderDelay;
         SetState(NpcWorkerState.Idle);
     }

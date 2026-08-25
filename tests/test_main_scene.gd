@@ -310,6 +310,15 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 		worker.get_node("NpcTaskRunner").get_script().resource_path,
 		"res://src/NpcTaskRunner.cs",
 	)
+	var personality: Resource = worker.get_node("NpcTaskRunner").get("Personality")
+	assert_true(personality != null)
+	if personality != null:
+		assert_true(is_equal_approx(float(personality.get("FailureChance")), 0.6))
+		var tendencies: Array = personality.get("FailureTendencies")
+		assert_eq(tendencies.size(), 1)
+		if tendencies.size() == 1:
+			assert_eq(int(tendencies[0].get("Mode")), 0)
+			assert_true(is_equal_approx(float(tendencies[0].get("Weight")), 1.0))
 	assert_true(worker.get_node_or_null("NavigationAgent2D") is NavigationAgent2D)
 	assert_true(worker.get_node_or_null("PickupCarrier/HoldPoint") is Node2D)
 	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
@@ -341,6 +350,15 @@ func test_workstation_and_sources_expose_npc_task_contracts() -> void:
 	assert_eq(PROCESS_TASK.get("Kind"), 1)
 	assert_eq(FETCH_TASK.get("RequiredTags"), [&"kitchen"])
 	assert_eq(PROCESS_TASK.get("RequiredTags"), [&"kitchen"])
+	var fetch_failures: Array = FETCH_TASK.get("FailureOptions")
+	var process_failures: Array = PROCESS_TASK.get("FailureOptions")
+	assert_eq(fetch_failures.size(), 1)
+	if fetch_failures.size() == 1:
+		assert_eq(int(fetch_failures[0].get("Mode")), 0)
+	assert_true(
+		process_failures.is_empty(),
+		"Processing must not permit nonsensical wrong-tool failures.",
+	)
 	assert_eq(potato_item_source.get("ItemDefinition"), POTATO_DEFINITION)
 	assert_eq(knife_item_source.get("ItemDefinition"), KNIFE_DEFINITION)
 	assert_eq(potato_item_source.position, Vector2(64, 0))

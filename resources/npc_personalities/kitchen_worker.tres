@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="NpcPersonality" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/NpcPersonality.cs" id="1_personality"]
+[ext_resource type="Script" path="res://src/NpcFailureTendency.cs" id="2_tendency"]
+
+[sub_resource type="Resource" id="Resource_wrong_fetch_tendency"]
+script = ExtResource("2_tendency")
+Mode = 0
+Weight = 1.0
+
+[resource]
+script = ExtResource("1_personality")
+FailureChance = 0.6
+FailureTendencies = Array[ExtResource("2_tendency")]([SubResource("Resource_wrong_fetch_tendency")])

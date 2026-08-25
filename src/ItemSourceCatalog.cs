@@ -45,6 +45,25 @@ public partial class ItemSourceCatalog : Node
         return definitions;
     }
 
+    public bool HasAvailableSource(
+        PickupItemDefinition definition,
+        Node requester
+    )
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(requester);
+
+        foreach (IItemSource source in GetAvailableSources(requester))
+        {
+            if (source.AvailableDefinition == definition)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool TryReserveSource(
         PickupItemDefinition definition,
         Node requester,

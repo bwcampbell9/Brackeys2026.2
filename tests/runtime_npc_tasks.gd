@@ -12,6 +12,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await _run_correct_fetch_scenario()
+	await _run_impossible_fetch_readiness_scenario()
 	await _run_stolen_wrong_item_scenario()
 	await _run_two_kitchen_scope_scenario()
 	print("npc_tasks_runtime=", "passed" if not _failed else "failed")
@@ -22,7 +23,7 @@ func _run_correct_fetch_scenario() -> void:
 	var level := MAIN_SCENE.instantiate()
 	var worker := level.get_node("NpcWorker") as CharacterBody2D
 	var runner := worker.get_node("NpcTaskRunner")
-	runner.set("FetchMistakeChance", 0.0)
+	runner.set("Personality", null)
 	runner.set("RandomSeed", 42)
 	root.add_child(level)
 	await process_frame
@@ -78,11 +79,60 @@ func _run_correct_fetch_scenario() -> void:
 	await process_frame
 
 
+func _run_impossible_fetch_readiness_scenario() -> void:
+	var level := MAIN_SCENE.instantiate()
+	var runner := level.get_node("NpcWorker/NpcTaskRunner")
+	var personality: Resource = runner.get("Personality").duplicate(true)
+	personality.set("FailureChance", 1.0)
+	runner.set("Personality", personality)
+	runner.set("RandomSeed", 19)
+	runner.process_mode = Node.PROCESS_MODE_DISABLED
+	root.add_child(level)
+	await process_frame
+	await process_frame
+
+	var potato_source := level.get_node("Workstations/PotatoContainer/NpcItemSource")
+	potato_source.set("ItemDefinition", null)
+	runner.process_mode = Node.PROCESS_MODE_INHERIT
+	await _wait_physics_frames(120)
+
+	var broker := level.get_node("TaskSystem/TaskBroker")
+	_check(
+		int(runner.get("CurrentTaskId")) == 0
+		and int(broker.get("OpenTaskCount")) == 1
+		and int(broker.get("ClaimedTaskCount")) == 0,
+		(
+			"A fetch with no correct source must remain published but unclaimed, "
+			+ "even when wrong items are available."
+		),
+	)
+
+	potato_source.set("ItemDefinition", preload("res://resources/items/potato.tres"))
+	var became_claimable := await _wait_until(
+		func() -> bool: return int(runner.get("CurrentTaskId")) != 0,
+		300,
+	)
+	_check(
+		became_claimable,
+		"The existing fetch demand must become claimable when its correct source appears.",
+	)
+	_check(
+		int(runner.get("SelectedFailureMode")) == 0
+		and runner.get("SelectedItemId") != &"potato",
+		"A personality mistake may be selected only after the success path is feasible.",
+	)
+
+	level.queue_free()
+	await process_frame
+
+
 func _run_stolen_wrong_item_scenario() -> void:
 	var level := MAIN_SCENE.instantiate()
 	var worker := level.get_node("NpcWorker") as CharacterBody2D
 	var runner := worker.get_node("NpcTaskRunner")
-	runner.set("FetchMistakeChance", 1.0)
+	var personality: Resource = runner.get("Personality").duplicate(true)
+	personality.set("FailureChance", 1.0)
+	runner.set("Personality", personality)
 	runner.set("RandomSeed", 7)
 	runner.set("RetryDelay", 1.0)
 	runner.process_mode = Node.PROCESS_MODE_DISABLED
@@ -152,7 +202,29 @@ func _run_stolen_wrong_item_scenario() -> void:
 		),
 	)
 
+	await _wait_physics_frames(120)
+	var broker := level.get_node("TaskSystem/TaskBroker")
+	_check(
+		int(runner.get("CurrentTaskId")) == 0
+		and int(broker.get("OpenTaskCount")) == 1
+		and int(broker.get("ClaimedTaskCount")) == 0,
+		"An action task must remain unclaimed while its required knife is unavailable.",
+	)
+
 	knife_source.set("ItemDefinition", KNIFE_DEFINITION)
+	var selected_valid_tool := await _wait_until(
+		func() -> bool:
+			return (
+				int(runner.get("State")) == 4
+				and runner.get("SelectedItemId") == &"knife"
+				and int(runner.get("SelectedFailureMode")) == -1
+			),
+		900,
+	)
+	_check(
+		selected_valid_tool,
+		"An action task must use its required knife and cannot substitute the baby.",
+	)
 	var processed_wrong_item := await _wait_until(
 		func() -> bool: return _socket_item_id(board_socket) == &"chopped_baby",
 		1200,

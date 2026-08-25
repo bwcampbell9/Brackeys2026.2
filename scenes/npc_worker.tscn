@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Texture2D" uid="uid://bnpckbedl3epj" path="res://assets/sprites/Sprite1.png" id="1_sprite"]
 [ext_resource type="Script" uid="uid://da23ug7lkfcpv" path="res://src/PickupCarrier.cs" id="2_carrier"]
 [ext_resource type="Script" uid="uid://ban1ufd7vpf00" path="res://src/NpcMotor.cs" id="3_motor"]
 [ext_resource type="Script" uid="uid://dw2k68gkwmy4l" path="res://src/NpcTaskRunner.cs" id="4_runner"]
+[ext_resource type="Resource" path="res://resources/npc_personalities/kitchen_worker.tres" id="5_personality"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_worker"]
 radius = 20.0
@@ -34,3 +35,4 @@ position = Vector2(0, -42)
 
 [node name="NpcTaskRunner" type="Node" parent="."]
 script = ExtResource("4_runner")
+Personality = ExtResource("5_personality")

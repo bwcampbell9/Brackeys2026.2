@@ -68,11 +68,13 @@ public partial class TaskBroker : Node
         Node claimant,
         IReadOnlySet<StringName> capabilityTags,
         Vector2 origin,
+        Predicate<NpcTaskRequest> isReady,
         out NpcTaskRequest? task
     )
     {
         ArgumentNullException.ThrowIfNull(claimant);
         ArgumentNullException.ThrowIfNull(capabilityTags);
+        ArgumentNullException.ThrowIfNull(isReady);
 
         task = null;
         foreach (NpcTaskRequest candidate in _tasks.Values)
@@ -80,6 +82,7 @@ public partial class TaskBroker : Node
             if (
                 candidate.Status != NpcTaskStatus.Open
                 || !IsEligible(candidate.Definition, capabilityTags)
+                || !isReady(candidate)
                 || (
                     task is not null
                     && !IsHigherPriority(candidate, task, origin)

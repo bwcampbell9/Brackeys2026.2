@@ -20,5 +20,8 @@ public partial class NpcTaskDefinition : Resource
     public Array<StringName> RequiredTags { get; set; } = new();
 
     [Export]
+    public Array<NpcTaskFailureOption> FailureOptions { get; set; } = new();
+
+    [Export]
     public int Priority { get; set; }
 }
