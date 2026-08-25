@@ -1,9 +1,8 @@
+using System;
 using Godot;
 
 public partial class PickupContainerAction : InteractionAction
 {
-    private Tween? _shakeTween;
-
     public PickupContainerAction()
     {
         ActionId = InteractionActionIds.Transfer;
@@ -16,6 +15,12 @@ public partial class PickupContainerAction : InteractionAction
     [Export]
     public PickupItemDefinition? AcceptedItem { get; set; }
 
+    [Export(PropertyHint.Range, "0.05,2,0.01,or_greater")]
+    public float ReturnDuration { get; set; } = 0.35f;
+
+    [Export(PropertyHint.Range, "0,8,0.25,or_greater")]
+    public float ReturnSpinTurns { get; set; } = 1.5f;
+
     public override bool IsAvailable(InteractionContext context)
     {
         return context.Carrier.HeldItem is not null || PickupScene is not null;
@@ -23,6 +28,7 @@ public partial class PickupContainerAction : InteractionAction
 
     public override bool Execute(InteractionContext context)
     {
+        Node2D container = GetInteractionTarget().TargetOwner;
         if (context.Carrier.HeldItem is PickupItem heldItem)
         {
             if (
@@ -30,10 +36,27 @@ public partial class PickupContainerAction : InteractionAction
                 && heldItem.Definition == AcceptedItem
             )
             {
-                return context.Carrier.TryRemoveHeldItem(heldItem);
+                if (ReturnDuration < 0.0f)
+                {
+                    throw new InvalidOperationException(
+                        $"{Name} requires a non-negative return duration."
+                    );
+                }
+
+                if (!context.Carrier.TryReleaseHeldItem(heldItem))
+                {
+                    return false;
+                }
+
+                heldItem.AnimateReturnTo(
+                    container,
+                    ReturnDuration,
+                    ReturnSpinTurns
+                );
+                return true;
             }
 
-            Shake(heldItem);
+            heldItem.PlayShake();
             return true;
         }
 
@@ -42,7 +65,6 @@ public partial class PickupContainerAction : InteractionAction
             return false;
         }
 
-        Node2D container = GetInteractionTarget().TargetOwner;
         PickupItem item = PickupScene.Instantiate<PickupItem>();
         context.WorldItemRoot.AddChild(item);
         item.GlobalPosition = container.GlobalPosition;
@@ -53,16 +75,5 @@ public partial class PickupContainerAction : InteractionAction
 
         item.QueueFree();
         return false;
-    }
-
-    private void Shake(PickupItem item)
-    {
-        _shakeTween?.Kill();
-        _shakeTween = item.CreateTween();
-        _shakeTween.SetTrans(Tween.TransitionType.Sine);
-        _shakeTween.SetEase(Tween.EaseType.InOut);
-        _shakeTween.TweenProperty(item, new NodePath("rotation"), 0.12f, 0.05f);
-        _shakeTween.TweenProperty(item, new NodePath("rotation"), -0.12f, 0.1f);
-        _shakeTween.TweenProperty(item, new NodePath("rotation"), 0.0f, 0.05f);
     }
 }

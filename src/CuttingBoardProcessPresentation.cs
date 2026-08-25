@@ -98,7 +98,7 @@ public partial class CuttingBoardProcessPresentation : Node
         _knife.GlobalPosition = raisedPosition;
         _knife.GlobalRotation = -0.8f;
 
-        _knifeTween = _knife.CreateTween().SetLoops();
+        _knifeTween = _knife.StartMotionTween().SetLoops();
         _knifeTween.SetTrans(Tween.TransitionType.Sine);
         _knifeTween.SetEase(Tween.EaseType.InOut);
         _knifeTween.TweenProperty(
@@ -133,15 +133,16 @@ public partial class CuttingBoardProcessPresentation : Node
 
     private void ResetPresentation()
     {
-        _knifeTween?.Kill();
-        _knifeTween = null;
-
         if (GodotObject.IsInstanceValid(_knife))
         {
-            _knife!.Position = Vector2.Zero;
-            _knife.Rotation = 0.0f;
+            _knife!.ResetAttachmentPresentation();
+        }
+        else
+        {
+            _knifeTween?.Kill();
         }
 
+        _knifeTween = null;
         _knife = null;
         if (GodotObject.IsInstanceValid(_progressBar))
         {

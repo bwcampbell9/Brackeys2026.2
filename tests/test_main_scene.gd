@@ -339,6 +339,11 @@ func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
 		container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem").get("Id"),
 		&"potato",
 	)
+	assert_true(
+		float(
+			container.get_node("InteractionTarget/PickupContainerAction").get("ReturnDuration")
+		) > 0.0
+	)
 
 
 func test_knife_container_supplies_the_knife_scene() -> void:
@@ -363,6 +368,11 @@ func test_knife_container_supplies_the_knife_scene() -> void:
 	assert_eq(
 		container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem"),
 		KNIFE_DEFINITION,
+	)
+	assert_true(
+		float(
+			container.get_node("InteractionTarget/PickupContainerAction").get("ReturnSpinTurns")
+		) > 0.0
 	)
 
 

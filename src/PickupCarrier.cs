@@ -85,15 +85,13 @@ public partial class PickupCarrier : Node2D
         return true;
     }
 
-    public bool TryRemoveHeldItem(PickupItem item)
+    public bool TryReleaseHeldItem(PickupItem item)
     {
         if (HeldItem != item)
         {
             return false;
         }
-
         _heldItem = null;
-        item.QueueFree();
         return true;
     }
 }

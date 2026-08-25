@@ -18,22 +18,61 @@ func _run() -> void:
 
 	var player := level.get_node("Player") as CharacterBody2D
 	var hold_point := player.get_node("PickupCarrier/HoldPoint") as Node2D
+	var potato_container := level.get_node("Workstations/PotatoContainer") as StaticBody2D
 	var board := level.get_node("Workstations/CuttingBoard") as StaticBody2D
 	var board_socket := board.get_node("PickupSocket") as Node2D
 	var progress_bar := board.get_node("ProgressBar") as ProgressBar
-	_check(
-		level.get_node_or_null("Workstations/KnifeContainer") != null,
-		"The knife container scene tile must instantiate.",
-	)
+	var knife_container := level.get_node("Workstations/KnifeContainer") as StaticBody2D
 
 	player.global_position = Vector2(156, 430)
 	await _wait_physics_frames(2)
 	await _tap_interact()
 	_check(_held_item_id(hold_point) == &"potato", "The potato container must supply a potato.")
+	var returning_potato := hold_point.get_child(0) as Node2D
+	var potato_start_position := returning_potato.global_position
+	var potato_start_rotation := returning_potato.rotation
 	await _tap_interact()
 	_check(_held_item_id(hold_point).is_empty(), "The potato container must accept a held potato.")
+	await _wait_physics_frames(4)
+	_check(
+		is_instance_valid(returning_potato) and returning_potato.get_parent() == potato_container,
+		"A returned potato must remain under its supplier while the animation plays.",
+	)
+	_check(
+		returning_potato.global_position.distance_to(potato_start_position) > 0.5,
+		"A returned potato must move toward its supplier.",
+	)
+	_check(
+		returning_potato.scale.length() < Vector2.ONE.length(),
+		"A returned potato must shrink during its animation.",
+	)
+	_check(
+		absf(returning_potato.rotation - potato_start_rotation) > 0.05,
+		"A returned potato must spin during its animation.",
+	)
 	await _tap_interact()
-	_check(_held_item_id(hold_point) == &"potato", "The potato container must resupply a potato.")
+	_check(
+		_held_item_id(hold_point) == &"potato",
+		"The potato container must resupply while the previous item returns.",
+	)
+	await _wait_physics_frames(24)
+	_check(not is_instance_valid(returning_potato), "A returned potato must be freed after animating.")
+
+	var held_potato := hold_point.get_child(0) as Node2D
+	player.global_position = Vector2(736, 370)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(
+		hold_point.get_child_count() == 1 and hold_point.get_child(0) == held_potato,
+		"A wrong supplier must keep the held item.",
+	)
+	await _wait_physics_frames(12)
+	_check(
+		held_potato.position.is_zero_approx()
+		and is_zero_approx(held_potato.rotation)
+		and held_potato.scale.is_equal_approx(Vector2.ONE),
+		"A wrong-item shake must settle an interrupted pickup animation at the hold point.",
+	)
 
 	player.global_position = Vector2(620, 340)
 	await _wait_physics_frames(2)
@@ -88,8 +127,25 @@ func _run() -> void:
 
 	player.global_position = Vector2(736, 370)
 	await _wait_physics_frames(2)
+	var returning_knife := hold_point.get_child(0) as Node2D
+	var knife_start_rotation := returning_knife.rotation
 	await _tap_interact()
 	_check(_held_item_id(hold_point).is_empty(), "The knife container must accept a held knife.")
+	await _wait_physics_frames(4)
+	_check(
+		is_instance_valid(returning_knife) and returning_knife.get_parent() == knife_container,
+		"A returned knife must remain under its supplier while the animation plays.",
+	)
+	_check(
+		returning_knife.scale.length() < Vector2.ONE.length(),
+		"A returned knife must shrink during its animation.",
+	)
+	_check(
+		absf(returning_knife.rotation - knife_start_rotation) > 0.05,
+		"A returned knife must spin during its animation.",
+	)
+	await _wait_physics_frames(24)
+	_check(not is_instance_valid(returning_knife), "A returned knife must be freed after animating.")
 
 	level.queue_free()
 	await process_frame
