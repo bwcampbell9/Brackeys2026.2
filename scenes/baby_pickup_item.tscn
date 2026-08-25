@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/BabyPickupItem.cs" id="1_baby"]
+[ext_resource type="Texture2D" path="res://assets/sprites/baby/baby-Sheet.png" id="2_baby_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_baby_0"]
+atlas = ExtResource("2_baby_sheet")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_baby_1"]
+atlas = ExtResource("2_baby_sheet")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_baby"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_baby_0")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_baby_1")}],
+"loop": true,
+"name": &"crawl",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_baby"]
+radius = 32.01562
+
+[node name="BabyPickupItem" type="RigidBody2D"]
+collision_layer = 2
+collision_mask = 1
+gravity_scale = 0.0
+linear_damp = 4.0
+angular_damp = 4.0
+script = ExtResource("1_baby")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_baby")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_baby")
+animation = &"crawl"
+frame = 0

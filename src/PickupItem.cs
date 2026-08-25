@@ -11,6 +11,10 @@ public partial class PickupItem : RigidBody2D
 
     public bool IsAvailable => !_isHeld;
 
+    protected virtual void OnPickedUp() { }
+
+    protected virtual void OnThrown() { }
+
     public bool TryPickUp(Node2D holdPoint, float duration)
     {
         if (duration < 0.0f)
@@ -38,6 +42,7 @@ public partial class PickupItem : RigidBody2D
         CollisionLayer = 0;
         CollisionMask = 0;
         Reparent(holdPoint, true);
+        OnPickedUp();
 
         _pickupTween = CreateTween()
             .SetParallel()
@@ -73,6 +78,7 @@ public partial class PickupItem : RigidBody2D
         LinearVelocity = Vector2.Zero;
         AngularVelocity = 0.0f;
         _isHeld = false;
+        OnThrown();
         ApplyCentralImpulse(impulse);
     }
 }

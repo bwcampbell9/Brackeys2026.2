@@ -2,6 +2,7 @@
 
 [ext_resource type="TileSet" uid="uid://ciw6kf1ng1iyo" path="res://room_tiles.tres" id="1_0wfyh"]
 [ext_resource type="PackedScene" uid="uid://b688vrtt4173h" path="res://scenes/player.tscn" id="1_o5qli"]
+[ext_resource type="PackedScene" path="res://scenes/baby_pickup_item.tscn" id="2_baby"]
 
 [node name="Kitchen" type="Node2D" unique_id=1599987340]
 
@@ -12,6 +13,9 @@ tile_set = ExtResource("1_0wfyh")
 
 [node name="Player" parent="." unique_id=1644566602 instance=ExtResource("1_o5qli")]
 position = Vector2(480, 270)
+
+[node name="BabyPickupItem" parent="." instance=ExtResource("2_baby")]
+position = Vector2(480, 200)
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
 

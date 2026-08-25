@@ -5,6 +5,7 @@ extends "res://addons/godot_ai/testing/test_suite.gd"
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const PICKUP_ITEM_SCENE := preload("res://scenes/pickup_item.tscn")
+const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
@@ -93,7 +94,7 @@ func test_player_has_reusable_pickup_carrier() -> void:
 
 	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
 	assert_eq(float(carrier.get("PickupConeDegrees")), 140.0)
-	assert_eq(float(carrier.get("PickupDuration")), 0.2)
+	assert_true(is_equal_approx(float(carrier.get("PickupDuration")), 0.2))
 	assert_true(float(carrier.get("ThrowForce")) > 0.0)
 	assert_true(carrier.get_node_or_null("HoldPoint") is Node2D)
 
@@ -101,7 +102,7 @@ func test_player_has_reusable_pickup_carrier() -> void:
 	assert_true(pickup_area != null)
 	if pickup_area != null:
 		assert_eq(pickup_area.collision_mask, 2)
-		var pickup_shape := pickup_area.get_node("CollisionShape2D").shape
+		var pickup_shape: Shape2D = pickup_area.get_node("CollisionShape2D").shape
 		assert_true(
 			pickup_shape is CircleShape2D,
 			"The pickup range must use a circular broad-phase area.",
@@ -132,6 +133,36 @@ func test_pickup_item_has_top_down_physics_contract() -> void:
 	assert_eq(item.collision_mask, 1)
 	assert_eq(item.gravity_scale, 0.0)
 	assert_true(item.get_node("CollisionShape2D").shape is CircleShape2D)
+
+
+func test_baby_pickup_item_has_crawl_contract() -> void:
+	var baby: RigidBody2D = track(BABY_PICKUP_ITEM_SCENE.instantiate()) as RigidBody2D
+
+	assert_true(baby != null)
+	if baby == null:
+		return
+
+	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
+	assert_eq(baby.collision_layer, 2)
+	assert_eq(baby.collision_mask, 1)
+	var shape: CircleShape2D = baby.get_node("CollisionShape2D").shape as CircleShape2D
+	assert_true(shape != null)
+	if shape != null:
+		assert_true(is_equal_approx(shape.radius, 32.01562))
+
+	var sprite := baby.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite != null:
+		assert_eq(sprite.sprite_frames.get_frame_count("crawl"), 2)
+		assert_eq(sprite.sprite_frames.get_frame_texture("crawl", 0).get_width(), 64)
+		assert_eq(sprite.sprite_frames.get_frame_texture("crawl", 1).get_width(), 64)
+
+
+func test_main_scene_has_one_baby_pickup() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	var baby: Node = level.get_node_or_null("BabyPickupItem")
+
+	assert_true(baby != null)
 
 
 func _has_key_binding(events: Array, keycode: Key) -> bool:
