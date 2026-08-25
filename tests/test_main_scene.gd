@@ -53,6 +53,12 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	assert_eq(room_tiles.get_used_cells().size(), 120)
 	var wall_data = room_tiles.tile_set.get_source(0).get_tile_data(Vector2i(1, 0), 0)
 	assert_eq(wall_data.get_collision_polygons_count(0), 1)
+	var replaced_container_data = room_tiles.tile_set.get_source(1).get_tile_data(
+		Vector2i(0, 0),
+		0,
+	)
+	assert_eq(replaced_container_data.get_collision_polygons_count(0), 0)
+	assert_eq(room_tiles.tile_set.get_custom_data_layers_count(), 0)
 
 	var project_config := ConfigFile.new()
 	assert_eq(project_config.load("res://project.godot"), OK)
@@ -229,6 +235,20 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 		return
 
 	assert_eq(socket.get_script().resource_path, "res://src/PickupSocket.cs")
+	var board_sprite := board.get_node("Sprite2D") as Sprite2D
+	assert_true(board_sprite != null)
+	var board_texture := board_sprite.texture as AtlasTexture
+	assert_true(board_texture != null)
+	if board_texture != null:
+		assert_eq(
+			board_texture.atlas.resource_path,
+			"res://assets/sprites/workstations_tilemap/workstations.png",
+		)
+		assert_eq(board_texture.region, Rect2(128, 0, 64, 64))
+	var board_shape := board.get_node("CollisionShape2D").shape as RectangleShape2D
+	assert_true(board_shape != null)
+	if board_shape != null:
+		assert_eq(board_shape.size, Vector2(64, 64))
 	assert_eq(target.collision_layer, 8)
 	assert_eq(target.priority, 2)
 
@@ -248,21 +268,69 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	assert_true(float(CHOP_RECIPE.get("Duration")) > 0.0)
 
 
-func test_main_scene_has_interactable_container_and_cutting_board() -> void:
-	var level := track(MAIN_SCENE.instantiate())
-	var container := level.get_node_or_null("PotatoContainer") as Node2D
-	var board := level.get_node_or_null("CuttingBoard") as StaticBody2D
+func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
+	var container := track(POTATO_CONTAINER_SCENE.instantiate()) as StaticBody2D
 
 	assert_true(container != null)
-	assert_true(board != null)
-	if container == null or board == null:
+	if container == null:
 		return
 
-	assert_eq(container.position, Vector2(96, 430))
-	assert_eq(board.position, Vector2(672, 302))
+	assert_eq(container.collision_layer, 1)
+	assert_eq(container.collision_mask, 0)
+	var container_sprite := container.get_node("Sprite2D") as Sprite2D
+	assert_true(container_sprite != null)
+	var container_texture := container_sprite.texture as AtlasTexture
+	assert_true(container_texture != null)
+	if container_texture != null:
+		assert_eq(
+			container_texture.atlas.resource_path,
+			"res://assets/sprites/workstations_tilemap/workstations.png",
+		)
+		assert_eq(container_texture.region, Rect2(64, 0, 64, 64))
+	var shape := container.get_node("CollisionShape2D").shape as RectangleShape2D
+	assert_true(shape != null)
+	if shape != null:
+		assert_eq(shape.size, Vector2(64, 64))
 	assert_eq(
 		container.get_node("InteractionTarget/PickupContainerAction").get("PickupScene"),
 		PICKUP_ITEM_SCENE,
+	)
+
+
+func test_main_scene_has_interactable_container_and_cutting_board() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	var workstations := level.get_node_or_null("Workstations") as TileMapLayer
+
+	assert_true(workstations != null, "The level must contain a workstation tile layer.")
+	if workstations == null:
+		return
+
+	assert_eq(workstations.position, Vector2(0, 14))
+	assert_true(workstations.tile_set != null)
+	assert_eq(
+		workstations.tile_set.resource_path,
+		"res://assets/sprites/workstations_tilemap/workstations_tiles.tres",
+	)
+	assert_eq(workstations.get_used_cells(), [Vector2i(1, 6), Vector2i(10, 4)])
+
+	var source := workstations.tile_set.get_source(0) as TileSetScenesCollectionSource
+	assert_true(source != null, "Workstations must use a scene collection tile source.")
+	if source == null:
+		return
+
+	assert_eq(workstations.get_cell_atlas_coords(Vector2i(1, 6)), Vector2i.ZERO)
+	assert_eq(workstations.get_cell_atlas_coords(Vector2i(10, 4)), Vector2i.ZERO)
+	var container_tile_id := workstations.get_cell_alternative_tile(Vector2i(1, 6))
+	var board_tile_id := workstations.get_cell_alternative_tile(Vector2i(10, 4))
+	assert_eq(source.get_scene_tile_scene(container_tile_id), POTATO_CONTAINER_SCENE)
+	assert_eq(source.get_scene_tile_scene(board_tile_id), CUTTING_BOARD_SCENE)
+	assert_eq(
+		workstations.map_to_local(Vector2i(1, 6)) + workstations.position,
+		Vector2(96, 430),
+	)
+	assert_eq(
+		workstations.map_to_local(Vector2i(10, 4)) + workstations.position,
+		Vector2(672, 302),
 	)
 
 

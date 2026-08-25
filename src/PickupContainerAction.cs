@@ -33,7 +33,7 @@ public partial class PickupContainerAction : InteractionAction
 
         Node2D container = GetInteractionTarget().TargetOwner;
         PickupItem item = PickupScene.Instantiate<PickupItem>();
-        container.GetParent().AddChild(item);
+        context.WorldItemRoot.AddChild(item);
         item.GlobalPosition = container.GlobalPosition;
         if (context.Carrier.TryHold(item))
         {
