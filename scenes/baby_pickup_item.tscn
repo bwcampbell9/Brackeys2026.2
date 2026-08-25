@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://src/BabyPickupItem.cs" id="1_baby"]
 [ext_resource type="Texture2D" path="res://assets/sprites/baby/baby-Sheet.png" id="2_baby_sheet"]
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="3_target"]
 [ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="4_transfer"]
+[ext_resource type="Resource" path="res://resources/items/baby.tres" id="5_definition"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_baby_0"]
 atlas = ExtResource("2_baby_sheet")
@@ -31,6 +32,7 @@ gravity_scale = 0.0
 linear_damp = 4.0
 angular_damp = 4.0
 script = ExtResource("1_baby")
+Definition = ExtResource("5_definition")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_baby")

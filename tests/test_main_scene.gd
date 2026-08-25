@@ -11,7 +11,10 @@ const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
-const CHOP_RECIPE := preload("res://resources/recipes/chop_potato.tres")
+const CHOP_RECIPE := preload("res://resources/recipes/chop.tres")
+const CHOP_TRANSFORMATION := preload("res://resources/transformations/chop.tres")
+const POTATO_DEFINITION := preload("res://resources/items/potato.tres")
+const CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/chopped_potatoes.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
@@ -207,6 +210,7 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 		return
 
 	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
+	assert_eq(baby.get("Definition").get("Id"), &"baby")
 	assert_eq(baby.collision_layer, 2)
 	assert_eq(baby.collision_mask, 1)
 	var shape: CircleShape2D = baby.get_node("CollisionShape2D").shape as CircleShape2D
@@ -220,6 +224,10 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 		assert_eq(sprite.sprite_frames.get_frame_count("crawl"), 2)
 		assert_eq(sprite.sprite_frames.get_frame_texture("crawl", 0).get_width(), 64)
 		assert_eq(sprite.sprite_frames.get_frame_texture("crawl", 1).get_width(), 64)
+		var transformed_definition := CHOP_TRANSFORMATION.Resolve(baby.get("Definition"))
+		baby.SetDefinition(transformed_definition)
+		assert_eq(transformed_definition.get("Id"), &"chopped_baby")
+		assert_eq(sprite.material, CHOP_TRANSFORMATION.get("FallbackMaterial"))
 
 	var target := baby.get_node_or_null("InteractionTarget") as Area2D
 	assert_true(target != null)
@@ -290,8 +298,19 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	assert_eq(process.get("ActionId"), &"process")
 	assert_eq(int(process.get("Trigger")), 1)
 	assert_eq(process.get("Recipe"), CHOP_RECIPE)
-	assert_eq(CHOP_RECIPE.get("Input").get("Id"), &"potato")
-	assert_eq(CHOP_RECIPE.get("Output").get("Id"), &"chopped_potatoes")
+	assert_eq(CHOP_RECIPE.get("Transformation"), CHOP_TRANSFORMATION)
+	assert_eq(CHOP_TRANSFORMATION.get("Id"), &"chop")
+	assert_eq(
+		CHOP_TRANSFORMATION.get("FallbackMaterial").resource_path,
+		"res://resources/materials/chopped_green.tres",
+	)
+	var potato_overrides: Array = POTATO_DEFINITION.get("TransformationOverrides")
+	assert_eq(potato_overrides.size(), 1)
+	assert_eq(potato_overrides[0].get("TransformationId"), &"chop")
+	assert_eq(potato_overrides[0].get("Output"), CHOPPED_POTATOES_DEFINITION)
+	assert_true(
+		CHOPPED_POTATOES_DEFINITION.get("AppliedTransformationIds").has(&"chop")
+	)
 	assert_eq(CHOP_RECIPE.get("RequiredTool"), KNIFE_DEFINITION)
 	assert_true(float(CHOP_RECIPE.get("Duration")) > 0.0)
 	var progress_bar := board.get_node_or_null("ProgressBar") as ProgressBar
@@ -422,6 +441,34 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 		workstations.map_to_local(Vector2i(11, 4)) + workstations.position,
 		Vector2(736, 302),
 	)
+
+
+func test_item_transformations_preserve_history_through_authored_outputs() -> void:
+	var first := ItemTransformation.new()
+	first.Id = &"first"
+	first.FallbackMaterial = ShaderMaterial.new()
+	var input := PickupItemDefinition.new()
+	input.Id = &"input"
+	input.DisplayName = "Input"
+	var first_result := first.Resolve(input)
+
+	var second := ItemTransformation.new()
+	second.Id = &"second"
+	var authored_output := PickupItemDefinition.new()
+	authored_output.Id = &"authored_output"
+	var transformation_override := ItemTransformationOverride.new()
+	transformation_override.TransformationId = &"second"
+	transformation_override.Output = authored_output
+	var overrides: Array[ItemTransformationOverride] = [null, transformation_override]
+	first_result.TransformationOverrides = overrides
+
+	var second_result := second.Resolve(first_result)
+	var applied_ids: Array[StringName] = second_result.AppliedTransformationIds
+	assert_eq(second_result.Id, &"authored_output")
+	assert_true(applied_ids.has(&"first"))
+	assert_true(applied_ids.has(&"second"))
+	assert_false(first.CanApply(second_result))
+	assert_false(second.CanApply(second_result))
 
 
 func _has_key_binding(events: Array, keycode: Key) -> bool:

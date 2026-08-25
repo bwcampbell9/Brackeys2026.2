@@ -147,6 +147,68 @@ func _run() -> void:
 	await _wait_physics_frames(24)
 	_check(not is_instance_valid(returning_knife), "A returned knife must be freed after animating.")
 
+	player.global_position = Vector2(620, 340)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(
+		_held_item_id(hold_point) == &"chopped_potatoes",
+		"The processed potato must remain retrievable.",
+	)
+	player.global_position = Vector2(450, 500)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(_held_item_id(hold_point).is_empty(), "The chopped potato must be throwable.")
+
+	player.global_position = Vector2(736, 370)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(_held_item_id(hold_point) == &"knife", "The supplier must provide a knife to process.")
+	player.global_position = Vector2(620, 340)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(_socket_item_id(board_socket) == &"knife", "The board must accept a knife as input.")
+	_check(_held_item_id(hold_point).is_empty(), "Placing the knife must empty the carrier.")
+
+	player.global_position = Vector2(736, 370)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(_held_item_id(hold_point) == &"knife", "A second knife must act as the cutting tool.")
+	player.global_position = Vector2(620, 340)
+	await _wait_physics_frames(2)
+	await _hold_interact(2.1)
+
+	var transformed_knife := board_socket.get_child(0) as Node2D
+	var transformed_definition: Resource = transformed_knife.get("Definition")
+	_check(
+		transformed_definition.get("Id") == &"chopped_knife",
+		"Items without authored outputs must receive a generated chopped variant.",
+	)
+	_check(
+		transformed_definition.resource_path.is_empty(),
+		"The fallback chopped variant must be generated without replacing source content.",
+	)
+	_check(
+		transformed_definition.get("AppliedTransformationIds").has(&"chop"),
+		"The generated variant must record its applied transformation.",
+	)
+	var fallback_material := transformed_definition.get("VisualMaterial") as Material
+	_check(
+		fallback_material != null
+		and fallback_material.resource_path == "res://resources/materials/chopped_green.tres",
+		"The generated chopped variant must use the configured green material.",
+	)
+	_check(
+		transformed_knife.get_node("Sprite2D").material == fallback_material,
+		"The transformed item visual must apply the fallback material.",
+	)
+
+	await _hold_interact(2.1)
+	_check(
+		_socket_item_id(board_socket) == &"chopped_knife",
+		"The same transformation must not be applied twice.",
+	)
+	_check(not progress_bar.visible, "An already chopped item must not start processing.")
+
 	level.queue_free()
 	await process_frame
 	print("knife_cutting_runtime=", "passed" if not _failed else "failed")

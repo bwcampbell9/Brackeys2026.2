@@ -80,7 +80,6 @@ public partial class TimedItemProcessAction : InteractionAction
         if (
             item is null
             || Recipe is null
-            || Recipe.Output is null
             || !IsAvailable(context)
         )
         {
@@ -94,7 +93,11 @@ public partial class TimedItemProcessAction : InteractionAction
             return InteractionRunState.Running;
         }
 
-        item.SetDefinition(Recipe.Output);
+        if (!Recipe.Apply(item))
+        {
+            return InteractionRunState.Failed;
+        }
+
         _elapsed = 0.0f;
         EmitSignal(SignalName.ProgressChanged, 1.0f);
         EmitSignal(SignalName.ProcessingCompleted, item);

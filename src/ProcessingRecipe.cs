@@ -4,10 +4,7 @@ using Godot;
 public partial class ProcessingRecipe : Resource
 {
     [Export]
-    public PickupItemDefinition? Input { get; set; }
-
-    [Export]
-    public PickupItemDefinition? Output { get; set; }
+    public ItemTransformation? Transformation { get; set; }
 
     [Export]
     public PickupItemDefinition? RequiredTool { get; set; }
@@ -17,7 +14,9 @@ public partial class ProcessingRecipe : Resource
 
     public bool Matches(PickupItem item)
     {
-        return Input is not null && item.Definition == Input;
+        return Transformation is not null
+            && item.Definition is PickupItemDefinition definition
+            && Transformation.CanApply(definition);
     }
 
     public bool Matches(PickupItem item, PickupItem? tool)
@@ -30,5 +29,20 @@ public partial class ProcessingRecipe : Resource
         return RequiredTool is null
             ? tool is null
             : tool?.Definition == RequiredTool;
+    }
+
+    public bool Apply(PickupItem item)
+    {
+        if (
+            Transformation is null
+            || item.Definition is not PickupItemDefinition definition
+            || !Transformation.CanApply(definition)
+        )
+        {
+            return false;
+        }
+
+        item.SetDefinition(Transformation.Resolve(definition));
+        return true;
     }
 }

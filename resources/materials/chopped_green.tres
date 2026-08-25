@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dwsk1haatd4u3"]
+
+[ext_resource type="Shader" path="res://assets/shaders/chopped_green.gdshader" id="1_bq6de"]
+
+[resource]
+shader = ExtResource("1_bq6de")

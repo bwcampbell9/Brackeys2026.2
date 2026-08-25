@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://danmdb4xmbt07" path="res://src/InteractionTarget.cs" id="2_target"]
 [ext_resource type="Script" uid="uid://t64dona7dy2s" path="res://src/SlotTransferAction.cs" id="3_transfer"]
 [ext_resource type="Script" uid="uid://df0god6j7t1d8" path="res://src/TimedItemProcessAction.cs" id="4_process"]
-[ext_resource type="Resource" path="res://resources/recipes/chop_potato.tres" id="5_recipe"]
+[ext_resource type="Resource" path="res://resources/recipes/chop.tres" id="5_recipe"]
 [ext_resource type="Texture2D" uid="uid://vqjtsc8lugm1" path="res://assets/sprites/workstations_tilemap/workstations.png" id="6_texture"]
 [ext_resource type="Script" path="res://src/CuttingBoardProcessPresentation.cs" id="7_presentation"]
 

@@ -1,7 +1,14 @@
-[gd_resource type="Resource" script_class="PickupItemDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="PickupItemDefinition" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="1_definition"]
 [ext_resource type="Texture2D" uid="uid://coq2rm448lkux" path="res://assets/sprites/Potato.png" id="2_texture"]
+[ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="3_override"]
+[ext_resource type="Resource" uid="uid://cld23ml1gi6uv" path="res://resources/items/chopped_potatoes.tres" id="4_output"]
+
+[sub_resource type="Resource" id="Resource_chop_override"]
+script = ExtResource("3_override")
+TransformationId = &"chop"
+Output = ExtResource("4_output")
 
 [resource]
 script = ExtResource("1_definition")
@@ -10,3 +17,4 @@ DisplayName = "Potato"
 Texture = ExtResource("2_texture")
 Modulate = Color(1, 1, 1, 1)
 VisualScale = Vector2(1, 1)
+TransformationOverrides = Array[ExtResource("3_override")]([SubResource("Resource_chop_override")])

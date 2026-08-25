@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="PickupItemDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="PickupItemDefinition" load_steps=3 format=3 uid="uid://cld23ml1gi6uv"]
 
-[ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="1_definition"]
+[ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
 [ext_resource type="Texture2D" uid="uid://coq2rm448lkux" path="res://assets/sprites/Potato.png" id="2_texture"]
 
 [resource]
@@ -10,3 +10,4 @@ DisplayName = "Chopped Potatoes"
 Texture = ExtResource("2_texture")
 Modulate = Color(1, 0.72, 0.32, 1)
 VisualScale = Vector2(0.72, 0.72)
+AppliedTransformationIds = Array[StringName]([&"chop"])

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ProcessingRecipe" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/ProcessingRecipe.cs" id="1_recipe"]
+[ext_resource type="Resource" path="res://resources/transformations/chop.tres" id="2_transformation"]
+[ext_resource type="Resource" path="res://resources/items/knife.tres" id="3_tool"]
+
+[resource]
+script = ExtResource("1_recipe")
+Transformation = ExtResource("2_transformation")
+RequiredTool = ExtResource("3_tool")
+Duration = 1.5
