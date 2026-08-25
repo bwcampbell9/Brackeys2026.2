@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-public partial class PickupItem : RigidBody2D
+public partial class PickupItem : RigidBody2D, IItemSource
 {
     private Node? _worldParent;
     private uint _worldCollisionLayer;
@@ -24,6 +24,19 @@ public partial class PickupItem : RigidBody2D
 
     public bool IsAvailable => !_isAttached;
 
+    [Signal]
+    public delegate void AvailabilityChangedEventHandler();
+
+    public Node2D SourceNode => this;
+
+    public PickupItemDefinition? AvailableDefinition => Definition;
+
+    public bool IsSourceAvailable => IsAvailable && Definition is not null;
+
+    public bool CanReturnItem => false;
+
+    public Vector2 ApproachPosition => GlobalPosition;
+
     protected virtual void OnPickedUp() { }
 
     protected virtual void OnThrown() { }
@@ -32,6 +45,7 @@ public partial class PickupItem : RigidBody2D
     {
         _restScale = Scale;
         ApplyDefinition();
+        AddToGroup(ItemSourceCatalog.ItemSourceGroup);
     }
 
     public bool TryPickUp(Node2D holdPoint, float duration)
@@ -63,6 +77,7 @@ public partial class PickupItem : RigidBody2D
         Reparent(holdPoint, true);
         OnPickedUp();
         TweenToAttachment(duration);
+        EmitSignal(SignalName.AvailabilityChanged);
         return true;
     }
 
@@ -185,7 +200,18 @@ public partial class PickupItem : RigidBody2D
         AngularVelocity = 0.0f;
         _isAttached = false;
         OnThrown();
+        EmitSignal(SignalName.AvailabilityChanged);
         ApplyCentralImpulse(impulse);
+    }
+
+    public bool TryAcquire(InteractionContext context)
+    {
+        return context.Carrier.TryHold(this);
+    }
+
+    public bool TryReturn(InteractionContext context)
+    {
+        return false;
     }
 
     private void ApplyDefinition()

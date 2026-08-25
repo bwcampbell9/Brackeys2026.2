@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="NpcTaskDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://cfcu7r64uqam0" path="res://src/NpcTaskDefinition.cs" id="1_task"]
+[ext_resource type="Script" path="res://src/NpcTaskFailureOption.cs" id="2_failure"]
+
+[sub_resource type="Resource" id="Resource_wrong_fetched_item"]
+script = ExtResource("2_failure")
+Mode = 0
+WeightMultiplier = 1.0
+
+[resource]
+script = ExtResource("1_task")
+Id = &"fetch_workstation_item"
+Kind = 0
+RequiredTags = Array[StringName]([&"kitchen"])
+FailureOptions = Array[ExtResource("2_failure")]([SubResource("Resource_wrong_fetched_item")])
+Priority = 10

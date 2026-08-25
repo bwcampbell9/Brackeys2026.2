@@ -11,6 +11,9 @@ const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
+const NPC_WORKER_SCENE := preload("res://scenes/npc_worker.tscn")
+const FETCH_TASK := preload("res://resources/tasks/fetch_workstation_item.tres")
+const PROCESS_TASK := preload("res://resources/tasks/process_workstation_item.tres")
 const CHOP_RECIPE := preload("res://resources/recipes/chop.tres")
 const CHOP_TRANSFORMATION := preload("res://resources/transformations/chop.tres")
 const POTATO_DEFINITION := preload("res://resources/items/potato.tres")
@@ -257,6 +260,109 @@ func test_main_scene_has_one_baby_pickup() -> void:
 	var baby: Node = level.get_node_or_null("BabyPickupItem")
 
 	assert_true(baby != null)
+
+
+func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	var task_system: Node = level.get_node_or_null("TaskSystem")
+	var broker: Node = level.get_node_or_null("TaskSystem/TaskBroker")
+	var catalog: Node = level.get_node_or_null("TaskSystem/ItemSourceCatalog")
+	var navigation_region := level.get_node_or_null("NavigationRegion2D") as NavigationRegion2D
+	var worker := level.get_node_or_null("NpcWorker") as CharacterBody2D
+	var baby := level.get_node_or_null("BabyPickupItem") as RigidBody2D
+
+	assert_true(task_system != null)
+	assert_true(broker != null)
+	assert_true(catalog != null)
+	assert_true(navigation_region != null)
+	assert_true(worker != null)
+	assert_true(baby != null)
+	if (
+		task_system == null
+		or broker == null
+		or catalog == null
+		or navigation_region == null
+		or worker == null
+		or baby == null
+	):
+		return
+
+	assert_eq(task_system.get_script().resource_path, "res://src/KitchenTaskSystem.cs")
+	assert_eq(broker.get_script().resource_path, "res://src/TaskBroker.cs")
+	assert_eq(catalog.get_script().resource_path, "res://src/ItemSourceCatalog.cs")
+	assert_true(navigation_region.navigation_polygon != null)
+	assert_eq(
+		navigation_region.navigation_polygon.get_vertices(),
+		PackedVector2Array([
+			Vector2(64, 64),
+			Vector2(896, 64),
+			Vector2(896, 476),
+			Vector2(64, 476),
+		]),
+	)
+	assert_eq(worker.scene_file_path, NPC_WORKER_SCENE.resource_path)
+	assert_eq(
+		worker.get_node("Sprite2D").texture.resource_path,
+		"res://assets/sprites/Sprite1.png",
+	)
+	assert_eq(worker.get_node("NpcMotor").get_script().resource_path, "res://src/NpcMotor.cs")
+	assert_eq(
+		worker.get_node("NpcTaskRunner").get_script().resource_path,
+		"res://src/NpcTaskRunner.cs",
+	)
+	var personality: Resource = worker.get_node("NpcTaskRunner").get("Personality")
+	assert_true(personality != null)
+	if personality != null:
+		assert_true(is_equal_approx(float(personality.get("FailureChance")), 0.6))
+		var tendencies: Array = personality.get("FailureTendencies")
+		assert_eq(tendencies.size(), 1)
+		if tendencies.size() == 1:
+			assert_eq(int(tendencies[0].get("Mode")), 0)
+			assert_true(is_equal_approx(float(tendencies[0].get("Weight")), 1.0))
+	assert_true(worker.get_node_or_null("NavigationAgent2D") is NavigationAgent2D)
+	assert_true(worker.get_node_or_null("PickupCarrier/HoldPoint") is Node2D)
+	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
+	assert_eq(baby.get("Definition").get("Id"), &"baby")
+
+
+func test_workstation_and_sources_expose_npc_task_contracts() -> void:
+	var board := track(CUTTING_BOARD_SCENE.instantiate()) as StaticBody2D
+	var potato_source := track(POTATO_CONTAINER_SCENE.instantiate()) as StaticBody2D
+	var knife_source := track(KNIFE_CONTAINER_SCENE.instantiate()) as StaticBody2D
+	var publisher := board.get_node_or_null("WorkstationTaskPublisher") as Node2D
+	var potato_item_source := potato_source.get_node_or_null("NpcItemSource") as Node2D
+	var knife_item_source := knife_source.get_node_or_null("NpcItemSource") as Node2D
+
+	assert_true(publisher != null)
+	assert_true(potato_item_source != null)
+	assert_true(knife_item_source != null)
+	if publisher == null or potato_item_source == null or knife_item_source == null:
+		return
+
+	assert_eq(
+		publisher.get_script().resource_path,
+		"res://src/WorkstationTaskPublisher.cs",
+	)
+	assert_eq(publisher.get("FetchTask"), FETCH_TASK)
+	assert_eq(publisher.get("ActionTask"), PROCESS_TASK)
+	assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
+	assert_eq(FETCH_TASK.get("Kind"), 0)
+	assert_eq(PROCESS_TASK.get("Kind"), 1)
+	assert_eq(FETCH_TASK.get("RequiredTags"), [&"kitchen"])
+	assert_eq(PROCESS_TASK.get("RequiredTags"), [&"kitchen"])
+	var fetch_failures: Array = FETCH_TASK.get("FailureOptions")
+	var process_failures: Array = PROCESS_TASK.get("FailureOptions")
+	assert_eq(fetch_failures.size(), 1)
+	if fetch_failures.size() == 1:
+		assert_eq(int(fetch_failures[0].get("Mode")), 0)
+	assert_true(
+		process_failures.is_empty(),
+		"Processing must not permit nonsensical wrong-tool failures.",
+	)
+	assert_eq(potato_item_source.get("ItemDefinition"), POTATO_DEFINITION)
+	assert_eq(knife_item_source.get("ItemDefinition"), KNIFE_DEFINITION)
+	assert_eq(potato_item_source.position, Vector2(64, 0))
+	assert_eq(knife_item_source.position, Vector2(0, 64))
 
 
 func test_cutting_board_composes_transfer_process_and_socket() -> void:
