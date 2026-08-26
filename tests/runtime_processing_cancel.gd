@@ -13,6 +13,8 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	await _run_definitionless_pickup_scenario()
+
 	var world := Node2D.new()
 	var player := PLAYER_SCENE.instantiate() as CharacterBody2D
 	var second_player := PLAYER_SCENE.instantiate() as CharacterBody2D
@@ -76,6 +78,10 @@ func _run() -> void:
 		bool(second_carrier.TryTransferHeldItemTo(knife, carrier)),
 		"The transferred item must be transferable again by its new carrier.",
 	)
+	_check(
+		bool(second_carrier.TryHold(second_knife)),
+		"The waiting actor fixture must reacquire its processing tool.",
+	)
 
 	Input.action_press("interact")
 	await _wait_physics_frames(50)
@@ -118,6 +124,33 @@ func _run() -> void:
 	await process_frame
 	print("processing_cancel_runtime=", "passed" if not _failed else "failed")
 	quit(1 if _failed else 0)
+
+
+func _run_definitionless_pickup_scenario() -> void:
+	var world := Node2D.new()
+	var player := PLAYER_SCENE.instantiate() as CharacterBody2D
+	var item := POTATO_SCENE.instantiate() as RigidBody2D
+	item.set("Definition", null)
+	world.add_child(player)
+	world.add_child(item)
+	root.add_child(world)
+	player.global_position = Vector2.ZERO
+	item.global_position = Vector2(0, -40)
+	await process_frame
+	await process_frame
+	await _wait_physics_frames(2)
+
+	Input.action_press("interact")
+	await physics_frame
+	Input.action_release("interact")
+	await _wait_physics_frames(2)
+	_check(
+		player.get_node("PickupCarrier").get("HeldItem") == item,
+		"A loose pickup must remain transferable without NPC source metadata.",
+	)
+
+	world.queue_free()
+	await process_frame
 
 
 func _wait_physics_frames(count: int) -> void:

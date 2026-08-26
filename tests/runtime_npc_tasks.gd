@@ -2,6 +2,7 @@ extends SceneTree
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
+const CHOP_RECIPE := preload("res://resources/recipes/chop.tres")
 
 var _failed := false
 
@@ -12,6 +13,8 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await _run_correct_fetch_scenario()
+	await _run_stolen_return_item_scenario()
+	await _run_toolless_action_scenario()
 	await _run_impossible_fetch_readiness_scenario()
 	await _run_stolen_wrong_item_scenario()
 	await _run_two_kitchen_scope_scenario()
@@ -89,6 +92,95 @@ func _run_correct_fetch_scenario() -> void:
 		"An already chopped item must not publish another cutting action task.",
 	)
 
+	level.queue_free()
+	await process_frame
+
+
+func _run_stolen_return_item_scenario() -> void:
+	var level := MAIN_SCENE.instantiate()
+	var worker := level.get_node("NpcWorker") as CharacterBody2D
+	var runner := worker.get_node("NpcTaskRunner")
+	runner.set("Personality", null)
+	runner.set("RandomSeed", 43)
+	root.add_child(level)
+	await process_frame
+	await process_frame
+
+	var npc_carrier := worker.get_node("PickupCarrier")
+	var returning_tool := await _wait_until(
+		func() -> bool:
+			return (
+				int(runner.get("State")) == 5
+				and npc_carrier.get("HeldItem") != null
+			),
+		1800,
+	)
+	_check(returning_tool, "The worker must begin returning its processing tool.")
+	if not returning_tool:
+		level.queue_free()
+		await process_frame
+		return
+
+	var player_carrier := level.get_node("Player/PickupCarrier")
+	var tool: Node = npc_carrier.get("HeldItem")
+	_check(
+		bool(npc_carrier.TryTransferHeldItemTo(tool, player_carrier)),
+		"The player fixture must be able to take the returning tool.",
+	)
+	await _wait_physics_frames(2)
+	_check(
+		int(runner.get("State")) != 5 and worker.velocity.is_zero_approx(),
+		"Taking a returning tool must stop the return and release the worker.",
+	)
+
+	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
+	var external_hold := Node2D.new()
+	level.add_child(external_hold)
+	var completed_item: Node = board_socket.Take(external_hold, 0.0)
+	_check(
+		completed_item != null,
+		"The completed item must be removable to publish follow-up work.",
+	)
+	var accepted_follow_up := await _wait_until(
+		func() -> bool: return int(runner.get("CurrentTaskId")) != 0,
+		300,
+	)
+	_check(
+		accepted_follow_up,
+		"A worker whose returning tool was taken must remain reusable.",
+	)
+
+	level.queue_free()
+	await process_frame
+
+
+func _run_toolless_action_scenario() -> void:
+	var required_tool: Resource = CHOP_RECIPE.get("RequiredTool")
+	CHOP_RECIPE.set("RequiredTool", null)
+	var level := MAIN_SCENE.instantiate()
+	var worker := level.get_node("NpcWorker") as CharacterBody2D
+	var runner := worker.get_node("NpcTaskRunner")
+	runner.set("Personality", null)
+	runner.set("RandomSeed", 44)
+	root.add_child(level)
+	await process_frame
+	await process_frame
+
+	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
+	var completed := await _wait_until(
+		func() -> bool: return _socket_item_id(board_socket) == &"chopped_potatoes",
+		1800,
+	)
+	_check(
+		completed,
+		"A tool-less action task must navigate to its destination and complete.",
+	)
+	_check(
+		worker.get_node("PickupCarrier/HoldPoint").get_child_count() == 0,
+		"A tool-less action must complete without inventing a carried item.",
+	)
+
+	CHOP_RECIPE.set("RequiredTool", required_tool)
 	level.queue_free()
 	await process_frame
 

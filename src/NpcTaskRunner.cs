@@ -179,6 +179,10 @@ public partial class NpcTaskRunner : Node
 
         if (
             _task is not null
+            && (
+                _task.Definition.Kind == NpcTaskKind.Fetch
+                || _task.RequiredTool is not null
+            )
             && _carrier.HeldItem is null
             && State
                 is NpcWorkerState.NavigatingToDestination
@@ -539,6 +543,14 @@ public partial class NpcTaskRunner : Node
 
     private void UpdateReturn()
     {
+        if (_carrier.HeldItem is null)
+        {
+            _returnSource = null;
+            _motor.Stop();
+            EnterIdle();
+            return;
+        }
+
         if (_returnSource is null || !_motor.IsAtTarget)
         {
             return;

@@ -27,6 +27,8 @@ public partial class PickupItem : RigidBody2D, IItemSource
     public bool IsCarried =>
         _isAttached && GetParent()?.GetParent() is PickupCarrier;
 
+    public bool IsTransferAvailable => IsAvailable || IsCarried;
+
     [Signal]
     public delegate void AvailabilityChangedEventHandler();
 
@@ -35,7 +37,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
     public PickupItemDefinition? AvailableDefinition => Definition;
 
     public bool IsSourceAvailable =>
-        (IsAvailable || IsCarried) && Definition is not null;
+        IsTransferAvailable && Definition is not null;
 
     public PickupCarrier? CurrentCarrier =>
         IsCarried ? GetParent()?.GetParent() as PickupCarrier : null;
