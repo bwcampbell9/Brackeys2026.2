@@ -111,7 +111,6 @@ public partial class PlayerInputManager : Node
             else if (
                 !wasHoldThresholdReached
                 && !TryExecuteMappedTap(inputAction)
-                && !HasMappedTapTarget(inputAction)
             )
             {
                 _carrier.Throw();
@@ -153,28 +152,6 @@ public partial class PlayerInputManager : Node
                 binding.InputAction == inputAction
                 && binding.Trigger == InteractionInputTrigger.Hold
                 && _interactor.TryBegin(binding.ActionIds, context)
-            )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private bool HasMappedTapTarget(StringName inputAction)
-    {
-        InteractionContext context = new(_actor, _carrier);
-        foreach (InteractionInputBinding binding in InteractionInputs)
-        {
-            if (
-                binding.InputAction == inputAction
-                && binding.Trigger == InteractionInputTrigger.Tap
-                && _interactor.HasTargetWithAction(
-                    binding.ActionIds,
-                    InteractionInputTrigger.Tap,
-                    context
-                )
             )
             {
                 return true;
