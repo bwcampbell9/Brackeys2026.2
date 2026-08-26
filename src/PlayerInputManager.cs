@@ -111,7 +111,6 @@ public partial class PlayerInputManager : Node
             else if (
                 !wasHoldThresholdReached
                 && !TryExecuteMappedTap(inputAction)
-                && !HasMappedTapTarget(inputAction)
             )
             {
                 _carrier.Throw();
