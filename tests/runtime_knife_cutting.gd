@@ -18,7 +18,6 @@ func _run() -> void:
 	await physics_frame
 
 	var player := level.get_node("Player") as CharacterBody2D
-	var carrier := player.get_node("PickupCarrier")
 	var hold_point := player.get_node("PickupCarrier/HoldPoint") as Node2D
 	var potato_container := level.get_node("Workstations/PotatoContainer") as StaticBody2D
 	var board := level.get_node("Workstations/CuttingBoard") as StaticBody2D
@@ -123,15 +122,10 @@ func _run() -> void:
 		"A busy board must reject the held tool without replacing its item.",
 	)
 	_check(
-		_held_item_id(hold_point).is_empty(),
-		"A busy board interaction must fall back to throwing the held tool.",
+		_held_item_id(hold_point) == &"knife",
+		"A busy board interaction must not throw the held tool.",
 	)
-	_check(knife.get_parent() == level, "The thrown tool must return to the world.")
-	_check(
-		bool(carrier.TryHold(knife)),
-		"The fixture must recover the thrown tool for the remaining cutting checks.",
-	)
-	await _wait_physics_frames(14)
+	_check(knife.position.is_zero_approx(), "A rejected tool must settle at the hold point.")
 
 	Input.action_press("interact")
 	await _wait_physics_frames(120)

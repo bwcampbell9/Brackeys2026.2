@@ -98,6 +98,34 @@ public partial class PlayerInteractor : Node2D
         return true;
     }
 
+    public bool HasTargetWithAction(
+        Array<StringName> actionIds,
+        InteractionInputTrigger trigger,
+        InteractionContext context
+    )
+    {
+        foreach (InteractionTarget target in GetTargetsInRange())
+        {
+            if (
+                target.TargetOwner == context.Carrier.HeldItem
+                || !IsTargetSelectable(target)
+            )
+            {
+                continue;
+            }
+
+            foreach (StringName actionId in actionIds)
+            {
+                if (target.HasAction(actionId, trigger))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public void UpdateActiveInteraction(double delta)
     {
         if (
@@ -245,6 +273,14 @@ public partial class PlayerInteractor : Node2D
         }
 
         return bestAction;
+    }
+
+    private bool IsTargetSelectable(InteractionTarget target)
+    {
+        float minimumAlignment = Mathf.Cos(
+            Mathf.DegToRad(InteractionConeDegrees * 0.5f)
+        );
+        return IsTargetSelectable(target, minimumAlignment);
     }
 
     private bool IsTargetSelectable(

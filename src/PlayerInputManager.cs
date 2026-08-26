@@ -161,6 +161,28 @@ public partial class PlayerInputManager : Node
         return false;
     }
 
+    private bool HasMappedTapTarget(StringName inputAction)
+    {
+        InteractionContext context = new(_actor, _carrier);
+        foreach (InteractionInputBinding binding in InteractionInputs)
+        {
+            if (
+                binding.InputAction == inputAction
+                && binding.Trigger == InteractionInputTrigger.Tap
+                && _interactor.HasTargetWithAction(
+                    binding.ActionIds,
+                    InteractionInputTrigger.Tap,
+                    context
+                )
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool HasMappedHold(StringName inputAction)
     {
         foreach (InteractionInputBinding binding in InteractionInputs)
