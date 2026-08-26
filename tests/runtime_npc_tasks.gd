@@ -21,6 +21,7 @@ func _run() -> void:
 
 func _run_correct_fetch_scenario() -> void:
 	var level := MAIN_SCENE.instantiate()
+	var player := level.get_node("Player") as CharacterBody2D
 	var worker := level.get_node("NpcWorker") as CharacterBody2D
 	var runner := worker.get_node("NpcTaskRunner")
 	runner.set("Personality", null)
@@ -31,6 +32,25 @@ func _run_correct_fetch_scenario() -> void:
 
 	var start_position := worker.global_position
 	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
+	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
+	var indicator := level.get_node("Workstations/CuttingBoard/TaskRequestIndicator") as Node2D
+	var broker := level.get_node("TaskSystem/TaskBroker")
+	_check(
+		int(broker.get("OpenTaskCount")) == 0
+		and int(broker.get("ClaimedTaskCount")) == 0
+		and not indicator.visible,
+		"A player-started workstation must begin without publishing or showing a request.",
+	)
+	player.global_position = Vector2(620, 340)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(
+		int(publisher.get("CurrentTaskId")) != 0
+		and indicator.visible
+		and publisher.get("CurrentRequestedItem").get("Id") == &"potato",
+		"Interacting with an empty board must publish and show its potato request.",
+	)
+	player.global_position = Vector2(450, 500)
 	var rotated_body := await _wait_until(
 		func() -> bool: return absf(worker.rotation) > 0.1,
 		300,
@@ -47,6 +67,31 @@ func _run_correct_fetch_scenario() -> void:
 		),
 		"The pickup location must rotate with the NPC body.",
 	)
+	var delivered := await _wait_until(
+		func() -> bool:
+			return (
+				_socket_item_id(board_socket) == &"potato"
+				and int(publisher.get("CurrentTaskId")) == 0
+			),
+		1200,
+	)
+	_check(delivered, "The fetch stage must deliver the requested potato.")
+	_check(
+		int(broker.get("OpenTaskCount")) == 0
+		and int(broker.get("ClaimedTaskCount")) == 0
+		and not indicator.visible,
+		"Delivery must wait for another interaction before publishing the action stage.",
+	)
+	player.global_position = Vector2(620, 340)
+	await _wait_physics_frames(2)
+	await _tap_interact()
+	_check(
+		int(publisher.get("CurrentTaskId")) != 0
+		and indicator.visible
+		and publisher.get("CurrentRequestedItem").get("Id") == &"knife",
+		"The second interaction must publish and show the knife request.",
+	)
+	player.global_position = Vector2(450, 500)
 	var completed := await _wait_until(
 		func() -> bool: return _socket_item_id(board_socket) == &"chopped_potatoes",
 		1800,
@@ -69,10 +114,11 @@ func _run_correct_fetch_scenario() -> void:
 		returned_tool,
 		"The worker must return its processing tool after completing the action.",
 	)
-	var broker := level.get_node("TaskSystem/TaskBroker")
 	_check(
-		int(broker.get("OpenTaskCount")) == 0 and int(broker.get("ClaimedTaskCount")) == 0,
-		"The completed workstation must leave no open or claimed tasks.",
+		int(broker.get("OpenTaskCount")) == 0
+		and int(broker.get("ClaimedTaskCount")) == 0
+		and not indicator.visible,
+		"The completed workstation must leave no tasks or request indicator.",
 	)
 	var parked_item := Node2D.new()
 	level.add_child(parked_item)
@@ -104,6 +150,11 @@ func _run_impossible_fetch_readiness_scenario() -> void:
 	root.add_child(level)
 	await process_frame
 	await process_frame
+	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
+	_check(
+		bool(publisher.call("TryPublishNextTask")),
+		"The scenario must start the player-requested fetch stage.",
+	)
 
 	var potato_source := level.get_node("Workstations/PotatoContainer/NpcItemSource")
 	potato_source.set("ItemDefinition", null)
@@ -153,6 +204,11 @@ func _run_stolen_wrong_item_scenario() -> void:
 	root.add_child(level)
 	await process_frame
 	await process_frame
+	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
+	_check(
+		bool(publisher.call("TryPublishNextTask")),
+		"The scenario must start the player-requested fetch stage.",
+	)
 	var knife_source := level.get_node("Workstations/KnifeContainer/NpcItemSource")
 	knife_source.set("ItemDefinition", null)
 	runner.process_mode = Node.PROCESS_MODE_INHERIT
@@ -216,6 +272,10 @@ func _run_stolen_wrong_item_scenario() -> void:
 		),
 	)
 
+	_check(
+		bool(publisher.call("TryPublishNextTask")),
+		"The scenario must start the player-requested action stage.",
+	)
 	await _wait_physics_frames(120)
 	var broker := level.get_node("TaskSystem/TaskBroker")
 	_check(
@@ -262,13 +322,27 @@ func _run_two_kitchen_scope_scenario() -> void:
 	await process_frame
 	await process_frame
 	await _wait_physics_frames(2)
+	var first_publisher := first_kitchen.get_node(
+		"Workstations/CuttingBoard/WorkstationTaskPublisher"
+	)
+	var second_publisher := second_kitchen.get_node(
+		"Workstations/CuttingBoard/WorkstationTaskPublisher"
+	)
+	second_publisher.set("RequestMode", 0)
+	await _wait_physics_frames(2)
 
 	var first_broker := first_kitchen.get_node("TaskSystem/TaskBroker")
 	var second_broker := second_kitchen.get_node("TaskSystem/TaskBroker")
 	_check(
-		int(first_broker.get("OpenTaskCount")) == 1
+		int(first_broker.get("OpenTaskCount")) == 0
 		and int(second_broker.get("OpenTaskCount")) == 1,
-		"Each simultaneous kitchen must retain exactly one task in its own broker.",
+		"Manual and automatic publishers must retain independent startup behavior.",
+	)
+	_check(
+		bool(first_publisher.call("TryPublishNextTask"))
+		and int(first_broker.get("OpenTaskCount")) == 1
+		and int(second_broker.get("OpenTaskCount")) == 1,
+		"Starting the manual publisher must not affect the automatic kitchen broker.",
 	)
 
 	first_kitchen.queue_free()
@@ -287,6 +361,13 @@ func _wait_until(predicate: Callable, max_frames: int) -> bool:
 func _wait_physics_frames(count: int) -> void:
 	for _frame in count:
 		await physics_frame
+
+
+func _tap_interact() -> void:
+	Input.action_press("interact")
+	await physics_frame
+	Input.action_release("interact")
+	await _wait_physics_frames(2)
 
 
 func _socket_item_id(socket: Node) -> StringName:
