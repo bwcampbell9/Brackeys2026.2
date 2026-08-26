@@ -74,6 +74,20 @@ func _run_correct_fetch_scenario() -> void:
 		int(broker.get("OpenTaskCount")) == 0 and int(broker.get("ClaimedTaskCount")) == 0,
 		"The completed workstation must leave no open or claimed tasks.",
 	)
+	var parked_item := Node2D.new()
+	level.add_child(parked_item)
+	var chopped_item = board_socket.Take(parked_item, 0.0)
+	_check(chopped_item != null, "The completed item must be removable for task reconciliation.")
+	if chopped_item != null:
+		_check(
+			bool(board_socket.TryStore(chopped_item, 0.0)),
+			"The completed item must be replaceable on the cutting board.",
+		)
+	await _wait_physics_frames(2)
+	_check(
+		int(broker.get("OpenTaskCount")) == 0 and int(broker.get("ClaimedTaskCount")) == 0,
+		"An already chopped item must not publish another cutting action task.",
+	)
 
 	level.queue_free()
 	await process_frame

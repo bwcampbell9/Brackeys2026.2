@@ -194,7 +194,8 @@ public partial class WorkstationTaskPublisher : Node2D
             _broker.Cancel(previousTaskId);
         }
 
-        if (_socket.Item is null)
+        PickupItem? item = _socket.Item;
+        if (item is null)
         {
             if (FetchTask is null || RequestedItem is null)
             {
@@ -211,7 +212,13 @@ public partial class WorkstationTaskPublisher : Node2D
             return;
         }
 
-        if (ActionTask is null || _actionFinished)
+        ProcessingRecipe? recipe = _processAction.Recipe;
+        if (
+            ActionTask is null
+            || _actionFinished
+            || recipe is null
+            || !recipe.Matches(item)
+        )
         {
             return;
         }
@@ -221,7 +228,7 @@ public partial class WorkstationTaskPublisher : Node2D
             this,
             _generation,
             null,
-            _processAction.Recipe?.RequiredTool
+            recipe.RequiredTool
         );
     }
 }
