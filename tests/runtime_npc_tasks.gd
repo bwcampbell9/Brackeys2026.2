@@ -184,6 +184,13 @@ func _run_stolen_wrong_item_scenario() -> void:
 		int(runner.get("State")) == 2,
 		"A stolen target must move the worker into its retry delay.",
 	)
+	var broker := level.get_node("TaskSystem/TaskBroker")
+	_check(
+		int(runner.get("CurrentTaskId")) == 0
+			and int(broker.get("OpenTaskCount")) == 1
+			and int(broker.get("ClaimedTaskCount")) == 0,
+		"A worker that loses its item must release its task for republishing.",
+	)
 	_check(
 		worker.velocity.is_zero_approx(),
 		"The worker must stop immediately when its selected target is stolen.",
@@ -217,7 +224,6 @@ func _run_stolen_wrong_item_scenario() -> void:
 	)
 
 	await _wait_physics_frames(120)
-	var broker := level.get_node("TaskSystem/TaskBroker")
 	_check(
 		int(runner.get("CurrentTaskId")) == 0
 		and int(broker.get("OpenTaskCount")) == 1

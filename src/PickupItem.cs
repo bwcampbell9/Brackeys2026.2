@@ -24,6 +24,9 @@ public partial class PickupItem : RigidBody2D, IItemSource
 
     public bool IsAvailable => !_isAttached;
 
+    public bool IsCarried =>
+        _isAttached && GetParent()?.GetParent() is PickupCarrier;
+
     [Signal]
     public delegate void AvailabilityChangedEventHandler();
 
@@ -31,7 +34,11 @@ public partial class PickupItem : RigidBody2D, IItemSource
 
     public PickupItemDefinition? AvailableDefinition => Definition;
 
-    public bool IsSourceAvailable => IsAvailable && Definition is not null;
+    public bool IsSourceAvailable =>
+        (IsAvailable || IsCarried) && Definition is not null;
+
+    public PickupCarrier? CurrentCarrier =>
+        IsCarried ? GetParent()?.GetParent() as PickupCarrier : null;
 
     public bool CanReturnItem => false;
 
@@ -206,7 +213,10 @@ public partial class PickupItem : RigidBody2D, IItemSource
 
     public bool TryAcquire(InteractionContext context)
     {
-        return context.Carrier.TryHold(this);
+        PickupCarrier? source = CurrentCarrier;
+        return source is not null
+            ? source.TryTransferHeldItemTo(this, context.Carrier)
+            : context.Carrier.TryHold(this);
     }
 
     public bool TryReturn(InteractionContext context)

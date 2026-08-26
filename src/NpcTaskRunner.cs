@@ -177,6 +177,18 @@ public partial class NpcTaskRunner : Node
             return;
         }
 
+        if (
+            _task is not null
+            && _carrier.HeldItem is null
+            && State
+                is NpcWorkerState.NavigatingToDestination
+                    or NpcWorkerState.Working
+        )
+        {
+            BeginRetry();
+            return;
+        }
+
         switch (State)
         {
             case NpcWorkerState.Idle:
@@ -389,8 +401,20 @@ public partial class NpcTaskRunner : Node
 
     private void BeginRetry()
     {
+        if (_task is not null && State == NpcWorkerState.Working)
+        {
+            _task.Destination.CancelAction(new InteractionContext(_actor, _carrier));
+        }
+
         _catalog?.Release(_source, this);
         _source = null;
+        if (_task is not null)
+        {
+            _broker?.Release(_task.Id, this);
+            _task = null;
+        }
+        _selectedDefinition = null;
+        _selectedFailureMode = null;
         _motor.Stop();
         _retryRemaining = RetryDelay;
         SetState(NpcWorkerState.RetryDelay);
@@ -401,7 +425,7 @@ public partial class NpcTaskRunner : Node
         _retryRemaining -= delta;
         if (_retryRemaining <= 0.0f)
         {
-            TrySelectSourceOrWait();
+            EnterIdle();
         }
     }
 
