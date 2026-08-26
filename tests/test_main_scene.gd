@@ -291,8 +291,9 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 	assert_eq(broker.get_script().resource_path, "res://src/TaskBroker.cs")
 	assert_eq(catalog.get_script().resource_path, "res://src/ItemSourceCatalog.cs")
 	assert_true(navigation_region.navigation_polygon != null)
+	assert_eq(navigation_region.navigation_polygon.get_outline_count(), 1)
 	assert_eq(
-		navigation_region.navigation_polygon.get_vertices(),
+		navigation_region.navigation_polygon.get_outline(0),
 		PackedVector2Array([
 			Vector2(64, 64),
 			Vector2(896, 64),
@@ -323,6 +324,56 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 	assert_true(worker.get_node_or_null("PickupCarrier/HoldPoint") is Node2D)
 	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
 	assert_eq(baby.get("Definition").get("Id"), &"baby")
+
+
+func test_workstations_are_excluded_from_npc_navigation() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	var workstations := level.get_node_or_null("Workstations") as TileMapLayer
+	var navigation_region := level.get_node_or_null("NavigationRegion2D") as NavigationRegion2D
+
+	assert_true(workstations != null)
+	assert_true(navigation_region != null)
+	if workstations == null or navigation_region == null:
+		return
+
+	var navigation_polygon := navigation_region.navigation_polygon
+	assert_true(navigation_polygon != null)
+	if navigation_polygon == null:
+		return
+
+	assert_true(workstations.is_in_group(&"workstation_navigation_source"))
+	assert_eq(
+		navigation_polygon.source_geometry_mode,
+		NavigationPolygon.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN,
+	)
+	assert_eq(
+		navigation_polygon.source_geometry_group_name,
+		&"workstation_navigation_source",
+	)
+	assert_eq(
+		navigation_polygon.parsed_geometry_type,
+		NavigationPolygon.PARSED_GEOMETRY_STATIC_COLLIDERS,
+	)
+	assert_eq(navigation_polygon.parsed_collision_mask, 1)
+	assert_eq(navigation_polygon.agent_radius, 20.0)
+	assert_eq(navigation_polygon.get_outline_count(), 1)
+	assert_true(navigation_polygon.get_polygon_count() > 1)
+
+	var navigation_vertices := navigation_polygon.get_vertices()
+	for cell in workstations.get_used_cells():
+		var workstation_center := workstations.position + workstations.map_to_local(cell)
+		var center_is_navigable := false
+		for polygon_index in navigation_polygon.get_polygon_count():
+			var polygon_vertices := PackedVector2Array()
+			for vertex_index in navigation_polygon.get_polygon(polygon_index):
+				polygon_vertices.append(navigation_vertices[vertex_index])
+			if Geometry2D.is_point_in_polygon(workstation_center, polygon_vertices):
+				center_is_navigable = true
+				break
+		assert_false(
+			center_is_navigable,
+			"Workstation at %s must be excluded from navigation." % cell,
+		)
 
 
 func test_workstation_and_sources_expose_npc_task_contracts() -> void:
