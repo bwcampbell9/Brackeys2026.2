@@ -12,6 +12,7 @@ const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
 const NPC_WORKER_SCENE := preload("res://scenes/npc_worker.tscn")
+const CUSTOMER_SCENE := preload("res://scenes/customer.tscn")
 const FETCH_TASK := preload("res://resources/tasks/fetch_workstation_item.tres")
 const PROCESS_TASK := preload("res://resources/tasks/process_workstation_item.tres")
 const CHOP_RECIPE := preload("res://resources/recipes/chop.tres")
@@ -326,6 +327,45 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 	assert_eq(baby.get("Definition").get("Id"), &"baby")
 
 
+func test_customer_composes_wandering_chopped_potato_order() -> void:
+	var customer := track(CUSTOMER_SCENE.instantiate()) as CharacterBody2D
+	var sprite := customer.get_node_or_null("Sprite2D") as Sprite2D
+	var controller := customer.get_node_or_null("CustomerWanderController")
+	var publisher := customer.get_node_or_null("WorkstationTaskPublisher")
+	var indicator := customer.get_node_or_null("TaskRequestIndicator") as Node2D
+	var transfer := customer.get_node_or_null("InteractionTarget/TransferItemAction")
+
+	assert_true(sprite != null)
+	assert_true(controller != null)
+	assert_true(publisher != null)
+	assert_true(indicator != null)
+	assert_true(transfer != null)
+	if (
+		sprite == null
+		or controller == null
+		or publisher == null
+		or indicator == null
+		or transfer == null
+	):
+		return
+
+	assert_eq(sprite.texture.resource_path, "res://assets/sprites/Sprite2.png")
+	assert_eq(
+		controller.get_script().resource_path,
+		"res://src/CustomerWanderController.cs",
+	)
+	assert_eq(
+		controller.get("UprightVisualPath"),
+		NodePath("../TaskRequestIndicator"),
+	)
+	assert_eq(int(publisher.get("RequestMode")), 0)
+	assert_eq(publisher.get("FetchTask"), FETCH_TASK)
+	assert_eq(publisher.get("RequestedItem"), CHOPPED_POTATOES_DEFINITION)
+	assert_true(bool(publisher.get("ConsumeDeliveredItem")))
+	assert_eq(publisher.get("ConsumerVisualPath"), NodePath("../Sprite2D"))
+	assert_eq(transfer.get("AcceptedItem"), CHOPPED_POTATOES_DEFINITION)
+
+
 func test_workstations_are_excluded_from_npc_navigation() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var workstations := level.get_node_or_null("Workstations") as TileMapLayer
@@ -427,6 +467,7 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 		return
 
 	assert_eq(socket.get_script().resource_path, "res://src/PickupSocket.cs")
+	assert_eq(socket.get("NpcApproachOffset"), Vector2(0, 72))
 	var board_sprite := board.get_node("Sprite2D") as Sprite2D
 	assert_true(board_sprite != null)
 	var board_texture := board_sprite.texture as AtlasTexture

@@ -49,6 +49,7 @@ shape = SubResource("RectangleShape2D_board")
 [node name="PickupSocket" type="Node2D" parent="." unique_id=241161687]
 position = Vector2(0, -8)
 script = ExtResource("1_socket")
+NpcApproachOffset = Vector2(0, 72)
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
 visible = false

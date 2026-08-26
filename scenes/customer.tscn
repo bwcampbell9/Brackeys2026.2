@@ -1,0 +1,76 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/Sprite2.png" id="1_sprite"]
+[ext_resource type="Script" path="res://src/NpcMotor.cs" id="2_motor"]
+[ext_resource type="Script" path="res://src/CustomerWanderController.cs" id="3_controller"]
+[ext_resource type="Script" path="res://src/PickupSocket.cs" id="4_socket"]
+[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="5_target"]
+[ext_resource type="Script" path="res://src/SlotTransferAction.cs" id="6_transfer"]
+[ext_resource type="Script" path="res://src/WorkstationTaskPublisher.cs" id="7_publisher"]
+[ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="8_fetch_task"]
+[ext_resource type="Resource" path="res://resources/items/chopped_potatoes.tres" id="9_chopped_potatoes"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_customer"]
+radius = 20.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 34.0
+
+[node name="Customer" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_customer")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_sprite")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+path_desired_distance = 18.0
+target_desired_distance = 18.0
+radius = 20.0
+
+[node name="NpcMotor" type="Node" parent="."]
+script = ExtResource("2_motor")
+
+[node name="CustomerWanderController" type="Node" parent="."]
+script = ExtResource("3_controller")
+UprightVisualPath = NodePath("../TaskRequestIndicator")
+
+[node name="PickupSocket" type="Node2D" parent="."]
+position = Vector2(0, -8)
+script = ExtResource("4_socket")
+
+[node name="InteractionTarget" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 2
+script = ExtResource("5_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="TransferItemAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("6_transfer")
+AcceptedItem = ExtResource("9_chopped_potatoes")
+
+[node name="TaskRequestIndicator" type="Node2D" parent="."]
+visible = false
+z_index = 10
+position = Vector2(0, -52)
+
+[node name="Background" type="Polygon2D" parent="TaskRequestIndicator"]
+polygon = PackedVector2Array(-23, -20, 23, -20, 23, 20, 6, 20, 0, 28, -6, 20, -23, 20)
+color = Color(0.08, 0.1, 0.12, 0.9)
+
+[node name="Icon" type="Sprite2D" parent="TaskRequestIndicator"]
+
+[node name="WorkstationTaskPublisher" type="Node2D" parent="."]
+script = ExtResource("7_publisher")
+FetchTask = ExtResource("8_fetch_task")
+RequestedItem = ExtResource("9_chopped_potatoes")
+ConsumeDeliveredItem = true
+ConsumerVisualPath = NodePath("../Sprite2D")
+ConsumptionDuration = 0.7
