@@ -45,6 +45,30 @@ public partial class PickupCarrier : Node2D
         return true;
     }
 
+    public bool TryTransferHeldItemTo(
+        PickupItem item,
+        PickupCarrier destination
+    )
+    {
+        if (
+            HeldItem != item
+            || destination.HeldItem is not null
+            || !TryReleaseHeldItem(item)
+        )
+        {
+            return false;
+        }
+
+        if (!item.TryMoveAttachment(destination._holdPoint, PickupDuration))
+        {
+            _heldItem = item;
+            return false;
+        }
+
+        destination._heldItem = item;
+        return true;
+    }
+
     public bool TryPlace(PickupSocket socket)
     {
         PickupItem? item = HeldItem;

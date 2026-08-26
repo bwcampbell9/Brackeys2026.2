@@ -10,14 +10,14 @@ public partial class PickupTransferAction : InteractionAction
 
     public override bool IsAvailable(InteractionContext context)
     {
-        return GetPickup() is { IsAvailable: true }
+        return GetPickup() is { IsSourceAvailable: true }
             && context.Carrier.HeldItem is null;
     }
 
     public override bool Execute(InteractionContext context)
     {
         PickupItem? item = GetPickup();
-        return item is not null && context.Carrier.TryHold(item);
+        return item is not null && item.TryAcquire(context);
     }
 
     private PickupItem? GetPickup()

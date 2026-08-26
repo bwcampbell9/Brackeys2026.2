@@ -46,6 +46,36 @@ func _run() -> void:
 		bool(second_carrier.TryHold(second_knife)),
 		"The fixture must let a second actor hold another knife.",
 	)
+	_check(
+		not bool(carrier.TryTransferHeldItemTo(knife, second_carrier)),
+		"A carrier must reject transferring an item it does not hold.",
+	)
+	_check(
+		bool(carrier.TryTransferHeldItemTo(potato, second_carrier)) == false,
+		"A carrier must reject transfer when the destination is occupied.",
+	)
+	_check(
+		bool(carrier.TryTransferHeldItemTo(knife, second_carrier)) == false,
+		"A failed transfer must leave the source unchanged.",
+	)
+	_check(
+		bool(second_carrier.Throw()),
+		"The destination fixture must be able to clear its held item.",
+	)
+	_check(
+		bool(carrier.TryTransferHeldItemTo(knife, second_carrier)),
+		"The first successful carrier transfer must take the item directly.",
+	)
+	_check(
+		carrier.get("HeldItem") == null
+			and second_carrier.get("HeldItem") == knife
+			and knife.get_parent() == second_hold_point,
+		"A direct transfer must update both carriers while keeping the item attached.",
+	)
+	_check(
+		bool(second_carrier.TryTransferHeldItemTo(knife, carrier)),
+		"The transferred item must be transferable again by its new carrier.",
+	)
 
 	Input.action_press("interact")
 	await _wait_physics_frames(50)
