@@ -398,7 +398,13 @@ public partial class NpcTaskRunner : Node
         _source = null;
         if (_task?.Definition.Kind == NpcTaskKind.Action)
         {
-            _returnSource = acquiredSource;
+            PickupItemDefinition? acquiredDefinition =
+                acquiredSource.AvailableDefinition;
+            _returnSource = acquiredSource.CanReturnItem
+                ? acquiredSource
+                : acquiredDefinition is null
+                    ? null
+                    : _catalog?.FindReturnSource(acquiredDefinition);
         }
         NavigateToDestination();
     }

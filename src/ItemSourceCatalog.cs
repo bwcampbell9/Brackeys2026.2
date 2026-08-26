@@ -64,6 +64,38 @@ public partial class ItemSourceCatalog : Node
         return false;
     }
 
+    public IItemSource? FindReturnSource(
+        PickupItemDefinition definition
+    )
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+
+        IItemSource? result = null;
+        foreach (Node node in GetTree().GetNodesInGroup(ItemSourceGroup))
+        {
+            if (
+                !IsWithinScope(node)
+                || node is not IItemSource source
+                || !source.CanReturnItem
+                || source.AvailableDefinition != definition
+            )
+            {
+                continue;
+            }
+
+            if (
+                result is null
+                || source.SourceNode.GetInstanceId()
+                    < result.SourceNode.GetInstanceId()
+            )
+            {
+                result = source;
+            }
+        }
+
+        return result;
+    }
+
     public bool TryReserveSource(
         PickupItemDefinition definition,
         Node requester,
