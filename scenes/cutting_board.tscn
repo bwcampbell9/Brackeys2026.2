@@ -11,6 +11,7 @@
 [ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="9_fetch_task"]
 [ext_resource type="Resource" path="res://resources/tasks/process_workstation_item.tres" id="10_action_task"]
 [ext_resource type="Resource" uid="uid://bjolwtrgs7uqf" path="res://resources/items/potato.tres" id="11_potato"]
+[ext_resource type="Script" path="res://src/RequestWorkstationTaskAction.cs" id="12_request_action"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_board"]
 atlas = ExtResource("6_texture")
@@ -70,6 +71,9 @@ script = ExtResource("2_target")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget" unique_id=1864369131]
 shape = SubResource("CircleShape2D_interaction")
 
+[node name="RequestTaskAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("12_request_action")
+
 [node name="TransferItemAction" type="Node" parent="InteractionTarget" unique_id=1409940106]
 script = ExtResource("3_transfer")
 
@@ -80,9 +84,21 @@ Recipe = ExtResource("5_recipe")
 [node name="ProcessPresentation" type="Node" parent="."]
 script = ExtResource("7_presentation")
 
+[node name="TaskRequestIndicator" type="Node2D" parent="."]
+visible = false
+z_index = 10
+position = Vector2(0, -52)
+
+[node name="Background" type="Polygon2D" parent="TaskRequestIndicator"]
+polygon = PackedVector2Array(-23, -20, 23, -20, 23, 20, 6, 20, 0, 28, -6, 20, -23, 20)
+color = Color(0.08, 0.1, 0.12, 0.9)
+
+[node name="Icon" type="Sprite2D" parent="TaskRequestIndicator"]
+
 [node name="WorkstationTaskPublisher" type="Node2D" parent="."]
 position = Vector2(0, 64)
 script = ExtResource("8_task_publisher")
+RequestMode = 1
 FetchTask = ExtResource("9_fetch_task")
 ActionTask = ExtResource("10_action_task")
 RequestedItem = ExtResource("11_potato")
