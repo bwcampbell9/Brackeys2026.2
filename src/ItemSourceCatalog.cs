@@ -28,7 +28,7 @@ public partial class ItemSourceCatalog : Node
             PickupItemDefinition? definition = source.AvailableDefinition;
             if (
                 definition is null
-                || definition == excluded
+                || HasSameId(definition, excluded)
                 || !seenIds.Add(definition.Id)
             )
             {
@@ -55,7 +55,10 @@ public partial class ItemSourceCatalog : Node
 
         foreach (IItemSource source in GetAvailableSources(requester))
         {
-            if (source.AvailableDefinition == definition)
+            if (
+                source.AvailableDefinition is PickupItemDefinition available
+                && HasSameId(available, definition)
+            )
             {
                 return true;
             }
@@ -77,7 +80,9 @@ public partial class ItemSourceCatalog : Node
                 !IsWithinScope(node)
                 || node is not IItemSource source
                 || !source.CanReturnItem
-                || source.AvailableDefinition != definition
+                || source.AvailableDefinition
+                    is not PickupItemDefinition available
+                || !HasSameId(available, definition)
             )
             {
                 continue;
@@ -110,7 +115,11 @@ public partial class ItemSourceCatalog : Node
         List<IItemSource> candidates = new();
         foreach (IItemSource candidate in GetAvailableSources(requester))
         {
-            if (candidate.AvailableDefinition == definition)
+            if (
+                candidate.AvailableDefinition
+                    is PickupItemDefinition available
+                && HasSameId(available, definition)
+            )
             {
                 candidates.Add(candidate);
             }
@@ -185,6 +194,14 @@ public partial class ItemSourceCatalog : Node
                 node == _scopeRoot
                 || _scopeRoot.IsAncestorOf(node)
             );
+    }
+
+    private static bool HasSameId(
+        PickupItemDefinition left,
+        PickupItemDefinition right
+    )
+    {
+        return !left.Id.IsEmpty && left.Id == right.Id;
     }
 
     private void PruneReservations()

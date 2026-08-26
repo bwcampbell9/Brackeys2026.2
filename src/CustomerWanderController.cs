@@ -18,6 +18,10 @@ public partial class CustomerWanderController : Node
     public NodePath UprightVisualPath { get; set; } =
         new("../TaskRequestIndicator");
 
+    [Export]
+    public Vector2 UprightVisualOffset { get; set; } =
+        new(0.0f, -52.0f);
+
     [Export(PropertyHint.Range, "0.1,10,0.1,or_greater")]
     public float WanderDelay { get; set; } = 1.5f;
 
@@ -64,6 +68,8 @@ public partial class CustomerWanderController : Node
 
     public override void _Process(double delta)
     {
+        _uprightVisual.GlobalPosition =
+            _actor.GlobalPosition + UprightVisualOffset;
         _uprightVisual.GlobalRotation = 0.0f;
     }
 

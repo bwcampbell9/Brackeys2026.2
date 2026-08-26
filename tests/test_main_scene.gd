@@ -358,12 +358,47 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 		controller.get("UprightVisualPath"),
 		NodePath("../TaskRequestIndicator"),
 	)
+	assert_eq(controller.get("UprightVisualOffset"), Vector2(0, -52))
 	assert_eq(int(publisher.get("RequestMode")), 0)
 	assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	assert_eq(publisher.get("RequestedItem"), CHOPPED_POTATOES_DEFINITION)
 	assert_true(bool(publisher.get("ConsumeDeliveredItem")))
 	assert_eq(publisher.get("ConsumerVisualPath"), NodePath("../Sprite2D"))
 	assert_eq(transfer.get("AcceptedItem"), CHOPPED_POTATOES_DEFINITION)
+
+
+func test_catalog_matches_transformed_output_by_item_id() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	var runner := level.get_node("NpcWorker/NpcTaskRunner")
+	runner.process_mode = Node.PROCESS_MODE_DISABLED
+	Engine.get_main_loop().root.add_child(level)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	var catalog := level.get_node("TaskSystem/ItemSourceCatalog")
+	var socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
+	var item := PICKUP_ITEM_SCENE.instantiate()
+	level.add_child(item)
+	item.set("Definition", POTATO_DEFINITION)
+
+	assert_true(bool(socket.call("TryStore", item, 0.0)))
+	assert_true(bool(CHOP_RECIPE.call("Apply", item)))
+	socket.call("SetNpcSourceEnabled", true)
+	assert_ne(item.get("Definition"), CHOPPED_POTATOES_DEFINITION)
+	assert_eq(
+		item.get("Definition").get("Id"),
+		CHOPPED_POTATOES_DEFINITION.get("Id"),
+	)
+	assert_true(
+		bool(
+			catalog.call(
+				"HasAvailableSource",
+				CHOPPED_POTATOES_DEFINITION,
+				runner,
+			)
+		),
+		"Transformed output must satisfy a task requesting the same item ID.",
+	)
 
 
 func test_workstations_are_excluded_from_npc_navigation() -> void:
