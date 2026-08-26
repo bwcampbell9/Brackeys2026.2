@@ -453,7 +453,21 @@ public partial class NpcTaskRunner : Node
 
     private void UpdateDestinationNavigation()
     {
-        if (_task is null || !_motor.IsAtTarget)
+        if (_task is null)
+        {
+            return;
+        }
+
+        Vector2 approachPosition = _task.Destination.ApproachPosition;
+        if (
+            _motor.TargetPosition.DistanceSquaredTo(approachPosition)
+            > 576.0f
+        )
+        {
+            _motor.SetTarget(approachPosition);
+        }
+
+        if (!_motor.IsAtTarget)
         {
             return;
         }

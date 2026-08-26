@@ -14,13 +14,18 @@ public partial class WorkstationTaskPublisher : Node2D
     private TaskBroker? _broker;
     private PickupSocket _socket = null!;
     private InteractionTarget _interactionTarget = null!;
-    private TimedItemProcessAction _processAction = null!;
+    private TimedItemProcessAction? _processAction;
     private Node2D _requestIndicator = null!;
     private Sprite2D _requestIndicatorIcon = null!;
+    private Node2D? _consumerVisual;
+    private Tween? _consumptionTween;
+    private Vector2 _consumerRestPosition;
+    private Vector2 _consumerRestScale;
     private int _generation;
     private long _currentTaskId;
     private long _executingTaskId;
     private bool _actionFinished;
+    private bool _isConsuming;
     private PickupItemDefinition? _currentRequestedItem;
     private WorkstationTaskRequestMode _requestMode;
 
@@ -71,11 +76,22 @@ public partial class WorkstationTaskPublisher : Node2D
     [Export]
     public PickupItemDefinition? RequestedItem { get; set; }
 
+    [Export]
+    public bool ConsumeDeliveredItem { get; set; }
+
+    [Export]
+    public NodePath ConsumerVisualPath { get; set; } = new("../Sprite2D");
+
+    [Export(PropertyHint.Range, "0.1,3,0.05,or_greater")]
+    public float ConsumptionDuration { get; set; } = 0.6f;
+
     public Vector2 ApproachPosition => GlobalPosition;
 
     public long CurrentTaskId => _currentTaskId;
 
     public PickupItemDefinition? CurrentRequestedItem => _currentRequestedItem;
+
+    public bool IsConsuming => _isConsuming;
 
     public bool CanPublishNextTask =>
         RequestMode == WorkstationTaskRequestMode.PlayerStarted
@@ -95,11 +111,15 @@ public partial class WorkstationTaskPublisher : Node2D
             ?? throw new InvalidOperationException(
                 "WorkstationTaskPublisher requires a valid interaction target."
             );
-        _processAction =
-            GetNodeOrNull<TimedItemProcessAction>(ProcessActionPath)
-            ?? throw new InvalidOperationException(
-                "WorkstationTaskPublisher requires a timed process action."
+        _processAction = GetNodeOrNull<TimedItemProcessAction>(
+            ProcessActionPath
+        );
+        if (ActionTask is not null && _processAction is null)
+        {
+            throw new InvalidOperationException(
+                "A workstation with an action task requires a timed process action."
             );
+        }
         _requestIndicator =
             GetNodeOrNull<Node2D>(RequestIndicatorPath)
             ?? throw new InvalidOperationException(
@@ -111,8 +131,22 @@ public partial class WorkstationTaskPublisher : Node2D
                 "WorkstationTaskPublisher requires a request indicator icon."
             );
 
+        if (ConsumeDeliveredItem)
+        {
+            _consumerVisual =
+                GetNodeOrNull<Node2D>(ConsumerVisualPath)
+                ?? throw new InvalidOperationException(
+                    "A consuming workstation requires a consumer visual."
+                );
+            _consumerRestPosition = _consumerVisual.Position;
+            _consumerRestScale = _consumerVisual.Scale;
+        }
+
         _socket.ItemChanged += OnSocketItemChanged;
-        _processAction.ProcessingCompleted += OnProcessingCompleted;
+        if (_processAction is not null)
+        {
+            _processAction.ProcessingCompleted += OnProcessingCompleted;
+        }
         AddToGroup(PublisherGroup);
         ClearRequestIndicator();
     }
@@ -123,7 +157,10 @@ public partial class WorkstationTaskPublisher : Node2D
         {
             _socket.ItemChanged -= OnSocketItemChanged;
         }
-        if (GodotObject.IsInstanceValid(_processAction))
+        if (
+            _processAction is not null
+            && GodotObject.IsInstanceValid(_processAction)
+        )
         {
             _processAction.ProcessingCompleted -= OnProcessingCompleted;
         }
@@ -185,7 +222,8 @@ public partial class WorkstationTaskPublisher : Node2D
 
     public bool TryBeginAction(InteractionContext context, long taskId)
     {
-        return CanExecute(taskId, NpcTaskKind.Action)
+        return _processAction is not null
+            && CanExecute(taskId, NpcTaskKind.Action)
             && _processAction.Begin(context);
     }
 
@@ -195,7 +233,10 @@ public partial class WorkstationTaskPublisher : Node2D
         double delta
     )
     {
-        if (!CanExecute(taskId, NpcTaskKind.Action))
+        if (
+            _processAction is null
+            || !CanExecute(taskId, NpcTaskKind.Action)
+        )
         {
             return InteractionRunState.Failed;
         }
@@ -213,7 +254,7 @@ public partial class WorkstationTaskPublisher : Node2D
 
     public void CancelAction(InteractionContext context)
     {
-        _processAction.Cancel(context);
+        _processAction?.Cancel(context);
     }
 
     private bool CanExecute(long taskId, NpcTaskKind kind)
@@ -232,18 +273,24 @@ public partial class WorkstationTaskPublisher : Node2D
     {
         _generation++;
         _actionFinished = false;
+        _socket.SetNpcSourceEnabled(false);
+        if (TryBeginConsumption())
+        {
+            return;
+        }
         ReconcileTask();
     }
 
     private void OnProcessingCompleted(PickupItem item)
     {
         _actionFinished = true;
+        _socket.SetNpcSourceEnabled(true);
         ReconcileTask();
     }
 
     private void ReconcileTask()
     {
-        if (_broker is null)
+        if (_broker is null || _isConsuming)
         {
             return;
         }
@@ -318,7 +365,7 @@ public partial class WorkstationTaskPublisher : Node2D
             return true;
         }
 
-        ProcessingRecipe? recipe = _processAction.Recipe;
+        ProcessingRecipe? recipe = _processAction?.Recipe;
         if (
             ActionTask is null
             || _actionFinished
@@ -354,5 +401,134 @@ public partial class WorkstationTaskPublisher : Node2D
         {
             _requestIndicatorIcon.Texture = null;
         }
+    }
+
+    private bool TryBeginConsumption()
+    {
+        PickupItem? item = _socket.Item;
+        if (
+            !ConsumeDeliveredItem
+            || _isConsuming
+            || item?.Definition is null
+            || RequestedItem is null
+            || item.Definition.Id != RequestedItem.Id
+            || !_socket.TryLock(item)
+        )
+        {
+            return false;
+        }
+
+        long previousTaskId = _currentTaskId;
+        _currentTaskId = 0;
+        ClearRequestIndicator();
+        if (
+            _broker is not null
+            && previousTaskId != 0
+            && previousTaskId != _executingTaskId
+        )
+        {
+            _broker.Cancel(previousTaskId);
+        }
+
+        _isConsuming = true;
+        PlayConsumption(item);
+        return true;
+    }
+
+    private void PlayConsumption(PickupItem item)
+    {
+        Node2D visual =
+            _consumerVisual
+            ?? throw new InvalidOperationException(
+                "A consuming workstation requires a consumer visual."
+            );
+        float phaseDuration = ConsumptionDuration * 0.5f;
+        Vector2 squashedScale = new(
+            _consumerRestScale.X * 1.15f,
+            _consumerRestScale.Y * 0.82f
+        );
+        Vector2 bobPosition = _consumerRestPosition + Vector2.Up * 6.0f;
+
+        _consumptionTween?.Kill();
+        Tween foodTween = item.StartMotionTween();
+        foodTween
+            .TweenProperty(
+                item,
+                new NodePath("scale"),
+                Vector2.Zero,
+                ConsumptionDuration
+            )
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.In);
+
+        Tween scaleTween = CreateTween();
+        _consumptionTween = scaleTween;
+        scaleTween
+            .TweenProperty(
+                visual,
+                new NodePath("scale"),
+                squashedScale,
+                phaseDuration
+            )
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.In);
+        scaleTween
+            .TweenProperty(
+                visual,
+                new NodePath("scale"),
+                _consumerRestScale,
+                phaseDuration
+            )
+            .SetTrans(Tween.TransitionType.Back)
+            .SetEase(Tween.EaseType.Out);
+        scaleTween.TweenCallback(
+            Callable.From(() => FinishConsumption(item))
+        );
+
+        Tween bobTween = CreateTween();
+        bobTween
+            .TweenProperty(
+                visual,
+                new NodePath("position"),
+                bobPosition,
+                phaseDuration
+            )
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.In);
+        bobTween
+            .TweenProperty(
+                visual,
+                new NodePath("position"),
+                _consumerRestPosition,
+                phaseDuration
+            )
+            .SetTrans(Tween.TransitionType.Back)
+            .SetEase(Tween.EaseType.Out);
+    }
+
+    private void FinishConsumption(PickupItem item)
+    {
+        if (
+            _consumerVisual is not null
+            && GodotObject.IsInstanceValid(_consumerVisual)
+        )
+        {
+            _consumerVisual.Position = _consumerRestPosition;
+            _consumerVisual.Scale = _consumerRestScale;
+        }
+
+        if (!_socket.TryDiscard(item))
+        {
+            _isConsuming = false;
+            _consumptionTween = null;
+            GD.PushError(
+                "A consuming workstation lost its locked delivered item."
+            );
+            return;
+        }
+
+        _isConsuming = false;
+        _consumptionTween = null;
+        ReconcileTask();
     }
 }

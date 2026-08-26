@@ -14,6 +14,9 @@ public partial class SlotTransferAction : InteractionAction
     [Export]
     public NodePath SocketPath { get; set; } = new("../../PickupSocket");
 
+    [Export]
+    public PickupItemDefinition? AcceptedItem { get; set; }
+
     public override void _Ready()
     {
         _socket =
@@ -25,10 +28,15 @@ public partial class SlotTransferAction : InteractionAction
 
     public override bool IsAvailable(InteractionContext context)
     {
-        return (_socket.Item is null && context.Carrier.HeldItem is not null)
+        PickupItem? heldItem = context.Carrier.HeldItem;
+        return (
+                _socket.Item is null
+                && heldItem is not null
+                && IsAccepted(heldItem)
+            )
             || (
                 _socket.Item is not null
-                && context.Carrier.HeldItem is null
+                && heldItem is null
             );
     }
 
@@ -37,5 +45,14 @@ public partial class SlotTransferAction : InteractionAction
         return context.Carrier.HeldItem is not null
             ? context.Carrier.TryPlace(_socket)
             : context.Carrier.TryTake(_socket);
+    }
+
+    private bool IsAccepted(PickupItem item)
+    {
+        return AcceptedItem is null
+            || (
+                item.Definition is not null
+                && item.Definition.Id == AcceptedItem.Id
+            );
     }
 }
