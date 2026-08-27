@@ -1,12 +1,10 @@
-[gd_resource type="Resource" script_class="NpcPersonality" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="NpcPersonality" format=3 uid="uid://c3gwrfqp6g7in"]
 
-[ext_resource type="Script" path="res://src/NpcPersonality.cs" id="1_personality"]
-[ext_resource type="Script" path="res://src/NpcFailureTendency.cs" id="2_tendency"]
+[ext_resource type="Script" uid="uid://nfwwkd4u8dij" path="res://src/NpcPersonality.cs" id="1_personality"]
+[ext_resource type="Script" uid="uid://ccpfyhstrrko4" path="res://src/NpcFailureTendency.cs" id="2_tendency"]
 
 [sub_resource type="Resource" id="Resource_wrong_fetch_tendency"]
 script = ExtResource("2_tendency")
-Mode = 0
-Weight = 1.0
 
 [resource]
 script = ExtResource("1_personality")
