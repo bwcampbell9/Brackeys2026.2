@@ -144,6 +144,14 @@ func _run_stolen_return_item_scenario() -> void:
 	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
 	publisher.set("RequestMode", 1)
 	_check(bool(publisher.call("TryPublishNextTask")), "The fixture must publish the initial fetch stage.")
+	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
+	var delivered := await _wait_until(
+		func() -> bool: return _socket_item_id(board_socket) == &"potato",
+		1200,
+	)
+	_check(delivered, "The fixture must deliver the potato before automatic processing.")
+	publisher.set("RequestMode", 2)
+	await _wait_physics_frames(2)
 
 	var npc_carrier := worker.get_node("PickupCarrier")
 	var returning_tool := await _wait_until(
@@ -172,7 +180,6 @@ func _run_stolen_return_item_scenario() -> void:
 		"Taking a returning tool must stop the return and release the worker.",
 	)
 
-	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
 	var external_hold := Node2D.new()
 	level.add_child(external_hold)
 	var completed_item: Node = board_socket.Take(external_hold, 0.0)
@@ -209,6 +216,13 @@ func _run_toolless_action_scenario() -> void:
 	_check(bool(publisher.call("TryPublishNextTask")), "The fixture must publish the initial fetch stage.")
 
 	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
+	var delivered := await _wait_until(
+		func() -> bool: return _socket_item_id(board_socket) == &"potato",
+		1200,
+	)
+	_check(delivered, "The fixture must deliver the potato before automatic processing.")
+	publisher.set("RequestMode", 2)
+	await _wait_physics_frames(2)
 	var completed := await _wait_until(
 		func() -> bool: return _socket_item_id(board_socket) == &"chopped_potatoes",
 		1800,
@@ -369,9 +383,10 @@ func _run_stolen_wrong_item_scenario() -> void:
 		),
 	)
 
+	await _wait_physics_frames(2)
 	_check(
-		bool(publisher.call("TryPublishNextTask")),
-		"The scenario must start the player-requested action stage.",
+		int(publisher.get("CurrentTaskId")) != 0,
+		"Delivering the wrong item must automatically publish its action stage.",
 	)
 	await _wait_physics_frames(120)
 	_check(
