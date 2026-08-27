@@ -12,6 +12,12 @@
 [ext_resource type="Resource" path="res://resources/tasks/process_workstation_item.tres" id="10_action_task"]
 [ext_resource type="Resource" uid="uid://bjolwtrgs7uqf" path="res://resources/items/potato.tres" id="11_potato"]
 [ext_resource type="Script" path="res://src/RequestWorkstationTaskAction.cs" id="12_request_action"]
+[ext_resource type="Script" path="res://src/ConfigureWorkstationAction.cs" id="13_configure_action"]
+[ext_resource type="Resource" path="res://resources/items/carrot.tres" id="14_carrot"]
+[ext_resource type="Resource" path="res://resources/items/chopped_potatoes.tres" id="15_chopped_potatoes"]
+[ext_resource type="Resource" path="res://resources/items/knife.tres" id="16_knife"]
+[ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="17_definition"]
+[ext_resource type="Script" path="res://src/WorkstationRequestWheel.cs" id="18_wheel"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_board"]
 atlas = ExtResource("6_texture")
@@ -75,6 +81,9 @@ shape = SubResource("CircleShape2D_interaction")
 [node name="RequestTaskAction" type="Node" parent="InteractionTarget"]
 script = ExtResource("12_request_action")
 
+[node name="ConfigureWorkstationAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("13_configure_action")
+
 [node name="TransferItemAction" type="Node" parent="InteractionTarget" unique_id=1409940106]
 script = ExtResource("3_transfer")
 
@@ -96,6 +105,25 @@ color = Color(0.08, 0.1, 0.12, 0.9)
 
 [node name="Icon" type="Sprite2D" parent="TaskRequestIndicator"]
 
+[node name="ConfiguredItemIndicator" type="Node2D" parent="."]
+position = Vector2(0, 37)
+z_index = 10
+
+[node name="Icon" type="Sprite2D" parent="ConfiguredItemIndicator"]
+
+[node name="RequestWheelLayer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="RequestWheel" type="Control" parent="RequestWheelLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("18_wheel")
+
 [node name="WorkstationTaskPublisher" type="Node2D" parent="."]
 position = Vector2(0, 64)
 script = ExtResource("8_task_publisher")
@@ -103,3 +131,4 @@ RequestMode = 2
 FetchTask = ExtResource("9_fetch_task")
 ActionTask = ExtResource("10_action_task")
 RequestedItem = ExtResource("11_potato")
+AvailableItems = Array[ExtResource("17_definition")]([ExtResource("11_potato"), ExtResource("14_carrot"), ExtResource("15_chopped_potatoes"), ExtResource("16_knife")])
