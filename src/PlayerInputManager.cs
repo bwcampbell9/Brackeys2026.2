@@ -105,7 +105,7 @@ public partial class PlayerInputManager : Node
             {
                 if (!justPressed)
                 {
-                    _interactor.CancelActiveInteraction();
+                    _interactor.CompleteActiveInteraction();
                 }
             }
             else if (
@@ -225,10 +225,18 @@ public partial class PlayerInputManager : Node
         };
         holdBinding.ActionIds.Add(InteractionActionIds.Process);
 
+        InteractionInputBinding configureBinding = new()
+        {
+            InputAction = "configure_workstation",
+            Trigger = InteractionInputTrigger.Hold,
+        };
+        configureBinding.ActionIds.Add(InteractionActionIds.Configure);
+
         return new Array<InteractionInputBinding>
         {
             tapBinding,
             holdBinding,
+            configureBinding,
         };
     }
 }

@@ -174,6 +174,16 @@ public partial class PlayerInteractor : Node2D
         ClearActiveInteraction();
     }
 
+    public void CompleteActiveInteraction()
+    {
+        if (HasActiveInteraction && _activeAction is not null)
+        {
+            _activeAction.Complete(_activeContext);
+        }
+
+        ClearActiveInteraction();
+    }
+
     private InteractionAction? FindBestAction(
         Array<StringName> actionIds,
         InteractionInputTrigger trigger,

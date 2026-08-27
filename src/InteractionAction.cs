@@ -37,6 +37,11 @@ public abstract partial class InteractionAction : Node
 
     public virtual void Cancel(InteractionContext context) { }
 
+    public virtual void Complete(InteractionContext context)
+    {
+        Cancel(context);
+    }
+
     protected InteractionTarget GetInteractionTarget()
     {
         return GetParent<InteractionTarget>();

@@ -78,4 +78,4 @@ offset_right = 57.0
 offset_bottom = 105.0
 theme_override_colors/font_color = Color(0.74, 0.83, 0.83, 1)
 theme_override_font_sizes/font_size = 16
-text = "Move: WASD / Arrows / Left Stick    Tap E / South: transfer    Hold: process"
+text = "Move: WASD / Arrows / Left Stick    Tap E / South: transfer    Hold E: process    Hold Q: configure"
