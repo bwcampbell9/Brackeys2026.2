@@ -47,7 +47,7 @@ theme_override_constants/separation = 18
 [node name="Title" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "PLACEHOLDER TITLE"
+text = "At Your Service"
 horizontal_alignment = 1
 
 [node name="PlayButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
