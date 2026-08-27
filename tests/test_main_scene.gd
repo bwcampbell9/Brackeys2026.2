@@ -305,9 +305,20 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 		]),
 	)
 	assert_eq(worker.scene_file_path, NPC_WORKER_SCENE.resource_path)
+	var worker_sprite := worker.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(worker_sprite != null)
+	if worker_sprite != null:
+		assert_eq(worker_sprite.sprite_frames.get_frame_count(&"idle"), 2)
+		assert_eq(worker_sprite.sprite_frames.get_frame_count(&"walk"), 2)
+		assert_eq(worker_sprite.sprite_frames.get_animation_speed(&"idle"), 2.0)
+		assert_eq(worker_sprite.sprite_frames.get_animation_speed(&"walk"), 4.0)
+		assert_eq(
+			worker_sprite.sprite_frames.get_frame_texture(&"idle", 0).atlas.resource_path,
+			"res://assets/sprites/worker/worker.png",
+		)
 	assert_eq(
-		worker.get_node("Sprite2D").texture.resource_path,
-		"res://assets/sprites/Sprite1.png",
+		worker.get_node("WorkerVisualController").get_script().resource_path,
+		"res://src/WorkerVisualController.cs",
 	)
 	assert_eq(worker.get_node("NpcMotor").get_script().resource_path, "res://src/NpcMotor.cs")
 	assert_eq(
