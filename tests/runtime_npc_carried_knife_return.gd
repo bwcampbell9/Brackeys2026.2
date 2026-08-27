@@ -36,6 +36,7 @@ func _run() -> void:
 	var knife_source := level.get_node("Workstations/KnifeContainer/NpcItemSource")
 	knife_source.set("ItemDefinition", null)
 	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
+	publisher.set("RequestMode", 1)
 	_check(
 		bool(publisher.call("TryPublishNextTask")),
 		"The fixture must publish the potato fetch stage.",
@@ -48,9 +49,11 @@ func _run() -> void:
 		1200,
 	)
 	_check(delivered, "The worker must deliver the potato before requesting a knife.")
+	publisher.set("RequestMode", 2)
+	await _wait_physics_frames(2)
 	_check(
-		bool(publisher.call("TryPublishNextTask")),
-		"The fixture must publish the chopping stage.",
+		int(publisher.get("CurrentTaskId")) != 0,
+		"Delivering the potato must automatically publish the chopping stage.",
 	)
 
 	var selected_carried_knife := await _wait_until(

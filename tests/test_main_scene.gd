@@ -369,15 +369,15 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 
 func test_catalog_matches_transformed_output_by_item_id() -> void:
 	var level := track(MAIN_SCENE.instantiate())
-	var runner := level.get_node("NpcWorker/NpcTaskRunner")
+	var runner: Node = level.get_node("NpcWorker/NpcTaskRunner")
 	runner.process_mode = Node.PROCESS_MODE_DISABLED
 	Engine.get_main_loop().root.add_child(level)
-	await get_tree().process_frame
-	await get_tree().process_frame
+	await Engine.get_main_loop().process_frame
+	await Engine.get_main_loop().process_frame
 
-	var catalog := level.get_node("TaskSystem/ItemSourceCatalog")
-	var socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
-	var item := PICKUP_ITEM_SCENE.instantiate()
+	var catalog: Node = level.get_node("TaskSystem/ItemSourceCatalog")
+	var socket: Node = level.get_node("Workstations/CuttingBoard/PickupSocket")
+	var item: Node = PICKUP_ITEM_SCENE.instantiate()
 	level.add_child(item)
 	item.set("Definition", POTATO_DEFINITION)
 
@@ -522,6 +522,8 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 
 	var transfer := target.get_node("TransferItemAction")
 	var process := target.get_node("ProcessItemAction")
+	var request := target.get_node("RequestTaskAction")
+	assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
 	assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
 	assert_eq(process.get_script().resource_path, "res://src/TimedItemProcessAction.cs")
 	assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
