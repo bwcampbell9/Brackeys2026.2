@@ -5,6 +5,7 @@ public enum WorkstationTaskRequestMode
 {
     Automatic,
     PlayerStarted,
+    AutomaticAction,
 }
 
 public partial class WorkstationTaskPublisher : Node2D
@@ -94,7 +95,13 @@ public partial class WorkstationTaskPublisher : Node2D
     public bool IsConsuming => _isConsuming;
 
     public bool CanPublishNextTask =>
-        RequestMode == WorkstationTaskRequestMode.PlayerStarted
+        (
+            RequestMode == WorkstationTaskRequestMode.PlayerStarted
+            || (
+                RequestMode == WorkstationTaskRequestMode.AutomaticAction
+                && _socket.Item is null
+            )
+        )
         && _broker is not null
         && _currentTaskId == 0
         && TryGetPendingTask(out _, out _, out _);
@@ -298,12 +305,24 @@ public partial class WorkstationTaskPublisher : Node2D
         long previousTaskId = _currentTaskId;
         _currentTaskId = 0;
         ClearRequestIndicator();
-        if (previousTaskId != 0 && previousTaskId != _executingTaskId)
+        if (
+            previousTaskId != 0
+            && (
+                previousTaskId != _executingTaskId
+                || _socket.Item is null
+            )
+        )
         {
             _broker.Cancel(previousTaskId);
         }
 
-        if (RequestMode == WorkstationTaskRequestMode.Automatic)
+        if (
+            RequestMode == WorkstationTaskRequestMode.Automatic
+            || (
+                RequestMode == WorkstationTaskRequestMode.AutomaticAction
+                && _socket.Item is not null
+            )
+        )
         {
             PublishPendingTask();
         }

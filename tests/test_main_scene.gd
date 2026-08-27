@@ -469,6 +469,7 @@ func test_workstation_and_sources_expose_npc_task_contracts() -> void:
 		publisher.get_script().resource_path,
 		"res://src/WorkstationTaskPublisher.cs",
 	)
+	assert_eq(int(publisher.get("RequestMode")), 2)
 	assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	assert_eq(publisher.get("ActionTask"), PROCESS_TASK)
 	assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
@@ -522,6 +523,8 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 
 	var transfer := target.get_node("TransferItemAction")
 	var process := target.get_node("ProcessItemAction")
+	var request := target.get_node("RequestTaskAction")
+	assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
 	assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
 	assert_eq(process.get_script().resource_path, "res://src/TimedItemProcessAction.cs")
 	assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))

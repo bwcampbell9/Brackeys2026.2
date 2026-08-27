@@ -99,7 +99,7 @@ color = Color(0.08, 0.1, 0.12, 0.9)
 [node name="WorkstationTaskPublisher" type="Node2D" parent="."]
 position = Vector2(0, 64)
 script = ExtResource("8_task_publisher")
-RequestMode = 1
+RequestMode = 2
 FetchTask = ExtResource("9_fetch_task")
 ActionTask = ExtResource("10_action_task")
 RequestedItem = ExtResource("11_potato")
