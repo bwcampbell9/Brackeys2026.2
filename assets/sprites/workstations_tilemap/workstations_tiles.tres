@@ -3,11 +3,13 @@
 [ext_resource type="PackedScene" uid="uid://7fwowq6t0x5j" path="res://scenes/potato_container.tscn" id="1_co6lk"]
 [ext_resource type="PackedScene" uid="uid://bwnef5k3486q" path="res://scenes/cutting_board.tscn" id="2_8fjr4"]
 [ext_resource type="PackedScene" path="res://scenes/knife_container.tscn" id="3_knife"]
+[ext_resource type="PackedScene" path="res://scenes/carrot_container.tscn" id="4_carrot"]
 
 [sub_resource type="TileSetScenesCollectionSource" id="TileSetScenesCollectionSource_yvu83"]
 scenes/0/scene = ExtResource("1_co6lk")
 scenes/1/scene = ExtResource("2_8fjr4")
 scenes/2/scene = ExtResource("3_knife")
+scenes/3/scene = ExtResource("4_carrot")
 
 [resource]
 tile_size = Vector2i(64, 64)

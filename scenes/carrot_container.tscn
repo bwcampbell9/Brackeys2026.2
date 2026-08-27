@@ -1,0 +1,43 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="1_target"]
+[ext_resource type="Script" path="res://src/PickupContainerAction.cs" id="2_action"]
+[ext_resource type="PackedScene" path="res://scenes/carrot_item.tscn" id="3_pickup"]
+[ext_resource type="Texture2D" path="res://assets/sprites/carrot_container/carrot_container.png" id="4_texture"]
+[ext_resource type="Resource" path="res://resources/items/carrot.tres" id="5_definition"]
+[ext_resource type="Script" path="res://src/ContainerItemSource.cs" id="6_npc_source"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_container"]
+size = Vector2(64, 64)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 33.0
+
+[node name="CarrotContainer" type="StaticBody2D"]
+collision_mask = 0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("4_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_container")
+
+[node name="InteractionTarget" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 1
+script = ExtResource("1_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="PickupContainerAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("2_action")
+PickupScene = ExtResource("3_pickup")
+AcceptedItem = ExtResource("5_definition")
+
+[node name="NpcItemSource" type="Node2D" parent="."]
+position = Vector2(64, 0)
+script = ExtResource("6_npc_source")
+ItemDefinition = ExtResource("5_definition")
