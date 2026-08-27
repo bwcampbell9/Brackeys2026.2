@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://dewk5tvxfdanb" path="res://src/TaskBroker.cs" id="6_broker"]
 [ext_resource type="Script" uid="uid://cwemdsb22oad5" path="res://src/ItemSourceCatalog.cs" id="7_catalog"]
 [ext_resource type="PackedScene" path="res://scenes/customer.tscn" id="8_customer"]
+[ext_resource type="PackedScene" path="res://scenes/carrot_container.tscn" id="9_carrot"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_kitchen"]
 parsed_geometry_type = 1
@@ -31,6 +32,9 @@ tile_set = ExtResource("1_0wfyh")
 position = Vector2(0, 14)
 tile_map_data = PackedByteArray("AAABAAYAAAAAAAAAAAAKAAQAAAAAAAAAAQAGAAEAAAAAAAAAAgA=")
 tile_set = ExtResource("3_workstations")
+
+[node name="CarrotContainer" parent="." instance=ExtResource("9_carrot")]
+position = Vector2(96, 302)
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
 navigation_polygon = SubResource("NavigationPolygon_kitchen")

@@ -10,6 +10,7 @@ const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
+const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
 const NPC_WORKER_SCENE := preload("res://scenes/npc_worker.tscn")
 const CUSTOMER_SCENE := preload("res://scenes/customer.tscn")
@@ -19,6 +20,7 @@ const CHOP_RECIPE := preload("res://resources/recipes/chop.tres")
 const CHOP_TRANSFORMATION := preload("res://resources/transformations/chop.tres")
 const POTATO_DEFINITION := preload("res://resources/items/potato.tres")
 const CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/chopped_potatoes.tres")
+const CARROT_DEFINITION := preload("res://resources/items/carrot.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
@@ -630,6 +632,23 @@ func test_knife_container_supplies_the_knife_scene() -> void:
 	)
 
 
+func test_carrot_container_supplies_the_carrot_scene() -> void:
+	var container := track(CARROT_CONTAINER_SCENE.instantiate()) as StaticBody2D
+
+	assert_true(container != null)
+	if container == null:
+		return
+
+	var texture := container.get_node("Sprite2D").texture as Texture2D
+	assert_true(texture != null)
+	if texture != null:
+		assert_eq(texture.resource_path, "res://assets/sprites/carrot_container/carrot_container.png")
+	var action := container.get_node("InteractionTarget/PickupContainerAction")
+	assert_eq(action.get("PickupScene").resource_path, "res://scenes/carrot_item.tscn")
+	assert_eq(action.get("AcceptedItem"), CARROT_DEFINITION)
+	assert_eq(container.get_node("NpcItemSource").get("ItemDefinition"), CARROT_DEFINITION)
+
+
 func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var workstations := level.get_node_or_null("Workstations") as TileMapLayer
@@ -654,7 +673,7 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 	if source == null:
 		return
 
-	assert_eq(source.get_scene_tiles_count(), 3)
+	assert_eq(source.get_scene_tiles_count(), 4)
 	assert_eq(workstations.get_cell_atlas_coords(Vector2i(1, 6)), Vector2i.ZERO)
 	assert_eq(workstations.get_cell_atlas_coords(Vector2i(10, 4)), Vector2i.ZERO)
 	assert_eq(workstations.get_cell_atlas_coords(Vector2i(11, 4)), Vector2i.ZERO)
@@ -664,6 +683,7 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 	assert_eq(source.get_scene_tile_scene(container_tile_id), POTATO_CONTAINER_SCENE)
 	assert_eq(source.get_scene_tile_scene(board_tile_id), CUTTING_BOARD_SCENE)
 	assert_eq(source.get_scene_tile_scene(knife_container_tile_id), KNIFE_CONTAINER_SCENE)
+	assert_eq(source.get_scene_tile_scene(3), CARROT_CONTAINER_SCENE)
 	assert_eq(
 		workstations.map_to_local(Vector2i(1, 6)) + workstations.position,
 		Vector2(96, 430),
@@ -676,6 +696,14 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 		workstations.map_to_local(Vector2i(11, 4)) + workstations.position,
 		Vector2(736, 302),
 	)
+	var carrot_container := level.get_node_or_null("CarrotContainer") as StaticBody2D
+	assert_true(carrot_container != null)
+	if carrot_container != null:
+		assert_eq(carrot_container.position, Vector2(96, 302))
+		assert_eq(
+			carrot_container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem"),
+			CARROT_DEFINITION,
+		)
 
 
 func test_item_transformations_preserve_history_through_authored_outputs() -> void:
