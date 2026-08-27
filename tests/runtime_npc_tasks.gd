@@ -60,7 +60,7 @@ func _run_correct_fetch_scenario() -> void:
 		300,
 	)
 	_check(
-		rotated_body and is_zero_approx(worker.get_node("Sprite2D").rotation),
+		rotated_body and is_zero_approx(worker.get_node("AnimatedSprite2D").rotation),
 		"Facing must rotate the whole NPC body rather than only its sprite.",
 	)
 	var hold_point := worker.get_node("PickupCarrier/HoldPoint") as Node2D
