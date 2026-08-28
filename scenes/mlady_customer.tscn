@@ -1,0 +1,149 @@
+[gd_scene load_steps=25 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/mlady_shubungus/mlady_shubungus-Sheet.png" id="1_sprite"]
+[ext_resource type="Script" path="res://src/CustomerVisualController.cs" id="2_visual"]
+[ext_resource type="Script" path="res://src/NpcMotor.cs" id="3_motor"]
+[ext_resource type="Script" path="res://src/CustomerWanderController.cs" id="4_controller"]
+[ext_resource type="Script" path="res://src/PickupSocket.cs" id="5_socket"]
+[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="6_target"]
+[ext_resource type="Script" path="res://src/SlotTransferAction.cs" id="7_transfer"]
+[ext_resource type="Script" path="res://src/WorkstationTaskPublisher.cs" id="8_publisher"]
+[ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="9_fetch_task"]
+[ext_resource type="Resource" path="res://resources/items/chopped_carrots.tres" id="10_chopped_carrots"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_1"]
+atlas = ExtResource("1_sprite")
+region = Rect2(0, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_2"]
+atlas = ExtResource("1_sprite")
+region = Rect2(64, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_3"]
+atlas = ExtResource("1_sprite")
+region = Rect2(128, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_4"]
+atlas = ExtResource("1_sprite")
+region = Rect2(192, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_5"]
+atlas = ExtResource("1_sprite")
+region = Rect2(256, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_6"]
+atlas = ExtResource("1_sprite")
+region = Rect2(320, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_7"]
+atlas = ExtResource("1_sprite")
+region = Rect2(384, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_8"]
+atlas = ExtResource("1_sprite")
+region = Rect2(448, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_9"]
+atlas = ExtResource("1_sprite")
+region = Rect2(512, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_10"]
+atlas = ExtResource("1_sprite")
+region = Rect2(576, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_11"]
+atlas = ExtResource("1_sprite")
+region = Rect2(640, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlady_12"]
+atlas = ExtResource("1_sprite")
+region = Rect2(704, 0, 64, 128)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mlady"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_1")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_2")}],
+"loop": true,
+"name": &"idle",
+"speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_3")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_4")}],
+"loop": true,
+"name": &"walk",
+"speed": 4.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_5")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_6")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_7")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_8")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_9")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_10")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_11")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_mlady_12")}],
+"loop": true,
+"name": &"eating",
+"speed": 8.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mlady_customer"]
+radius = 24.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mlady_interaction"]
+radius = 34.0
+
+[node name="MladyShubungusCustomer" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_mlady_customer")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_mlady")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="CustomerVisualController" type="Node" parent="."]
+script = ExtResource("2_visual")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+path_desired_distance = 18.0
+target_desired_distance = 18.0
+radius = 24.0
+
+[node name="NpcMotor" type="Node" parent="."]
+script = ExtResource("3_motor")
+
+[node name="CustomerWanderController" type="Node" parent="."]
+script = ExtResource("4_controller")
+UprightVisualPath = NodePath("../TaskRequestIndicator")
+UprightVisualOffset = Vector2(0, -80)
+
+[node name="PickupSocket" type="Node2D" parent="."]
+position = Vector2(0, -8)
+script = ExtResource("5_socket")
+
+[node name="InteractionTarget" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 2
+script = ExtResource("6_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
+shape = SubResource("CircleShape2D_mlady_interaction")
+
+[node name="TransferItemAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("7_transfer")
+AcceptedItem = ExtResource("10_chopped_carrots")
+
+[node name="TaskRequestIndicator" type="Node2D" parent="."]
+visible = false
+z_index = 10
+position = Vector2(0, -52)
+
+[node name="Background" type="Polygon2D" parent="TaskRequestIndicator"]
+polygon = PackedVector2Array(-23, -20, 23, -20, 23, 20, 6, 20, 0, 28, -6, 20, -23, 20)
+color = Color(0.08, 0.1, 0.12, 0.9)
+
+[node name="Icon" type="Sprite2D" parent="TaskRequestIndicator"]
+
+[node name="WorkstationTaskPublisher" type="Node2D" parent="."]
+script = ExtResource("8_publisher")
+FetchTask = ExtResource("9_fetch_task")
+RequestedItem = ExtResource("10_chopped_carrots")
+ConsumeDeliveredItem = true
+ConsumerVisualPath = NodePath("../AnimatedSprite2D")
+ConsumptionDuration = 0.625
