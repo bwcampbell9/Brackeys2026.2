@@ -1,11 +1,11 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene format=3 uid="uid://mvdg0dey2ov1"]
 
-[ext_resource type="Texture2D" path="res://assets/sprites/worker/worker.png" id="1_sprite"]
-[ext_resource type="Script" path="res://src/WorkerVisualController.cs" id="6_visual"]
+[ext_resource type="Texture2D" uid="uid://c7o1hxlkpqvkb" path="res://assets/sprites/worker/worker.png" id="1_sprite"]
 [ext_resource type="Script" uid="uid://da23ug7lkfcpv" path="res://src/PickupCarrier.cs" id="2_carrier"]
 [ext_resource type="Script" uid="uid://ban1ufd7vpf00" path="res://src/NpcMotor.cs" id="3_motor"]
 [ext_resource type="Script" uid="uid://dw2k68gkwmy4l" path="res://src/NpcTaskRunner.cs" id="4_runner"]
-[ext_resource type="Resource" path="res://resources/npc_personalities/kitchen_worker.tres" id="5_personality"]
+[ext_resource type="Resource" uid="uid://c3gwrfqp6g7in" path="res://resources/npc_personalities/kitchen_worker.tres" id="5_personality"]
+[ext_resource type="Script" uid="uid://dslt4oxxii36p" path="res://src/WorkerVisualController.cs" id="6_visual"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_worker"]
 radius = 20.0
@@ -28,46 +28,58 @@ region = Rect2(192, 0, 64, 128)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_worker"]
 animations = [{
-"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_worker_1")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_worker_2")}],
-"loop": true,
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_worker_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_worker_2")
+}],
+"loop": 1,
 "name": &"idle",
 "speed": 2.0
 }, {
-"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_worker_3")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_worker_4")}],
-"loop": true,
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_worker_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_worker_4")
+}],
+"loop": 1,
 "name": &"walk",
 "speed": 4.0
 }]
 
-[node name="NpcWorker" type="CharacterBody2D"]
+[node name="NpcWorker" type="CharacterBody2D" unique_id=1861508754]
 collision_layer = 4
-collision_mask = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1528392061]
+position = Vector2(0, 44)
 shape = SubResource("CircleShape2D_worker")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=755325205]
 sprite_frames = SubResource("SpriteFrames_worker")
 animation = &"idle"
 autoplay = "idle"
 
-[node name="WorkerVisualController" type="Node" parent="."]
+[node name="WorkerVisualController" type="Node" parent="." unique_id=1762055058]
 script = ExtResource("6_visual")
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=616619985]
 path_desired_distance = 18.0
 target_desired_distance = 18.0
 radius = 20.0
 
-[node name="NpcMotor" type="Node" parent="."]
+[node name="NpcMotor" type="Node" parent="." unique_id=762160099]
 script = ExtResource("3_motor")
 
-[node name="PickupCarrier" type="Node2D" parent="."]
+[node name="PickupCarrier" type="Node2D" parent="." unique_id=1354174656]
 script = ExtResource("2_carrier")
 
-[node name="HoldPoint" type="Node2D" parent="PickupCarrier"]
+[node name="HoldPoint" type="Node2D" parent="PickupCarrier" unique_id=1586235538]
 position = Vector2(0, -42)
 
-[node name="NpcTaskRunner" type="Node" parent="."]
+[node name="NpcTaskRunner" type="Node" parent="." unique_id=62090516]
 script = ExtResource("4_runner")
 Personality = ExtResource("5_personality")
