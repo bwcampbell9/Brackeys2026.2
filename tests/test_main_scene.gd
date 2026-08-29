@@ -41,6 +41,12 @@ const EATING_SOUND_PATHS := [
 	"res://assets/sounds/eating_2.wav",
 	"res://assets/sounds/eating_3.wav",
 ]
+const HMM_SOUND_PATHS := [
+	"res://assets/sounds/hmm_1.wav",
+	"res://assets/sounds/hmm_2.wav",
+	"res://assets/sounds/hmm_3.wav",
+	"res://assets/sounds/hmm_4.wav",
+]
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
@@ -374,8 +380,20 @@ func test_customers_randomly_select_from_the_eating_sounds() -> void:
 			assert_eq(eating_sounds.size(), EATING_SOUND_PATHS.size())
 			for sound_index in eating_sounds.size():
 				assert_eq(eating_sounds[sound_index].resource_path, EATING_SOUND_PATHS[sound_index])
+			var hmm_sounds: Array = controller.get("HmmSounds")
+			assert_eq(hmm_sounds.size(), HMM_SOUND_PATHS.size())
+			for sound_index in hmm_sounds.size():
+				assert_eq(hmm_sounds[sound_index].resource_path, HMM_SOUND_PATHS[sound_index])
+			assert_eq(float(controller.get("InitialMinimumHmmDelaySeconds")), 5.0)
+			assert_eq(float(controller.get("InitialMaximumHmmDelaySeconds")), 15.0)
+			assert_eq(float(controller.get("MinimumHmmDelaySeconds")), 5.0)
+			assert_eq(float(controller.get("MaximumHmmDelaySeconds")), 15.0)
 		if eating_audio != null:
 			assert_false(eating_audio.autoplay)
+		var hmm_audio := customer.get_node_or_null("HmmAudio") as AudioStreamPlayer2D
+		assert_true(hmm_audio != null)
+		if hmm_audio != null:
+			assert_false(hmm_audio.autoplay)
 
 
 func test_input_manager_has_separate_rebindable_tap_and_hold_mappings() -> void:
