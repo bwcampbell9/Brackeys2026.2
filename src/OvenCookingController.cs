@@ -15,16 +15,14 @@ public partial class OvenCookingController : Node
     public NodePath SpritePath { get; set; } = new("../AnimatedSprite2D");
 
     [Export]
-    public ItemTransformation? Transformation { get; set; }
-
-    [Export(PropertyHint.Range, "0.1,300,0.1,or_greater")]
-    public float CookDuration { get; set; } = 10.0f;
+    public ProcessingRecipe? Recipe { get; set; }
 
     public bool IsCooking => _cookingItem is not null;
 
-    public float Progress => IsCooking
-        ? Mathf.Clamp(_elapsed / CookDuration, 0.0f, 1.0f)
-        : 0.0f;
+    public float Progress =>
+        IsCooking && Recipe is { Duration: > 0.0f } recipe
+            ? Mathf.Clamp(_elapsed / recipe.Duration, 0.0f, 1.0f)
+            : 0.0f;
 
     public override void _Ready()
     {
@@ -59,21 +57,23 @@ public partial class OvenCookingController : Node
         }
 
         PickupItem? item = _socket.Item;
-        if (item != _cookingItem || !CanCook(item))
+        ProcessingRecipe? recipe = Recipe;
+        if (item != _cookingItem || !CanCook(item, recipe))
         {
             StopCooking();
             return;
         }
 
         _elapsed += (float)delta;
-        if (_elapsed < CookDuration)
+        if (_elapsed < recipe!.Duration)
         {
             return;
         }
 
-        if (Transformation!.Resolve(item.Definition!) is PickupItemDefinition output)
+        if (!recipe.Apply(item))
         {
-            item.SetDefinition(output);
+            StopCooking();
+            return;
         }
 
         StopCooking();
@@ -87,7 +87,7 @@ public partial class OvenCookingController : Node
 
     private void BeginCooking(PickupItem? item)
     {
-        if (!CanCook(item))
+        if (!CanCook(item, Recipe))
         {
             return;
         }
@@ -97,12 +97,15 @@ public partial class OvenCookingController : Node
         _sprite.Play("cooking");
     }
 
-    private bool CanCook(PickupItem? item)
+    private static bool CanCook(
+        PickupItem? item,
+        ProcessingRecipe? recipe
+    )
     {
-        return item?.Definition is PickupItemDefinition definition
-            && Transformation is not null
-            && Transformation.CanApply(definition)
-            && CookDuration > 0.0f;
+        return item is not null
+            && recipe is not null
+            && recipe.Duration > 0.0f
+            && recipe.Matches(item, null);
     }
 
     private void StopCooking()

@@ -23,7 +23,9 @@ func _run() -> void:
 	var socket := oven.get_node("PickupSocket") as Node2D
 	var controller := oven.get_node("OvenCookingController") as Node
 	var sprite := oven.get_node("AnimatedSprite2D") as AnimatedSprite2D
-	controller.set("CookDuration", 0.1)
+	var fast_recipe := (controller.get("Recipe") as Resource).duplicate()
+	fast_recipe.set("Duration", 0.1)
+	controller.set("Recipe", fast_recipe)
 	_check(bool(socket.TryStore(potato, 0.0)), "The oven must accept any item.")
 	await process_frame
 	_check(bool(controller.get("IsCooking")), "Stored items must start cooking automatically.")
