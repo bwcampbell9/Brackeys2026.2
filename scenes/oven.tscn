@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://src/PickupSocket.cs" id="1_socket"]
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="2_target"]
@@ -6,6 +6,14 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/oven/oven-Sheet.png" id="4_texture"]
 [ext_resource type="Script" path="res://src/OvenCookingController.cs" id="5_controller"]
 [ext_resource type="Resource" path="res://resources/recipes/cook.tres" id="6_recipe"]
+[ext_resource type="Script" path="res://src/RequestWorkstationTaskAction.cs" id="7_request_action"]
+[ext_resource type="Script" path="res://src/ConfigureWorkstationAction.cs" id="8_configure_action"]
+[ext_resource type="Script" path="res://src/WorkstationTaskPublisher.cs" id="9_task_publisher"]
+[ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="10_fetch_task"]
+[ext_resource type="Resource" path="res://resources/items/potato.tres" id="11_potato"]
+[ext_resource type="Resource" path="res://resources/items/carrot.tres" id="12_carrot"]
+[ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="13_definition"]
+[ext_resource type="Script" path="res://src/WorkstationRequestWheel.cs" id="14_wheel"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle"]
 atlas = ExtResource("4_texture")
@@ -47,6 +55,9 @@ size = Vector2(64, 64)
 [sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
 radius = 34.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_request_background"]
+bg_color = Color(0.08, 0.1, 0.12, 0.9)
+
 [node name="Oven" type="StaticBody2D"]
 collision_layer = 1
 collision_mask = 0
@@ -74,9 +85,53 @@ script = ExtResource("2_target")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
 shape = SubResource("CircleShape2D_interaction")
 
+[node name="RequestTaskAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("7_request_action")
+
+[node name="ConfigureWorkstationAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("8_configure_action")
+
 [node name="TransferItemAction" type="Node" parent="InteractionTarget"]
 script = ExtResource("3_transfer")
 
 [node name="OvenCookingController" type="Node" parent="."]
 script = ExtResource("5_controller")
 Recipe = ExtResource("6_recipe")
+
+[node name="TaskRequestIndicator" type="Node2D" parent="."]
+visible = false
+z_index = 10
+position = Vector2(0, -84)
+
+[node name="Background" type="Polygon2D" parent="TaskRequestIndicator"]
+polygon = PackedVector2Array(-23, -20, 23, -20, 23, 20, 6, 20, 0, 28, -6, 20, -23, 20)
+color = Color(0.08, 0.1, 0.12, 0.9)
+
+[node name="Icon" type="Sprite2D" parent="TaskRequestIndicator"]
+
+[node name="ConfiguredItemIndicator" type="Node2D" parent="."]
+position = Vector2(0, 37)
+z_index = 10
+
+[node name="Icon" type="Sprite2D" parent="ConfiguredItemIndicator"]
+
+[node name="RequestWheelLayer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="RequestWheel" type="Control" parent="RequestWheelLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("14_wheel")
+
+[node name="WorkstationTaskPublisher" type="Node2D" parent="."]
+position = Vector2(0, 64)
+script = ExtResource("9_task_publisher")
+RequestMode = 1
+FetchTask = ExtResource("10_fetch_task")
+RequestedItem = ExtResource("11_potato")
+AvailableItems = Array[ExtResource("13_definition")]([ExtResource("11_potato"), ExtResource("12_carrot")])
