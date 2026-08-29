@@ -17,6 +17,7 @@
 [ext_resource type="Resource" path="res://resources/items/chopped_potatoes.tres" id="15_chopped_potatoes"]
 [ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="17_definition"]
 [ext_resource type="Script" path="res://src/WorkstationRequestWheel.cs" id="18_wheel"]
+[ext_resource type="AudioStream" path="res://assets/sounds/chopping.wav" id="19_chopping_audio"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_board"]
 atlas = ExtResource("6_texture")
@@ -92,6 +93,9 @@ Recipe = ExtResource("5_recipe")
 
 [node name="ProcessPresentation" type="Node" parent="."]
 script = ExtResource("7_presentation")
+
+[node name="ChoppingAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("19_chopping_audio")
 
 [node name="TaskRequestIndicator" type="Node2D" parent="."]
 visible = false

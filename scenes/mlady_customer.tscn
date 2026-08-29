@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/mlady_shubungus/mlady_shubungus-Sheet.png" id="1_sprite"]
 [ext_resource type="Script" path="res://src/CustomerVisualController.cs" id="2_visual"]
@@ -11,6 +11,9 @@
 [ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="9_fetch_task"]
 [ext_resource type="Resource" path="res://resources/items/chopped_carrots.tres" id="10_chopped_carrots"]
 [ext_resource type="Script" path="res://src/BodyPusher.cs" id="11_pusher"]
+[ext_resource type="AudioStream" path="res://assets/sounds/eating_1.wav" id="12_eating_1"]
+[ext_resource type="AudioStream" path="res://assets/sounds/eating_2.wav" id="13_eating_2"]
+[ext_resource type="AudioStream" path="res://assets/sounds/eating_3.wav" id="14_eating_3"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mlady_1"]
 atlas = ExtResource("1_sprite")
@@ -100,6 +103,9 @@ autoplay = "idle"
 
 [node name="CustomerVisualController" type="Node" parent="."]
 script = ExtResource("2_visual")
+EatingSounds = Array[AudioStream]([ExtResource("12_eating_1"), ExtResource("13_eating_2"), ExtResource("14_eating_3")])
+
+[node name="EatingAudio" type="AudioStreamPlayer2D" parent="."]
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
 path_desired_distance = 18.0

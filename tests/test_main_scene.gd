@@ -36,6 +36,11 @@ const DUBIOUS_SOUP_DEFINITION := preload("res://resources/items/dubious_soup.tre
 const STOVE_COOK_TRANSFORMATION := preload("res://resources/transformations/stove_cook.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
 const RECIPE_BOOK_DEFINITION := preload("res://resources/items/recipe_book.tres")
+const EATING_SOUND_PATHS := [
+	"res://assets/sounds/eating_1.wav",
+	"res://assets/sounds/eating_2.wav",
+	"res://assets/sounds/eating_3.wav",
+]
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
@@ -349,6 +354,28 @@ func test_executioner_has_the_game_over_animation_contract() -> void:
 	assert_true(sprite.sprite_frames.get_animation_loop(&"walk"))
 	assert_false(sprite.sprite_frames.get_animation_loop(&"takeout"))
 	assert_false(sprite.sprite_frames.get_animation_loop(&"chop"))
+
+
+func test_customers_randomly_select_from_the_eating_sounds() -> void:
+	var customer_scenes := [
+		CUSTOMER_SCENE,
+		MLADY_CUSTOMER_SCENE,
+		LIL_CUSTOMER_SCENE,
+		LIL_CUSTOMER_2_SCENE,
+	]
+	for customer_scene: PackedScene in customer_scenes:
+		var customer := track(customer_scene.instantiate()) as CharacterBody2D
+		var controller := customer.get_node_or_null("CustomerVisualController") as Node
+		var eating_audio := customer.get_node_or_null("EatingAudio") as AudioStreamPlayer2D
+		assert_true(controller != null)
+		assert_true(eating_audio != null)
+		if controller != null:
+			var eating_sounds: Array = controller.get("EatingSounds")
+			assert_eq(eating_sounds.size(), EATING_SOUND_PATHS.size())
+			for sound_index in eating_sounds.size():
+				assert_eq(eating_sounds[sound_index].resource_path, EATING_SOUND_PATHS[sound_index])
+		if eating_audio != null:
+			assert_false(eating_audio.autoplay)
 
 
 func test_input_manager_has_separate_rebindable_tap_and_hold_mappings() -> void:
@@ -865,6 +892,11 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 			presentation.get_script().resource_path,
 			"res://src/CuttingBoardProcessPresentation.cs",
 		)
+	var chopping_audio := board.get_node_or_null("ChoppingAudio") as AudioStreamPlayer2D
+	assert_true(chopping_audio != null)
+	if chopping_audio != null:
+		assert_eq(chopping_audio.stream.resource_path, "res://assets/sounds/chopping.wav")
+		assert_false(chopping_audio.autoplay)
 
 
 func test_completing_recipe_selection_immediately_publishes_request() -> void:

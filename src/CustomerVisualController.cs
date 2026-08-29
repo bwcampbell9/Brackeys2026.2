@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using Godot.Collections;
 
 public partial class CustomerVisualController : Node
 {
@@ -10,6 +11,8 @@ public partial class CustomerVisualController : Node
     private CharacterBody2D _actor = null!;
     private NpcMotor _motor = null!;
     private WorkstationTaskPublisher _taskPublisher = null!;
+    private AudioStreamPlayer2D _eatingAudio = null!;
+    private RandomNumberGenerator _random = null!;
     private StringName _currentAnimation = new();
 
     [Export]
@@ -21,6 +24,12 @@ public partial class CustomerVisualController : Node
     [Export]
     public NodePath TaskPublisherPath { get; set; } =
         new("../WorkstationTaskPublisher");
+
+    [Export]
+    public NodePath EatingAudioPath { get; set; } = new("../EatingAudio");
+
+    [Export]
+    public Array<AudioStream> EatingSounds { get; set; } = new();
 
     public override void _Ready()
     {
@@ -44,6 +53,13 @@ public partial class CustomerVisualController : Node
             ?? throw new InvalidOperationException(
                 "CustomerVisualController requires a WorkstationTaskPublisher."
             );
+        _eatingAudio =
+            GetNodeOrNull<AudioStreamPlayer2D>(EatingAudioPath)
+            ?? throw new InvalidOperationException(
+                "CustomerVisualController requires an eating audio player."
+            );
+        _random = new RandomNumberGenerator();
+        _random.Randomize();
         SetAnimation(IdleAnimation);
     }
 
@@ -72,5 +88,12 @@ public partial class CustomerVisualController : Node
 
         _currentAnimation = animation;
         _sprite.Play(animation);
+        if (animation == EatingAnimation && EatingSounds.Count > 0)
+        {
+            _eatingAudio.Stream = EatingSounds[
+                _random.RandiRange(0, EatingSounds.Count - 1)
+            ];
+            _eatingAudio.Play();
+        }
     }
 }
