@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://bs4ml8jcscl4t"]
+[gd_scene format=3 uid="uid://bs4ml8jcscl4t"]
 
 [ext_resource type="Script" uid="uid://bfv3ehapyq5le" path="res://src/PickupSocket.cs" id="1_socket"]
 [ext_resource type="Script" uid="uid://danmdb4xmbt07" path="res://src/InteractionTarget.cs" id="2_target"]
@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://cn86fke1u4k8t" path="res://assets/sprites/stove/stove-back-Sheet.png" id="4_back_texture"]
 [ext_resource type="Texture2D" uid="uid://ebs2i6jxyd38" path="res://assets/sprites/stove/stove-front-Sheet.png" id="5_front_texture"]
 [ext_resource type="Script" uid="uid://gmwhu55mmbc8" path="res://src/OvenCookingController.cs" id="6_controller"]
-[ext_resource type="Resource" path="res://resources/recipes/cook.tres" id="7_cook"]
+[ext_resource type="Resource" path="res://resources/recipes/stove_cook.tres" id="7_cook"]
 [ext_resource type="Script" uid="uid://c37qaufkux8t3" path="res://src/StoveCookingPresentation.cs" id="8_presentation"]
 [ext_resource type="Script" path="res://src/RequestWorkstationTaskAction.cs" id="9_request_action"]
 [ext_resource type="Script" path="res://src/ConfigureWorkstationAction.cs" id="10_configure_action"]

@@ -3,6 +3,8 @@ extends SceneTree
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const STOVE_SCENE := preload("res://scenes/stove.tscn")
 const POTATO_SCENE := preload("res://scenes/pickup_item.tscn")
+const CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/chopped_potatoes.tres")
+const POTATO_SOUP_DEFINITION := preload("res://resources/items/potato_soup.tres")
 
 var _failed := false
 
@@ -25,6 +27,7 @@ func _run() -> void:
 	var world := Node2D.new()
 	var stove := STOVE_SCENE.instantiate() as StaticBody2D
 	var potato := POTATO_SCENE.instantiate() as RigidBody2D
+	potato.set("Definition", CHOPPED_POTATOES_DEFINITION)
 	world.add_child(stove)
 	world.add_child(potato)
 	root.add_child(world)
@@ -53,7 +56,12 @@ func _run() -> void:
 	await create_timer(0.25).timeout
 
 	var cooked_definition := potato.get("Definition") as Resource
-	_check(cooked_definition.get("Id") == &"cooked_potato", "The stove must apply the cooking transformation.")
+	_check(cooked_definition.get("Id") == &"potato_soup", "Chopped potatoes must become potato soup in the stove.")
+	_check(cooked_definition.get("Id") == POTATO_SOUP_DEFINITION.get("Id"), "The stove must use the authored potato soup definition.")
+	var soup_sprite := potato.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	_check(soup_sprite.visible, "Soup results must show their animated pickup visual.")
+	_check(soup_sprite.sprite_frames.get_frame_count(&"idle") == 2, "Potato soup must have a two-frame idle animation.")
+	_check(soup_sprite.sprite_frames.get_animation_speed(&"idle") == 2.0, "Potato soup must idle at 2 FPS.")
 	_check(back_sprite.animation == &"idle", "The stove back must return to idle after cooking.")
 	_check(front_sprite.animation == &"idle", "The stove front must return to idle after cooking.")
 	_check(potato.position == Vector2(22, -78), "Finished items must remain at the authored stove offset.")

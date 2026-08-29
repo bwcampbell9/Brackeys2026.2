@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ProcessingRecipe" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/ProcessingRecipe.cs" id="1_recipe"]
+[ext_resource type="Resource" path="res://resources/transformations/stove_cook.tres" id="2_transformation"]
+
+[resource]
+script = ExtResource("1_recipe")
+Transformation = ExtResource("2_transformation")
+Duration = 10.0
