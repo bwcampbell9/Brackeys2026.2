@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="PickupItemDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="1_definition"]
+[ext_resource type="Texture2D" path="res://assets/sprites/soup/soup-Sheet.png" id="2_soup_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dubious_soup_1"]
+atlas = ExtResource("2_soup_sheet")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dubious_soup_2"]
+atlas = ExtResource("2_soup_sheet")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dubious_soup"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_dubious_soup_1")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_dubious_soup_2")}],
+"loop": true,
+"name": &"idle",
+"speed": 2.0
+}]
+
+[resource]
+script = ExtResource("1_definition")
+Id = &"dubious_soup"
+DisplayName = "Dubious Soup"
+SpriteFrames = SubResource("SpriteFrames_dubious_soup")
