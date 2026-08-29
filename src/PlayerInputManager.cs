@@ -9,6 +9,7 @@ public partial class PlayerInputManager : Node
         public float HeldTime;
         public bool HoldActivated;
         public bool HoldThresholdReached;
+        public bool PressObserved;
     }
 
     private static readonly StringName DefaultInputAction = "interact";
@@ -70,9 +71,10 @@ public partial class PlayerInputManager : Node
                 state.HeldTime = 0.0f;
                 state.HoldActivated = false;
                 state.HoldThresholdReached = false;
+                state.PressObserved = true;
             }
 
-            if (Input.IsActionPressed(inputAction))
+            if (state.PressObserved && Input.IsActionPressed(inputAction))
             {
                 state.HeldTime += (float)delta;
                 state.HoldThresholdReached =
@@ -101,6 +103,14 @@ public partial class PlayerInputManager : Node
                 continue;
             }
 
+            if (!state.PressObserved)
+            {
+                state.HeldTime = 0.0f;
+                state.HoldActivated = false;
+                state.HoldThresholdReached = false;
+                continue;
+            }
+
             if (wasHoldActivated)
             {
                 if (!justPressed)
@@ -121,6 +131,7 @@ public partial class PlayerInputManager : Node
                 state.HeldTime = 0.0f;
                 state.HoldActivated = false;
                 state.HoldThresholdReached = false;
+                state.PressObserved = false;
             }
         }
     }

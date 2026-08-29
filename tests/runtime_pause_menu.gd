@@ -11,6 +11,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	_check_pause_bindings()
+	_check_controller_ui_bindings()
 	change_scene_to_packed(MAIN_SCENE)
 	await process_frame
 	await process_frame
@@ -52,14 +53,21 @@ func _run() -> void:
 		"Controller navigation must move focus to Return to Title.",
 	)
 
-	await _send_action(&"pause")
-	_check(not paused, "Pressing pause again must resume gameplay.")
-	_check(not pause_menu.visible, "Resuming must hide the pause menu.")
+	await _send_joy_button(JOY_BUTTON_B)
+	_check(not paused, "Controller B must resume gameplay.")
+	_check(not pause_menu.visible, "Controller B must hide the pause menu.")
 
+	var carrier := current_scene.get_node("Player/PickupCarrier")
+	var held_item := current_scene.get_node("BabyPickupItem")
+	_check(bool(carrier.TryHold(held_item)), "The resume fixture must hold an item.")
 	await _send_action(&"pause")
-	await _send_action(&"ui_accept")
+	await _send_joy_button(JOY_BUTTON_A)
 	_check(not paused, "Activating Resume must unpause gameplay.")
 	_check(not pause_menu.visible, "Activating Resume must hide the pause menu.")
+	_check(
+		carrier.get("HeldItem") == held_item,
+		"Controller A used to resume must not also trigger a gameplay interaction.",
+	)
 
 	await _send_action(&"pause")
 	await _send_action(&"ui_down")
@@ -102,6 +110,21 @@ func _check_pause_bindings() -> void:
 	_check(has_controller_menu, "Pause must be bound to the controller Menu/Start button.")
 
 
+func _check_controller_ui_bindings() -> void:
+	var accept_has_controller_a := false
+	for event in InputMap.action_get_events(&"ui_accept"):
+		if event is InputEventJoypadButton and event.button_index == JOY_BUTTON_A:
+			accept_has_controller_a = true
+
+	var cancel_has_controller_b := false
+	for event in InputMap.action_get_events(&"ui_cancel"):
+		if event is InputEventJoypadButton and event.button_index == JOY_BUTTON_B:
+			cancel_has_controller_b = true
+
+	_check(accept_has_controller_a, "Controller A must activate the focused menu button.")
+	_check(cancel_has_controller_b, "Controller B must map to closing the pause menu.")
+
+
 func _send_action(action: StringName) -> void:
 	var press := InputEventAction.new()
 	press.action = action
@@ -113,6 +136,22 @@ func _send_action(action: StringName) -> void:
 	release.action = action
 	release.pressed = false
 	root.push_input(release)
+	await process_frame
+
+
+func _send_joy_button(button_index: int) -> void:
+	var press := InputEventJoypadButton.new()
+	press.button_index = button_index
+	press.pressed = true
+	Input.parse_input_event(press)
+	await process_frame
+
+	var release := InputEventJoypadButton.new()
+	release.button_index = button_index
+	release.pressed = false
+	Input.parse_input_event(release)
+	await process_frame
+	await process_frame
 	await process_frame
 
 
