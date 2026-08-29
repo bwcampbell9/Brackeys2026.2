@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemTransformation" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/ItemTransformation.cs" id="1_transformation"]
+[ext_resource type="Material" path="res://resources/materials/cooked_brown_black.tres" id="2_material"]
+
+[resource]
+script = ExtResource("1_transformation")
+Id = &"cook"
+ResultIdPrefix = "cooked"
+ResultNamePrefix = "Cooked "
+FallbackMaterial = ExtResource("2_material")

@@ -1,0 +1,83 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/PickupSocket.cs" id="1_socket"]
+[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="2_target"]
+[ext_resource type="Script" path="res://src/SlotTransferAction.cs" id="3_transfer"]
+[ext_resource type="Texture2D" path="res://assets/sprites/oven/oven-Sheet.png" id="4_texture"]
+[ext_resource type="Script" path="res://src/OvenCookingController.cs" id="5_controller"]
+[ext_resource type="Resource" path="res://resources/transformations/cook.tres" id="6_cook"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idle"]
+atlas = ExtResource("4_texture")
+region = Rect2(0, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cooking_1"]
+atlas = ExtResource("4_texture")
+region = Rect2(64, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cooking_2"]
+atlas = ExtResource("4_texture")
+region = Rect2(128, 0, 64, 128)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_oven"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cooking_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cooking_2")
+}],
+"loop": true,
+"name": &"cooking",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_idle")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 1.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_oven"]
+size = Vector2(64, 64)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 34.0
+
+[node name="Oven" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -32)
+sprite_frames = SubResource("SpriteFrames_oven")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_oven")
+
+[node name="PickupSocket" type="Node2D" parent="."]
+script = ExtResource("1_socket")
+NpcApproachOffset = Vector2(0, 72)
+
+[node name="InteractionTarget" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 2
+script = ExtResource("2_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="TransferItemAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("3_transfer")
+
+[node name="OvenCookingController" type="Node" parent="."]
+script = ExtResource("5_controller")
+Transformation = ExtResource("6_cook")
+CookDuration = 10.0
