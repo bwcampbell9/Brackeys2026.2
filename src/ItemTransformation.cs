@@ -16,6 +16,9 @@ public partial class ItemTransformation : Resource
     [Export]
     public Material? FallbackMaterial { get; set; }
 
+    [Export]
+    public PickupItemDefinition? FallbackOutput { get; set; }
+
     public bool CanApply(PickupItemDefinition input)
     {
         if (Id.IsEmpty || input.HasAppliedTransformation(Id))
@@ -26,6 +29,7 @@ public partial class ItemTransformation : Resource
         ItemTransformationOverride? transformationOverride =
             input.FindTransformationOverride(Id);
         return transformationOverride?.Output is not null
+            || FallbackOutput is not null
             || FallbackMaterial is not null;
     }
 
@@ -40,22 +44,27 @@ public partial class ItemTransformation : Resource
 
         PickupItemDefinition? explicitOutput =
             input.FindTransformationOverride(Id)?.Output;
-        bool usesFallback = explicitOutput is null;
+        bool usesGeneratedFallback = explicitOutput is null
+            && FallbackOutput is null;
         PickupItemDefinition outputTemplate;
-        if (explicitOutput is null)
+        if (explicitOutput is not null)
+        {
+            outputTemplate = explicitOutput;
+        }
+        else if (FallbackOutput is not null)
+        {
+            outputTemplate = FallbackOutput;
+        }
+        else
         {
             if (FallbackMaterial is null)
             {
                 throw new InvalidOperationException(
-                    $"{Id} requires a fallback material."
+                    $"{Id} requires a fallback output or material."
                 );
             }
 
             outputTemplate = input;
-        }
-        else
-        {
-            outputTemplate = explicitOutput;
         }
 
         string idPrefix = string.IsNullOrWhiteSpace(ResultIdPrefix)
@@ -63,16 +72,17 @@ public partial class ItemTransformation : Resource
             : ResultIdPrefix;
         var result = new PickupItemDefinition
         {
-            Id = usesFallback
+            Id = usesGeneratedFallback
                 ? $"{idPrefix}_{input.Id}"
                 : outputTemplate.Id,
-            DisplayName = usesFallback
+            DisplayName = usesGeneratedFallback
                 ? $"{ResultNamePrefix}{input.DisplayName}"
                 : outputTemplate.DisplayName,
             Texture = outputTemplate.Texture,
+            SpriteFrames = outputTemplate.SpriteFrames,
             Modulate = outputTemplate.Modulate,
             VisualScale = outputTemplate.VisualScale,
-            VisualMaterial = usesFallback
+            VisualMaterial = usesGeneratedFallback
                 ? FallbackMaterial
                 : outputTemplate.VisualMaterial,
         };

@@ -6,6 +6,7 @@ extends "res://addons/godot_ai/testing/test_suite.gd"
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const PICKUP_ITEM_SCENE := preload("res://scenes/pickup_item.tscn")
+const CARROT_ITEM_SCENE := preload("res://scenes/carrot_item.tscn")
 const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
 const RECIPE_BOOK_ITEM_SCENE := preload("res://scenes/recipe_book_item.tscn")
@@ -25,6 +26,11 @@ const CHOP_TRANSFORMATION := preload("res://resources/transformations/chop.tres"
 const POTATO_DEFINITION := preload("res://resources/items/potato.tres")
 const CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/chopped_potatoes.tres")
 const CARROT_DEFINITION := preload("res://resources/items/carrot.tres")
+const CHOPPED_CARROTS_DEFINITION := preload("res://resources/items/chopped_carrots.tres")
+const CARROT_SOUP_DEFINITION := preload("res://resources/items/carrot_soup.tres")
+const POTATO_SOUP_DEFINITION := preload("res://resources/items/potato_soup.tres")
+const DUBIOUS_SOUP_DEFINITION := preload("res://resources/items/dubious_soup.tres")
+const STOVE_COOK_TRANSFORMATION := preload("res://resources/transformations/stove_cook.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
 const RECIPE_BOOK_DEFINITION := preload("res://resources/items/recipe_book.tres")
 const EXPECTED_INPUTS := {
@@ -738,8 +744,13 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 		var cook_recipe := controller.get("Recipe") as Resource
 		assert_true(cook_recipe != null)
 		if cook_recipe != null:
-			assert_eq(cook_recipe.resource_path, "res://resources/recipes/cook.tres")
+			assert_eq(cook_recipe.resource_path, "res://resources/recipes/stove_cook.tres")
 			assert_eq(float(cook_recipe.get("Duration")), 10.0)
+			var stove_cook_transformation := cook_recipe.get("Transformation") as Resource
+			assert_true(stove_cook_transformation != null)
+			if stove_cook_transformation != null:
+				assert_eq(stove_cook_transformation.get("Id"), &"stove_cook")
+				assert_eq(stove_cook_transformation.get("FallbackOutput"), DUBIOUS_SOUP_DEFINITION)
 			assert_eq(cook_recipe.get("RequiredTool"), null)
 			var cook_transformation := cook_recipe.get("Transformation") as Resource
 			assert_true(cook_transformation != null)
@@ -821,6 +832,37 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 		assert_eq(int(publisher.get("RequestMode")), 1)
 		assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
 		assert_eq(publisher.get("FetchTask"), FETCH_TASK)
+
+
+func test_stove_cooking_maps_chopped_ingredients_and_other_items_to_soup() -> void:
+	var chopped_carrots := CARROT_ITEM_SCENE.instantiate()
+	chopped_carrots.set("Definition", CHOPPED_CARROTS_DEFINITION)
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", chopped_carrots)))
+	assert_eq(chopped_carrots.get("Definition").get("Id"), CARROT_SOUP_DEFINITION.get("Id"))
+	var carrot_soup_sprite := chopped_carrots.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(carrot_soup_sprite != null)
+	if carrot_soup_sprite != null:
+		assert_true(carrot_soup_sprite.visible)
+		assert_eq(carrot_soup_sprite.animation, &"idle")
+		var carrot_soup_frame := carrot_soup_sprite.sprite_frames.get_frame_texture(&"idle", 0) as AtlasTexture
+		assert_true(carrot_soup_frame != null)
+		if carrot_soup_frame != null:
+			assert_eq(carrot_soup_frame.atlas.resource_path, "res://assets/sprites/soup/soup-Sheet.png")
+			assert_eq(carrot_soup_frame.region, Rect2(128, 0, 64, 64))
+
+	var chopped_potatoes := PICKUP_ITEM_SCENE.instantiate()
+	chopped_potatoes.set("Definition", CHOPPED_POTATOES_DEFINITION)
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", chopped_potatoes)))
+	assert_eq(chopped_potatoes.get("Definition").get("Id"), POTATO_SOUP_DEFINITION.get("Id"))
+
+	var raw_carrot := CARROT_ITEM_SCENE.instantiate()
+	raw_carrot.set("Definition", CARROT_DEFINITION)
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", raw_carrot)))
+	assert_eq(raw_carrot.get("Definition").get("Id"), DUBIOUS_SOUP_DEFINITION.get("Id"))
+	var dubious_soup_sprite := raw_carrot.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(dubious_soup_sprite != null)
+	if dubious_soup_sprite != null:
+		assert_true(dubious_soup_sprite.visible)
 
 
 func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
