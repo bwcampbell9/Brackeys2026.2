@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="ItemTransformation" format=3 uid="uid://c2cbu8a36llh3"]
+[gd_resource type="Resource" script_class="ItemTransformation" load_steps=3 format=3]
 
-[ext_resource type="Script" uid="uid://dp10syqiux21j" path="res://src/ItemTransformation.cs" id="1_transformation"]
-[ext_resource type="Material" uid="uid://b3jtn66hip167" path="res://resources/materials/cooked_brown_black.tres" id="2_material"]
+[ext_resource type="Script" path="res://src/ItemTransformation.cs" id="1_transformation"]
+[ext_resource type="Material" path="res://resources/materials/cooked_brown_black.tres" id="2_material"]
 
 [resource]
 script = ExtResource("1_transformation")
