@@ -13,6 +13,7 @@ const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
 const OVEN_SCENE := preload("res://scenes/oven.tscn")
+const EXECUTIONER_SCENE := preload("res://scenes/executioner.tscn")
 const NPC_WORKER_SCENE := preload("res://scenes/npc_worker.tscn")
 const CUSTOMER_SCENE := preload("res://scenes/customer.tscn")
 const FETCH_TASK := preload("res://resources/tasks/fetch_workstation_item.tres")
@@ -182,6 +183,29 @@ func test_player_has_composable_interaction_components() -> void:
 
 	assert_eq(input_manager.get_script().resource_path, "res://src/PlayerInputManager.cs")
 	assert_true(is_equal_approx(float(input_manager.get("HoldThreshold")), 0.35))
+
+
+func test_executioner_has_the_game_over_animation_contract() -> void:
+	var executioner := track(EXECUTIONER_SCENE.instantiate()) as Node2D
+
+	assert_true(executioner != null)
+	if executioner == null:
+		return
+
+	var sprite := executioner.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite == null:
+		return
+
+	assert_eq(executioner.get_script().resource_path, "res://src/Executioner.cs")
+	assert_eq(sprite.sprite_frames.get_frame_count(&"idle"), 2)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"walk"), 2)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"takeout"), 5)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"chop"), 6)
+	assert_true(sprite.sprite_frames.get_animation_loop(&"idle"))
+	assert_true(sprite.sprite_frames.get_animation_loop(&"walk"))
+	assert_false(sprite.sprite_frames.get_animation_loop(&"takeout"))
+	assert_false(sprite.sprite_frames.get_animation_loop(&"chop"))
 
 
 func test_input_manager_has_separate_rebindable_tap_and_hold_mappings() -> void:

@@ -1,0 +1,95 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/executioner/executioner-Sheet.png" id="1_sprite"]
+[ext_resource type="Script" path="res://src/Executioner.cs" id="2_executioner"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idle_1"]
+atlas = ExtResource("1_sprite")
+region = Rect2(0, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idle_2"]
+atlas = ExtResource("1_sprite")
+region = Rect2(256, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_1"]
+atlas = ExtResource("1_sprite")
+region = Rect2(512, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_2"]
+atlas = ExtResource("1_sprite")
+region = Rect2(768, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_takeout_1"]
+atlas = ExtResource("1_sprite")
+region = Rect2(1024, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_takeout_2"]
+atlas = ExtResource("1_sprite")
+region = Rect2(1280, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_takeout_3"]
+atlas = ExtResource("1_sprite")
+region = Rect2(1536, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_takeout_4"]
+atlas = ExtResource("1_sprite")
+region = Rect2(1792, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_takeout_5"]
+atlas = ExtResource("1_sprite")
+region = Rect2(2048, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_chop_1"]
+atlas = ExtResource("1_sprite")
+region = Rect2(2304, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_chop_2"]
+atlas = ExtResource("1_sprite")
+region = Rect2(2560, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_chop_3"]
+atlas = ExtResource("1_sprite")
+region = Rect2(2816, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_chop_4"]
+atlas = ExtResource("1_sprite")
+region = Rect2(3072, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_chop_5"]
+atlas = ExtResource("1_sprite")
+region = Rect2(3328, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_chop_6"]
+atlas = ExtResource("1_sprite")
+region = Rect2(3584, 0, 256, 256)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_executioner"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_idle_1")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_idle_2")}],
+"loop": 1,
+"name": &"idle",
+"speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_walk_1")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_walk_2")}],
+"loop": 1,
+"name": &"walk",
+"speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_takeout_1")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_takeout_2")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_takeout_3")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_takeout_4")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_takeout_5")}],
+"loop": 0,
+"name": &"takeout",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_chop_1")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_chop_2")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_chop_3")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_chop_4")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_chop_5")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_chop_6")}],
+"loop": 0,
+"name": &"chop",
+"speed": 10.0
+}]
+
+[node name="Executioner" type="Node2D"]
+script = ExtResource("2_executioner")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_executioner")
+animation = &"idle"
+autoplay = "idle"
