@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/mlady_customer.tscn" id="9_mlady_customer"]
 [ext_resource type="PackedScene" path="res://scenes/lil_customer.tscn" id="10_lil_customer"]
 [ext_resource type="PackedScene" path="res://scenes/lil_customer_2.tscn" id="11_lil_customer_2"]
+[ext_resource type="PackedScene" path="res://scenes/oven.tscn" id="12_oven"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_kitchen"]
 vertices = PackedVector2Array(620, 354, 724, 354, 876, 456, 148, 456, 148, 378, 876, 84, 724, 250, 468, 84, 620, 250, 468, 162, 84, 378, 84, 354, 148, 354, 364, 162, 148, 250, 364, 84, 84, 250, 84, 84)
@@ -67,6 +68,9 @@ position = Vector2(480, 270)
 
 [node name="BabyPickupItem" parent="." unique_id=1947549762 instance=ExtResource("2_baby")]
 position = Vector2(480, 200)
+
+[node name="Oven" parent="." instance=ExtResource("12_oven")]
+position = Vector2(800, 302)
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
 
