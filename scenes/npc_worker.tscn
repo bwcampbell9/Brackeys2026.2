@@ -55,10 +55,10 @@ animations = [{
 collision_layer = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1528392061]
-position = Vector2(0, 44)
 shape = SubResource("CircleShape2D_worker")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=755325205]
+position = Vector2(0, -44)
 sprite_frames = SubResource("SpriteFrames_worker")
 animation = &"idle"
 autoplay = "idle"
@@ -73,8 +73,10 @@ radius = 20.0
 
 [node name="NpcMotor" type="Node" parent="." unique_id=762160099]
 script = ExtResource("3_motor")
+FacingCarrierPath = NodePath("../PickupCarrier")
 
 [node name="PickupCarrier" type="Node2D" parent="." unique_id=1354174656]
+position = Vector2(0, -44)
 script = ExtResource("2_carrier")
 
 [node name="HoldPoint" type="Node2D" parent="PickupCarrier" unique_id=1586235538]

@@ -55,21 +55,28 @@ func _run_correct_fetch_scenario() -> void:
 		"Interacting with an empty board must publish and show its potato request.",
 	)
 	player.global_position = Vector2(450, 500)
-	var rotated_body := await _wait_until(
-		func() -> bool: return absf(worker.rotation) > 0.1,
+	var carrier := worker.get_node("PickupCarrier") as Node2D
+	var rotated_carrier := await _wait_until(
+		func() -> bool: return absf(carrier.rotation) > 0.1,
 		300,
 	)
+	var sprite := worker.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	_check(
-		rotated_body and is_zero_approx(worker.get_node("AnimatedSprite2D").rotation),
-		"Facing must rotate the whole NPC body rather than only its sprite.",
+		rotated_carrier
+		and is_zero_approx(worker.rotation)
+		and is_zero_approx(sprite.global_rotation)
+		and sprite.global_position.is_equal_approx(
+			worker.global_position + Vector2(0, -44)
+		),
+		"Facing must rotate carried items while the body and upright sprite stay aligned to the foot origin.",
 	)
 	var hold_point := worker.get_node("PickupCarrier/HoldPoint") as Node2D
 	_check(
 		hold_point.global_position.is_equal_approx(
-			worker.global_position
-				+ Vector2(0, -42).rotated(worker.global_rotation)
+			carrier.global_position
+				+ Vector2(0, -42).rotated(carrier.global_rotation)
 		),
-		"The pickup location must rotate with the NPC body.",
+		"The pickup location must rotate around the NPC visual center.",
 	)
 	var delivered := await _wait_until(
 		func() -> bool: return _socket_item_id(board_socket) == &"potato",

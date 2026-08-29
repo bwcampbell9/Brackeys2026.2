@@ -41,19 +41,19 @@ tile_set = ExtResource("3_workstations")
 navigation_polygon = SubResource("NavigationPolygon_kitchen")
 
 [node name="NpcWorker" parent="." unique_id=1718931931 instance=ExtResource("4_npc")]
-position = Vector2(480, 400)
+position = Vector2(480, 444)
 
 [node name="Customer" parent="." unique_id=873843052 instance=ExtResource("8_customer")]
-position = Vector2(760, 400)
+position = Vector2(760, 440)
 
 [node name="MladyShubungusCustomer" parent="." unique_id=850852891 instance=ExtResource("9_mlady_customer")]
-position = Vector2(680, 400)
+position = Vector2(680, 440)
 
 [node name="LilShubungusCustomer" parent="." unique_id=1686677197 instance=ExtResource("10_lil_customer")]
-position = Vector2(840, 400)
+position = Vector2(840, 440)
 
 [node name="LilShubungus2Customer" parent="." unique_id=1275770327 instance=ExtResource("11_lil_customer_2")]
-position = Vector2(600, 400)
+position = Vector2(600, 440)
 
 [node name="TaskSystem" type="Node" parent="." unique_id=873822971]
 script = ExtResource("5_task_system")

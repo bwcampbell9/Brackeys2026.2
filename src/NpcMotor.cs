@@ -5,12 +5,16 @@ public partial class NpcMotor : Node
 {
     private CharacterBody2D _actor = null!;
     private NavigationAgent2D _navigationAgent = null!;
+    private PickupCarrier? _facingCarrier;
     private Vector2 _targetPosition;
     private bool _isMoving;
 
     [Export]
     public NodePath NavigationAgentPath { get; set; } =
         new("../NavigationAgent2D");
+
+    [Export]
+    public NodePath FacingCarrierPath { get; set; } = new();
 
     [Export(PropertyHint.Range, "10,500,1,or_greater")]
     public float Speed { get; set; } = 110.0f;
@@ -34,6 +38,14 @@ public partial class NpcMotor : Node
             ?? throw new InvalidOperationException(
                 "NpcMotor requires a NavigationAgent2D."
             );
+        if (!string.IsNullOrEmpty(FacingCarrierPath.ToString()))
+        {
+            _facingCarrier =
+                GetNodeOrNull<PickupCarrier>(FacingCarrierPath)
+                ?? throw new InvalidOperationException(
+                    "NpcMotor requires the configured PickupCarrier."
+                );
+        }
         _navigationAgent.PathDesiredDistance = ArrivalDistance;
         _navigationAgent.TargetDesiredDistance = ArrivalDistance;
     }
@@ -60,9 +72,9 @@ public partial class NpcMotor : Node
         }
 
         _actor.Velocity = direction * Speed;
-        if (!direction.IsZeroApprox())
+        if (!direction.IsZeroApprox() && _facingCarrier is not null)
         {
-            _actor.Rotation = direction.Angle() + Mathf.Pi / 2.0f;
+            _facingCarrier.FacingDirection = direction;
         }
         _actor.MoveAndSlide();
 
