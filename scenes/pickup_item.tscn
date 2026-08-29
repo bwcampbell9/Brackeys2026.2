@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://src/PickupItem.cs" id="1_pickup"]
 [ext_resource type="Texture2D" uid="uid://coq2rm448lkux" path="res://assets/sprites/Potato.png" id="2_sprite"]
@@ -7,14 +7,17 @@
 [ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="5_transfer"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
+radius = 10.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pickup_interaction"]
 radius = 28.0
 
 [node name="PickupItem" type="RigidBody2D"]
 collision_layer = 2
-collision_mask = 1
+collision_mask = 7
 gravity_scale = 0.0
-linear_damp = 4.0
-angular_damp = 4.0
+linear_damp = 8.0
+angular_damp = 8.0
 script = ExtResource("1_pickup")
 Definition = ExtResource("3_definition")
 
@@ -31,7 +34,7 @@ monitoring = false
 script = ExtResource("4_target")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
-shape = SubResource("CircleShape2D_pickup")
+shape = SubResource("CircleShape2D_pickup_interaction")
 
 [node name="PickupTransferAction" type="Node" parent="InteractionTarget"]
 script = ExtResource("5_transfer")

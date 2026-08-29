@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://src/BabyPickupItem.cs" id="1_baby"]
 [ext_resource type="Texture2D" path="res://assets/sprites/baby/baby-Sheet.png" id="2_baby_sheet"]
@@ -23,14 +23,18 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_baby"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_baby_interaction"]
 radius = 32.01562
 
 [node name="BabyPickupItem" type="RigidBody2D"]
 collision_layer = 2
-collision_mask = 1
+collision_mask = 7
 gravity_scale = 0.0
-linear_damp = 4.0
-angular_damp = 4.0
+linear_damp = 8.0
+angular_damp = 8.0
+lock_rotation = true
 script = ExtResource("1_baby")
 Definition = ExtResource("5_definition")
 
@@ -49,7 +53,7 @@ monitoring = false
 script = ExtResource("3_target")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
-shape = SubResource("CircleShape2D_baby")
+shape = SubResource("CircleShape2D_baby_interaction")
 
 [node name="PickupTransferAction" type="Node" parent="InteractionTarget"]
 script = ExtResource("4_transfer")

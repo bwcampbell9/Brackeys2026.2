@@ -15,7 +15,6 @@
 [ext_resource type="Script" path="res://src/ConfigureWorkstationAction.cs" id="13_configure_action"]
 [ext_resource type="Resource" path="res://resources/items/carrot.tres" id="14_carrot"]
 [ext_resource type="Resource" path="res://resources/items/chopped_potatoes.tres" id="15_chopped_potatoes"]
-[ext_resource type="Resource" path="res://resources/items/knife.tres" id="16_knife"]
 [ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="17_definition"]
 [ext_resource type="Script" path="res://src/WorkstationRequestWheel.cs" id="18_wheel"]
 
@@ -105,12 +104,6 @@ color = Color(0.08, 0.1, 0.12, 0.9)
 
 [node name="Icon" type="Sprite2D" parent="TaskRequestIndicator"]
 
-[node name="ConfiguredItemIndicator" type="Node2D" parent="."]
-position = Vector2(0, 37)
-z_index = 10
-
-[node name="Icon" type="Sprite2D" parent="ConfiguredItemIndicator"]
-
 [node name="RequestWheelLayer" type="CanvasLayer" parent="."]
 layer = 100
 
@@ -131,4 +124,4 @@ RequestMode = 2
 FetchTask = ExtResource("9_fetch_task")
 ActionTask = ExtResource("10_action_task")
 RequestedItem = ExtResource("11_potato")
-AvailableItems = Array[ExtResource("17_definition")]([ExtResource("11_potato"), ExtResource("14_carrot"), ExtResource("15_chopped_potatoes"), ExtResource("16_knife")])
+AvailableItems = Array[ExtResource("17_definition")]([ExtResource("11_potato"), ExtResource("14_carrot"), ExtResource("15_chopped_potatoes")])

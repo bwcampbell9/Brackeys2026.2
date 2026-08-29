@@ -6,9 +6,10 @@
 [ext_resource type="Script" uid="uid://da23ug7lkfcpv" path="res://src/PickupCarrier.cs" id="3_carrier"]
 [ext_resource type="Script" uid="uid://cegdgwgjjqtc6" path="res://src/PlayerInteractor.cs" id="4_interactor"]
 [ext_resource type="Script" uid="uid://bywui5r73mebh" path="res://src/PlayerInputManager.cs" id="5_input_manager"]
+[ext_resource type="Script" path="res://src/BodyPusher.cs" id="6_pusher"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_vk56l"]
-radius = 32.01562
+radius = 12.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tuyoq"]
 atlas = ExtResource("2_qlg0r")
@@ -68,13 +69,22 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup_range"]
 radius = 73.00685
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_close_interaction"]
+radius = 32.01562
+
 [node name="Player" type="CharacterBody2D" unique_id=1644566602]
 collision_layer = 4
+collision_mask = 7
+motion_mode = 1
 script = ExtResource("1_3vyb7")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1979022979]
 visible = false
+position = Vector2(0, 19)
 shape = SubResource("CircleShape2D_vk56l")
+
+[node name="BodyPusher" type="Node" parent="."]
+script = ExtResource("6_pusher")
 
 [node name="InnerArm" type="Sprite2D" parent="." unique_id=1911376885]
 position = Vector2(0, -6)
@@ -118,7 +128,7 @@ monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interactor/CloseInteractionArea" unique_id=1294986653]
 visible = false
-shape = SubResource("CircleShape2D_vk56l")
+shape = SubResource("CircleShape2D_close_interaction")
 
 [node name="InputManager" type="Node" parent="." unique_id=849512019]
 script = ExtResource("5_input_manager")
