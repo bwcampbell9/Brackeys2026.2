@@ -39,8 +39,12 @@ func _run() -> void:
 		"Secondary interaction must start the opening animation while held.",
 	)
 	_check(bool(book.get("IsOpening")), "The book must report that it is opening.")
+	_check(
+		not bool(book.TrySecondaryInteract()),
+		"The book must ignore secondary interaction while opening.",
+	)
 
-	await _wait_physics_frames(50)
+	await create_timer(0.8).timeout
 	_check(sprite.frame == 5, "The opening animation must finish on the open frame.")
 	_check(not sprite.is_playing(), "The opening animation must not loop.")
 	_check(bool(book.get("IsOpen")), "The book must remain in its open state.")
@@ -52,15 +56,35 @@ func _run() -> void:
 	Input.action_press("secondary_interact")
 	await _wait_physics_frames(2)
 	Input.action_release("secondary_interact")
+	_check(sprite.is_playing(), "Secondary interaction must start closing an open book.")
+	_check(bool(book.get("IsClosing")), "The book must report that it is closing.")
+	_check(
+		not bool(book.TrySecondaryInteract()),
+		"The book must ignore secondary interaction while closing.",
+	)
+
+	await create_timer(0.8).timeout
+	_check(sprite.frame == 0, "The closing animation must finish on the closed frame.")
+	_check(not sprite.is_playing(), "The closing animation must not loop.")
+	_check(not bool(book.get("IsOpen")), "The book must remain in its closed state.")
+	_check(
+		book.get_parent() == hold_point,
+		"The closed recipe book must remain in the player's hands.",
+	)
+
+	Input.action_press("secondary_interact")
 	await _wait_physics_frames(2)
-	_check(sprite.frame == 5, "Secondary interaction must not restart an open book.")
+	Input.action_release("secondary_interact")
+	await create_timer(0.8).timeout
+	_check(sprite.frame == 5, "The closed recipe book must be openable again.")
+	_check(bool(book.get("IsOpen")), "Repeated secondary interaction must toggle the book.")
 
 	_check(bool(carrier.Throw()), "The open recipe book must remain throwable.")
 	_check(
 		book.get_parent() == world and not book.freeze,
 		"Throwing must return the recipe book to world physics.",
 	)
-	await physics_frame
+	await _wait_physics_frames(2)
 	_check(book.linear_velocity.length() > 0.0, "Throwing must impart velocity.")
 	_check(bool(book.get("IsOpen")), "Throwing must preserve the open state.")
 

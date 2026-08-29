@@ -9,6 +9,8 @@ public partial class RecipeBookItem : PickupItem
 
     public bool IsOpening { get; private set; }
 
+    public bool IsClosing { get; private set; }
+
     public bool IsOpen { get; private set; }
 
     public override void _Ready()
@@ -35,13 +37,22 @@ public partial class RecipeBookItem : PickupItem
 
     public override bool TrySecondaryInteract()
     {
-        if (!IsCarried || IsOpening || IsOpen)
+        if (!IsCarried || IsOpening || IsClosing)
         {
             return false;
         }
 
-        IsOpening = true;
-        _sprite.Play(OpenAnimation);
+        if (IsOpen)
+        {
+            IsClosing = true;
+            _sprite.PlayBackwards(OpenAnimation);
+        }
+        else
+        {
+            IsOpening = true;
+            _sprite.Play(OpenAnimation);
+        }
+
         return true;
     }
 
@@ -52,7 +63,15 @@ public partial class RecipeBookItem : PickupItem
             return;
         }
 
-        IsOpening = false;
-        IsOpen = true;
+        if (IsClosing)
+        {
+            IsClosing = false;
+            IsOpen = false;
+        }
+        else if (IsOpening)
+        {
+            IsOpening = false;
+            IsOpen = true;
+        }
     }
 }
