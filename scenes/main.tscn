@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://b688vrtt4173h" path="res://scenes/player.tscn" id="1_o5qli"]
 [ext_resource type="PackedScene" path="res://scenes/baby_pickup_item.tscn" id="2_baby"]
 [ext_resource type="TileSet" uid="uid://b643kvtcli7oo" path="res://assets/sprites/workstations_tilemap/workstations_tiles.tres" id="3_workstations"]
-[ext_resource type="PackedScene" path="res://scenes/npc_worker.tscn" id="4_npc"]
+[ext_resource type="PackedScene" uid="uid://mvdg0dey2ov1" path="res://scenes/npc_worker.tscn" id="4_npc"]
 [ext_resource type="Script" uid="uid://ntcbqrx180yf" path="res://src/KitchenTaskSystem.cs" id="5_task_system"]
 [ext_resource type="Script" uid="uid://dewk5tvxfdanb" path="res://src/TaskBroker.cs" id="6_broker"]
 [ext_resource type="Script" uid="uid://cwemdsb22oad5" path="res://src/ItemSourceCatalog.cs" id="7_catalog"]
@@ -45,13 +45,13 @@ position = Vector2(480, 400)
 [node name="Customer" parent="." unique_id=873843052 instance=ExtResource("8_customer")]
 position = Vector2(760, 400)
 
-[node name="MladyShubungusCustomer" parent="." instance=ExtResource("9_mlady_customer")]
+[node name="MladyShubungusCustomer" parent="." unique_id=850852891 instance=ExtResource("9_mlady_customer")]
 position = Vector2(680, 400)
 
-[node name="LilShubungusCustomer" parent="." instance=ExtResource("10_lil_customer")]
+[node name="LilShubungusCustomer" parent="." unique_id=1686677197 instance=ExtResource("10_lil_customer")]
 position = Vector2(840, 400)
 
-[node name="LilShubungus2Customer" parent="." instance=ExtResource("11_lil_customer_2")]
+[node name="LilShubungus2Customer" parent="." unique_id=1275770327 instance=ExtResource("11_lil_customer_2")]
 position = Vector2(600, 400)
 
 [node name="TaskSystem" type="Node" parent="." unique_id=873822971]
