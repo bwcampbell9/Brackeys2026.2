@@ -346,11 +346,23 @@ func test_recipe_book_has_pickup_and_open_animation_contract() -> void:
 		return
 
 	assert_eq(sprite.sprite_frames.get_frame_count(&"open"), 6)
+	assert_eq(sprite.sprite_frames.get_animation_speed(&"open"), 12.0)
 	assert_false(sprite.sprite_frames.get_animation_loop(&"open"))
 	for frame_index in 6:
 		var frame_texture := sprite.sprite_frames.get_frame_texture(&"open", frame_index)
 		assert_eq(frame_texture.get_width(), 64)
 		assert_eq(frame_texture.get_height(), 64)
+
+	var overlay_layer := book.get_node("RecipeOverlay") as CanvasLayer
+	var overlay_root := book.get_node("RecipeOverlay/OverlayRoot") as Control
+	var overlay_image := book.get_node("RecipeOverlay/OverlayRoot/Book") as TextureRect
+	assert_eq(overlay_layer.layer, 5)
+	assert_false(overlay_root.visible)
+	assert_eq(
+		overlay_image.texture.resource_path,
+		"res://assets/sprites/recipe_book/recipe_book_large.png",
+	)
+	assert_eq(overlay_image.mouse_filter, Control.MOUSE_FILTER_IGNORE)
 
 
 func test_main_scene_has_one_baby_pickup() -> void:

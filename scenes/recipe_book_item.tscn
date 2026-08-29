@@ -1,10 +1,11 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://src/RecipeBookItem.cs" id="1_book"]
 [ext_resource type="Texture2D" path="res://assets/sprites/recipe_book/recipe_book-Sheet.png" id="2_sheet"]
 [ext_resource type="Resource" path="res://resources/items/recipe_book.tres" id="3_definition"]
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="4_target"]
 [ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="5_transfer"]
+[ext_resource type="Texture2D" uid="uid://b2jv754x83j68" path="res://assets/sprites/recipe_book/recipe_book_large.png" id="6_overlay"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_book"]
 radius = 24.0
@@ -56,7 +57,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"open",
-"speed": 8.0
+"speed": 12.0
 }]
 
 [node name="RecipeBookItem" type="RigidBody2D"]
@@ -74,6 +75,34 @@ shape = SubResource("CircleShape2D_book")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_book")
 animation = &"open"
+
+[node name="RecipeOverlay" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="OverlayRoot" type="Control" parent="RecipeOverlay"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Book" type="TextureRect" parent="RecipeOverlay/OverlayRoot"]
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -224.0
+offset_top = 24.0
+offset_right = 224.0
+offset_bottom = 280.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("6_overlay")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="InteractionTarget" type="Area2D" parent="."]
 collision_layer = 8
