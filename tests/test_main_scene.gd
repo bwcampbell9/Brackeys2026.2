@@ -12,6 +12,7 @@ const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
+const OVEN_SCENE := preload("res://scenes/oven.tscn")
 const NPC_WORKER_SCENE := preload("res://scenes/npc_worker.tscn")
 const CUSTOMER_SCENE := preload("res://scenes/customer.tscn")
 const FETCH_TASK := preload("res://resources/tasks/fetch_workstation_item.tres")
@@ -575,6 +576,49 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 		)
 
 
+func test_oven_composes_automatic_cooking_workstation() -> void:
+	var oven := track(OVEN_SCENE.instantiate()) as StaticBody2D
+	assert_true(oven != null)
+	if oven == null:
+		return
+
+	assert_eq(oven.collision_layer, 1)
+	assert_eq(oven.collision_mask, 0)
+	var sprite := oven.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite != null:
+		assert_eq(sprite.animation, &"idle")
+		assert_eq(sprite.sprite_frames.get_frame_count(&"idle"), 1)
+		assert_eq(sprite.sprite_frames.get_frame_count(&"cooking"), 2)
+		assert_eq(sprite.sprite_frames.get_animation_speed(&"cooking"), 3.0)
+		var cooking_frame := sprite.sprite_frames.get_frame_texture(&"cooking", 0) as AtlasTexture
+		assert_true(cooking_frame != null)
+		if cooking_frame != null:
+			assert_eq(cooking_frame.atlas.resource_path, "res://assets/sprites/oven/oven-Sheet.png")
+			assert_eq(cooking_frame.region, Rect2(64, 0, 64, 128))
+
+	var socket := oven.get_node_or_null("PickupSocket") as Node2D
+	var transfer := oven.get_node_or_null("InteractionTarget/TransferItemAction") as Node
+	var controller := oven.get_node_or_null("OvenCookingController") as Node
+	assert_true(socket != null)
+	assert_true(transfer != null)
+	assert_true(controller != null)
+	if transfer != null:
+		assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
+		assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
+	if controller != null:
+		assert_eq(controller.get_script().resource_path, "res://src/OvenCookingController.cs")
+		assert_eq(float(controller.get("CookDuration")), 10.0)
+		var cook_transformation := controller.get("Transformation") as Resource
+		assert_true(cook_transformation != null)
+		if cook_transformation != null:
+			assert_eq(cook_transformation.get("Id"), &"cook")
+			assert_eq(
+				cook_transformation.get("FallbackMaterial").resource_path,
+				"res://resources/materials/cooked_brown_black.tres",
+			)
+
+
 func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
 	var container := track(POTATO_CONTAINER_SCENE.instantiate()) as StaticBody2D
 
@@ -715,6 +759,10 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 			carrot_container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem"),
 			CARROT_DEFINITION,
 		)
+	var oven := level.get_node_or_null("Oven") as StaticBody2D
+	assert_true(oven != null)
+	if oven != null:
+		assert_eq(oven.position, Vector2(800, 302))
 
 
 func test_item_transformations_preserve_history_through_authored_outputs() -> void:
