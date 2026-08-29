@@ -8,6 +8,7 @@ const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const PICKUP_ITEM_SCENE := preload("res://scenes/pickup_item.tscn")
 const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
+const RECIPE_BOOK_ITEM_SCENE := preload("res://scenes/recipe_book_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
@@ -25,6 +26,7 @@ const POTATO_DEFINITION := preload("res://resources/items/potato.tres")
 const CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/chopped_potatoes.tres")
 const CARROT_DEFINITION := preload("res://resources/items/carrot.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
+const RECIPE_BOOK_DEFINITION := preload("res://resources/items/recipe_book.tres")
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
@@ -186,6 +188,23 @@ func test_player_has_composable_interaction_components() -> void:
 	assert_true(is_equal_approx(float(input_manager.get("HoldThreshold")), 0.35))
 
 
+func test_secondary_interaction_is_rebindable_for_held_items() -> void:
+	var project_config := ConfigFile.new()
+	assert_eq(project_config.load("res://project.godot"), OK)
+	var secondary_setting: Dictionary = project_config.get_value(
+		"input",
+		"secondary_interact",
+		{},
+	)
+	var secondary_events: Array = secondary_setting.get("events", [])
+	assert_true(_has_key_binding(secondary_events, KEY_F))
+	assert_true(_has_button_binding(secondary_events, JOY_BUTTON_B))
+
+	var player := track(PLAYER_SCENE.instantiate()) as CharacterBody2D
+	var input_manager := player.get_node("InputManager")
+	assert_eq(input_manager.get("SecondaryInteractAction"), &"secondary_interact")
+
+
 func test_executioner_has_the_game_over_animation_contract() -> void:
 	var executioner := track(EXECUTIONER_SCENE.instantiate()) as Node2D
 
@@ -305,11 +324,47 @@ func test_knife_item_has_pickup_definition() -> void:
 	assert_true(knife.get_node("InteractionTarget") is Area2D)
 
 
+func test_recipe_book_has_pickup_and_open_animation_contract() -> void:
+	var book := track(RECIPE_BOOK_ITEM_SCENE.instantiate()) as RigidBody2D
+
+	assert_true(book != null)
+	if book == null:
+		return
+
+	assert_eq(book.get_script().resource_path, "res://src/RecipeBookItem.cs")
+	assert_eq(book.get("Definition"), RECIPE_BOOK_DEFINITION)
+	assert_eq(RECIPE_BOOK_DEFINITION.get("Id"), &"recipe_book")
+	assert_eq(book.collision_layer, 2)
+	assert_eq(book.collision_mask, 1)
+	assert_eq(book.gravity_scale, 0.0)
+	assert_true(book.get_node("CollisionShape2D").shape is CircleShape2D)
+	assert_true(book.get_node("InteractionTarget") is Area2D)
+
+	var sprite := book.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite == null:
+		return
+
+	assert_eq(sprite.sprite_frames.get_frame_count(&"open"), 6)
+	assert_false(sprite.sprite_frames.get_animation_loop(&"open"))
+	for frame_index in 6:
+		var frame_texture := sprite.sprite_frames.get_frame_texture(&"open", frame_index)
+		assert_eq(frame_texture.get_width(), 64)
+		assert_eq(frame_texture.get_height(), 64)
+
+
 func test_main_scene_has_one_baby_pickup() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var baby: Node = level.get_node_or_null("BabyPickupItem")
 
 	assert_true(baby != null)
+
+
+func test_main_scene_has_one_recipe_book_pickup() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	var book: Node = level.get_node_or_null("RecipeBookItem")
+
+	assert_true(book != null)
 
 
 func test_main_scene_composes_scene_scoped_npc_task_system() -> void:

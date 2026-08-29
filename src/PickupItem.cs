@@ -50,6 +50,11 @@ public partial class PickupItem : RigidBody2D, IItemSource
 
     protected virtual void OnThrown() { }
 
+    public virtual bool TrySecondaryInteract()
+    {
+        return false;
+    }
+
     public override void _Ready()
     {
         _restScale = Scale;

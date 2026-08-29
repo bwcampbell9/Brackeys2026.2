@@ -12,6 +12,8 @@ public partial class PlayerInputManager : Node
     }
 
     private static readonly StringName DefaultInputAction = "interact";
+    private static readonly StringName DefaultSecondaryInteractAction =
+        "secondary_interact";
 
     private readonly System.Collections.Generic.Dictionary<
         StringName,
@@ -27,6 +29,10 @@ public partial class PlayerInputManager : Node
     [Export]
     public Array<InteractionInputBinding> InteractionInputs { get; set; } =
         CreateDefaultBindings();
+
+    [Export]
+    public StringName SecondaryInteractAction { get; set; } =
+        DefaultSecondaryInteractAction;
 
     public override void _Ready()
     {
@@ -49,6 +55,14 @@ public partial class PlayerInputManager : Node
 
     public override void _PhysicsProcess(double delta)
     {
+        if (
+            !SecondaryInteractAction.IsEmpty
+            && Input.IsActionJustPressed(SecondaryInteractAction)
+        )
+        {
+            _carrier.HeldItem?.TrySecondaryInteract();
+        }
+
         foreach (
             KeyValuePair<StringName, InputState> entry in _inputStates
         )
