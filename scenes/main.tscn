@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" path="res://scenes/lil_customer.tscn" id="10_lil_customer"]
 [ext_resource type="PackedScene" path="res://scenes/lil_customer_2.tscn" id="11_lil_customer_2"]
 [ext_resource type="PackedScene" path="res://scenes/oven.tscn" id="12_oven"]
+[ext_resource type="Script" uid="uid://ct4taxh4aw0tb" path="res://src/GameOverController.cs" id="13_game_over"]
+[ext_resource type="PackedScene" uid="uid://bs4ml8jcscl4t" path="res://scenes/stove.tscn" id="13_stove"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_kitchen"]
 vertices = PackedVector2Array(628, 346, 716, 346, 884, 464, 140, 464, 140, 386, 884, 76, 716, 258, 460, 76, 628, 258, 460, 154, 76, 386, 76, 346, 140, 346, 372, 154, 140, 258, 372, 76, 76, 258, 76, 76)
@@ -40,19 +42,19 @@ tile_set = ExtResource("3_workstations")
 navigation_polygon = SubResource("NavigationPolygon_kitchen")
 
 [node name="NpcWorker" parent="." unique_id=1718931931 instance=ExtResource("4_npc")]
-position = Vector2(480, 400)
+position = Vector2(480, 444)
 
 [node name="Customer" parent="." unique_id=873843052 instance=ExtResource("8_customer")]
-position = Vector2(760, 400)
+position = Vector2(760, 440)
 
 [node name="MladyShubungusCustomer" parent="." unique_id=850852891 instance=ExtResource("9_mlady_customer")]
-position = Vector2(680, 400)
+position = Vector2(680, 440)
 
 [node name="LilShubungusCustomer" parent="." unique_id=1686677197 instance=ExtResource("10_lil_customer")]
-position = Vector2(840, 400)
+position = Vector2(840, 440)
 
 [node name="LilShubungus2Customer" parent="." unique_id=1275770327 instance=ExtResource("11_lil_customer_2")]
-position = Vector2(600, 400)
+position = Vector2(600, 440)
 
 [node name="TaskSystem" type="Node" parent="." unique_id=873822971]
 script = ExtResource("5_task_system")
@@ -69,8 +71,16 @@ position = Vector2(480, 270)
 [node name="BabyPickupItem" parent="." unique_id=1947549762 instance=ExtResource("2_baby")]
 position = Vector2(480, 200)
 
-[node name="Oven" parent="." unique_id=1164863953 instance=ExtResource("12_oven")]
+[node name="Oven" parent="." unique_id=298111419 instance=ExtResource("12_oven")]
 position = Vector2(800, 302)
+
+[node name="GameOverController" type="CanvasLayer" parent="." unique_id=557017454]
+process_mode = 3
+layer = 10
+script = ExtResource("13_game_over")
+
+[node name="Stove" parent="." unique_id=1257303080 instance=ExtResource("13_stove")]
+position = Vector2(672, 238)
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
 

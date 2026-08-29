@@ -14,6 +14,8 @@ const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
 const OVEN_SCENE := preload("res://scenes/oven.tscn")
+const EXECUTIONER_SCENE := preload("res://scenes/executioner.tscn")
+const STOVE_SCENE := preload("res://scenes/stove.tscn")
 const NPC_WORKER_SCENE := preload("res://scenes/npc_worker.tscn")
 const CUSTOMER_SCENE := preload("res://scenes/customer.tscn")
 const MLADY_CUSTOMER_SCENE := preload("res://scenes/mlady_customer.tscn")
@@ -26,6 +28,11 @@ const CHOP_TRANSFORMATION := preload("res://resources/transformations/chop.tres"
 const POTATO_DEFINITION := preload("res://resources/items/potato.tres")
 const CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/chopped_potatoes.tres")
 const CARROT_DEFINITION := preload("res://resources/items/carrot.tres")
+const CHOPPED_CARROTS_DEFINITION := preload("res://resources/items/chopped_carrots.tres")
+const CARROT_SOUP_DEFINITION := preload("res://resources/items/carrot_soup.tres")
+const POTATO_SOUP_DEFINITION := preload("res://resources/items/potato_soup.tres")
+const DUBIOUS_SOUP_DEFINITION := preload("res://resources/items/dubious_soup.tres")
+const STOVE_COOK_TRANSFORMATION := preload("res://resources/transformations/stove_cook.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
@@ -51,11 +58,11 @@ func suite_name() -> String:
 
 func test_moving_entities_use_compact_collision_footprints() -> void:
 	var moving_character_contracts := [
-		{"scene": NPC_WORKER_SCENE, "collision_position": Vector2(0, 44)},
-		{"scene": CUSTOMER_SCENE, "collision_position": Vector2(0, 44)},
-		{"scene": MLADY_CUSTOMER_SCENE, "collision_position": Vector2(0, 44)},
-		{"scene": LIL_CUSTOMER_SCENE, "collision_position": Vector2(0, 20)},
-		{"scene": LIL_CUSTOMER_2_SCENE, "collision_position": Vector2(0, 20)},
+		{"scene": NPC_WORKER_SCENE, "collision_position": Vector2.ZERO},
+		{"scene": CUSTOMER_SCENE, "collision_position": Vector2.ZERO},
+		{"scene": MLADY_CUSTOMER_SCENE, "collision_position": Vector2.ZERO},
+		{"scene": LIL_CUSTOMER_SCENE, "collision_position": Vector2.ZERO},
+		{"scene": LIL_CUSTOMER_2_SCENE, "collision_position": Vector2.ZERO},
 	]
 	for contract: Dictionary in moving_character_contracts:
 		var character := track((contract.scene as PackedScene).instantiate()) as CharacterBody2D
@@ -222,6 +229,19 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 		assert_true(_has_mouse_button_binding(events, expected.mouse_button))
 		assert_true(_has_button_binding(events, expected.joy_button))
 
+	var game_over_setting: Dictionary = project_config.get_value("input", "game_over", {})
+	var game_over_events: Array = game_over_setting.get("events", [])
+	assert_true(_has_key_binding(game_over_events, KEY_SPACE))
+
+	var game_over_controller := level.get_node_or_null("GameOverController") as CanvasLayer
+	assert_true(game_over_controller != null)
+	if game_over_controller != null:
+		assert_eq(
+			game_over_controller.get_script().resource_path,
+			"res://src/GameOverController.cs",
+		)
+		assert_eq(game_over_controller.process_mode, Node.PROCESS_MODE_ALWAYS)
+
 
 func test_player_has_composable_interaction_components() -> void:
 	var level := track(MAIN_SCENE.instantiate())
@@ -287,6 +307,29 @@ func test_player_has_composable_interaction_components() -> void:
 
 	assert_eq(input_manager.get_script().resource_path, "res://src/PlayerInputManager.cs")
 	assert_true(is_equal_approx(float(input_manager.get("HoldThreshold")), 0.2))
+
+
+func test_executioner_has_the_game_over_animation_contract() -> void:
+	var executioner := track(EXECUTIONER_SCENE.instantiate()) as Node2D
+
+	assert_true(executioner != null)
+	if executioner == null:
+		return
+
+	var sprite := executioner.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite == null:
+		return
+
+	assert_eq(executioner.get_script().resource_path, "res://src/Executioner.cs")
+	assert_eq(sprite.sprite_frames.get_frame_count(&"idle"), 2)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"walk"), 2)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"takeout"), 5)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"chop"), 6)
+	assert_true(sprite.sprite_frames.get_animation_loop(&"idle"))
+	assert_true(sprite.sprite_frames.get_animation_loop(&"walk"))
+	assert_false(sprite.sprite_frames.get_animation_loop(&"takeout"))
+	assert_false(sprite.sprite_frames.get_animation_loop(&"chop"))
 
 
 func test_input_manager_has_separate_rebindable_tap_and_hold_mappings() -> void:
@@ -797,20 +840,39 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 
 	var socket := oven.get_node_or_null("PickupSocket") as Node2D
 	var transfer := oven.get_node_or_null("InteractionTarget/TransferItemAction") as Node
+	var request := oven.get_node_or_null("InteractionTarget/RequestTaskAction") as Node
+	var configure := oven.get_node_or_null("InteractionTarget/ConfigureWorkstationAction") as Node
 	var controller := oven.get_node_or_null("OvenCookingController") as Node
+	var publisher := oven.get_node_or_null("WorkstationTaskPublisher") as Node
 	assert_true(socket != null)
 	assert_true(transfer != null)
+	assert_true(request != null)
+	assert_true(configure != null)
 	assert_true(controller != null)
+	assert_true(publisher != null)
 	if transfer != null:
 		assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
 		assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
+	if request != null:
+		assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
+	if configure != null:
+		assert_eq(configure.get_script().resource_path, "res://src/ConfigureWorkstationAction.cs")
+	if publisher != null:
+		assert_eq(int(publisher.get("RequestMode")), 1)
+		assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
+		assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	if controller != null:
 		assert_eq(controller.get_script().resource_path, "res://src/OvenCookingController.cs")
 		var cook_recipe := controller.get("Recipe") as Resource
 		assert_true(cook_recipe != null)
 		if cook_recipe != null:
-			assert_eq(cook_recipe.resource_path, "res://resources/recipes/cook.tres")
+			assert_eq(cook_recipe.resource_path, "res://resources/recipes/stove_cook.tres")
 			assert_eq(float(cook_recipe.get("Duration")), 10.0)
+			var stove_cook_transformation := cook_recipe.get("Transformation") as Resource
+			assert_true(stove_cook_transformation != null)
+			if stove_cook_transformation != null:
+				assert_eq(stove_cook_transformation.get("Id"), &"stove_cook")
+				assert_eq(stove_cook_transformation.get("FallbackOutput"), DUBIOUS_SOUP_DEFINITION)
 			assert_eq(cook_recipe.get("RequiredTool"), null)
 			var cook_transformation := cook_recipe.get("Transformation") as Resource
 			assert_true(cook_transformation != null)
@@ -820,6 +882,109 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 					cook_transformation.get("FallbackMaterial").resource_path,
 					"res://resources/materials/cooked_brown_black.tres",
 				)
+
+
+func test_stove_composes_layered_automatic_cooking_workstation() -> void:
+	var stove := track(STOVE_SCENE.instantiate()) as StaticBody2D
+	assert_true(stove != null)
+	if stove == null:
+		return
+	assert_eq(stove.z_index, 2)
+
+	var back_sprite := stove.get_node_or_null("BackSprite") as AnimatedSprite2D
+	var front_sprite := stove.get_node_or_null("FrontSprite") as AnimatedSprite2D
+	assert_true(back_sprite != null)
+	assert_true(front_sprite != null)
+	if back_sprite != null:
+		assert_eq(back_sprite.z_index, -1)
+		assert_eq(back_sprite.animation, &"idle")
+		assert_eq(back_sprite.sprite_frames.get_frame_count(&"cooking"), 2)
+		var back_cooking_frame := back_sprite.sprite_frames.get_frame_texture(&"cooking", 0) as AtlasTexture
+		assert_true(back_cooking_frame != null)
+		if back_cooking_frame != null:
+			assert_eq(back_cooking_frame.atlas.resource_path, "res://assets/sprites/stove/stove-back-Sheet.png")
+			assert_eq(back_cooking_frame.region, Rect2(64, 0, 64, 128))
+	if front_sprite != null:
+		assert_eq(front_sprite.z_index, 1)
+		assert_eq(front_sprite.animation, &"idle")
+		assert_eq(front_sprite.sprite_frames.get_frame_count(&"cooking"), 2)
+		var front_cooking_frame := front_sprite.sprite_frames.get_frame_texture(&"cooking", 0) as AtlasTexture
+		assert_true(front_cooking_frame != null)
+		if front_cooking_frame != null:
+			assert_eq(front_cooking_frame.atlas.resource_path, "res://assets/sprites/stove/stove-front-Sheet.png")
+			assert_eq(front_cooking_frame.region, Rect2(64, 0, 64, 128))
+
+	var spawn_point := stove.get_node_or_null("ItemSpawnPoint") as Node2D
+	var socket := stove.get_node_or_null("ItemSpawnPoint/PickupSocket") as Node2D
+	var transfer := stove.get_node_or_null("InteractionTarget/TransferItemAction") as Node
+	var request := stove.get_node_or_null("InteractionTarget/RequestTaskAction") as Node
+	var configure := stove.get_node_or_null("InteractionTarget/ConfigureWorkstationAction") as Node
+	var controller := stove.get_node_or_null("OvenCookingController") as Node
+	var presentation := stove.get_node_or_null("StoveCookingPresentation") as Node
+	var publisher := stove.get_node_or_null("WorkstationTaskPublisher") as Node
+	assert_true(spawn_point != null)
+	assert_true(socket != null)
+	assert_true(transfer != null)
+	assert_true(request != null)
+	assert_true(configure != null)
+	assert_true(controller != null)
+	assert_true(presentation != null)
+	assert_true(publisher != null)
+	if controller != null:
+		assert_eq(controller.get_script().resource_path, "res://src/OvenCookingController.cs")
+		assert_eq(controller.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
+		assert_eq(controller.get("SpritePath"), NodePath("../BackSprite"))
+		var cook_recipe := controller.get("Recipe") as Resource
+		assert_true(cook_recipe != null)
+		if cook_recipe != null:
+			assert_eq(cook_recipe.resource_path, "res://resources/recipes/cook.tres")
+			assert_eq(float(cook_recipe.get("Duration")), 10.0)
+	if presentation != null:
+		assert_eq(presentation.get_script().resource_path, "res://src/StoveCookingPresentation.cs")
+		assert_eq(presentation.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
+		assert_eq(presentation.get("ItemOffset"), Vector2(22, -78))
+	if transfer != null:
+		assert_eq(transfer.get("SocketPath"), NodePath("../../ItemSpawnPoint/PickupSocket"))
+	if request != null:
+		assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
+	if configure != null:
+		assert_eq(configure.get_script().resource_path, "res://src/ConfigureWorkstationAction.cs")
+	if publisher != null:
+		assert_eq(publisher.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
+		assert_eq(int(publisher.get("RequestMode")), 1)
+		assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
+		assert_eq(publisher.get("FetchTask"), FETCH_TASK)
+
+
+func test_stove_cooking_maps_chopped_ingredients_and_other_items_to_soup() -> void:
+	var chopped_carrots := CARROT_ITEM_SCENE.instantiate()
+	chopped_carrots.set("Definition", CHOPPED_CARROTS_DEFINITION)
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", chopped_carrots)))
+	assert_eq(chopped_carrots.get("Definition").get("Id"), CARROT_SOUP_DEFINITION.get("Id"))
+	var carrot_soup_sprite := chopped_carrots.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(carrot_soup_sprite != null)
+	if carrot_soup_sprite != null:
+		assert_true(carrot_soup_sprite.visible)
+		assert_eq(carrot_soup_sprite.animation, &"idle")
+		var carrot_soup_frame := carrot_soup_sprite.sprite_frames.get_frame_texture(&"idle", 0) as AtlasTexture
+		assert_true(carrot_soup_frame != null)
+		if carrot_soup_frame != null:
+			assert_eq(carrot_soup_frame.atlas.resource_path, "res://assets/sprites/soup/soup-Sheet.png")
+			assert_eq(carrot_soup_frame.region, Rect2(128, 0, 64, 64))
+
+	var chopped_potatoes := PICKUP_ITEM_SCENE.instantiate()
+	chopped_potatoes.set("Definition", CHOPPED_POTATOES_DEFINITION)
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", chopped_potatoes)))
+	assert_eq(chopped_potatoes.get("Definition").get("Id"), POTATO_SOUP_DEFINITION.get("Id"))
+
+	var raw_carrot := CARROT_ITEM_SCENE.instantiate()
+	raw_carrot.set("Definition", CARROT_DEFINITION)
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", raw_carrot)))
+	assert_eq(raw_carrot.get("Definition").get("Id"), DUBIOUS_SOUP_DEFINITION.get("Id"))
+	var dubious_soup_sprite := raw_carrot.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(dubious_soup_sprite != null)
+	if dubious_soup_sprite != null:
+		assert_true(dubious_soup_sprite.visible)
 
 
 func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
@@ -966,6 +1131,10 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 	assert_true(oven != null)
 	if oven != null:
 		assert_eq(oven.position, Vector2(800, 302))
+	var stove := level.get_node_or_null("Stove") as StaticBody2D
+	assert_true(stove != null)
+	if stove != null:
+		assert_eq(stove.position, Vector2(672, 238))
 
 
 func test_item_transformations_preserve_history_through_authored_outputs() -> void:

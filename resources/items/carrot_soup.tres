@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="PickupItemDefinition" format=3 uid="uid://cw0ykycqs1uyw"]
+
+[ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
+[ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="2_fd5jc"]
+[ext_resource type="Texture2D" uid="uid://b4fy1x1nrrj13" path="res://assets/sprites/soup/soup-Sheet.png" id="2_soup_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_carrot_soup_1"]
+atlas = ExtResource("2_soup_sheet")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_carrot_soup_2"]
+atlas = ExtResource("2_soup_sheet")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_carrot_soup"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_carrot_soup_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_carrot_soup_2")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 2.0
+}]
+
+[resource]
+script = ExtResource("1_definition")
+Id = &"carrot_soup"
+DisplayName = "Carrot Soup"
+SpriteFrames = SubResource("SpriteFrames_carrot_soup")

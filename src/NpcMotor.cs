@@ -5,9 +5,8 @@ public partial class NpcMotor : Node
 {
     private CharacterBody2D _actor = null!;
     private NavigationAgent2D _navigationAgent = null!;
-    private CollisionShape2D _bodyCollision = null!;
     private BodyPusher _bodyPusher = null!;
-    private Vector2 _uprightCollisionOffset;
+    private PickupCarrier? _facingCarrier;
     private Vector2 _targetPosition;
     private bool _isMoving;
 
@@ -16,12 +15,11 @@ public partial class NpcMotor : Node
         new("../NavigationAgent2D");
 
     [Export]
-    public NodePath BodyCollisionPath { get; set; } =
-        new("../CollisionShape2D");
-
-    [Export]
     public NodePath BodyPusherPath { get; set; } =
         new("../BodyPusher");
+
+    [Export]
+    public NodePath FacingCarrierPath { get; set; } = new();
 
     [Export(PropertyHint.Range, "10,500,1,or_greater")]
     public float Speed { get; set; } = 110.0f;
@@ -45,18 +43,19 @@ public partial class NpcMotor : Node
             ?? throw new InvalidOperationException(
                 "NpcMotor requires a NavigationAgent2D."
             );
-        _bodyCollision =
-            GetNodeOrNull<CollisionShape2D>(BodyCollisionPath)
-            ?? throw new InvalidOperationException(
-                "NpcMotor requires a body CollisionShape2D."
-            );
         _bodyPusher =
             GetNodeOrNull<BodyPusher>(BodyPusherPath)
             ?? throw new InvalidOperationException(
                 "NpcMotor requires a BodyPusher."
             );
-        _uprightCollisionOffset = _bodyCollision.Position;
-        KeepCollisionBelowActor();
+        if (!string.IsNullOrEmpty(FacingCarrierPath.ToString()))
+        {
+            _facingCarrier =
+                GetNodeOrNull<PickupCarrier>(FacingCarrierPath)
+                ?? throw new InvalidOperationException(
+                    "NpcMotor requires the configured PickupCarrier."
+                );
+        }
         _navigationAgent.PathDesiredDistance = ArrivalDistance;
         _navigationAgent.TargetDesiredDistance = ArrivalDistance;
     }
@@ -88,10 +87,9 @@ public partial class NpcMotor : Node
         }
 
         Vector2 requestedVelocity = direction * Speed;
-        if (!direction.IsZeroApprox())
+        if (!direction.IsZeroApprox() && _facingCarrier is not null)
         {
-            _actor.Rotation = direction.Angle() + Mathf.Pi / 2.0f;
-            KeepCollisionBelowActor();
+            _facingCarrier.FacingDirection = direction;
         }
         _bodyPusher.MoveAndPush(
             _actor,
@@ -132,10 +130,4 @@ public partial class NpcMotor : Node
         }
     }
 
-    private void KeepCollisionBelowActor()
-    {
-        _bodyCollision.Position = _uprightCollisionOffset.Rotated(
-            -_actor.Rotation
-        );
-    }
 }

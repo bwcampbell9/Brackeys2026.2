@@ -90,10 +90,10 @@ collision_mask = 7
 motion_mode = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 44)
 shape = SubResource("CircleShape2D_mlady_customer")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -40)
 sprite_frames = SubResource("SpriteFrames_mlady")
 animation = &"idle"
 autoplay = "idle"
@@ -115,10 +115,10 @@ script = ExtResource("3_motor")
 [node name="CustomerWanderController" type="Node" parent="."]
 script = ExtResource("4_controller")
 UprightVisualPath = NodePath("../TaskRequestIndicator")
-UprightVisualOffset = Vector2(0, -80)
+UprightVisualOffset = Vector2(0, -120)
 
 [node name="PickupSocket" type="Node2D" parent="."]
-position = Vector2(0, -8)
+position = Vector2(0, -48)
 script = ExtResource("5_socket")
 
 [node name="InteractionTarget" type="Area2D" parent="."]
@@ -138,7 +138,7 @@ AcceptedItem = ExtResource("10_chopped_carrots")
 [node name="TaskRequestIndicator" type="Node2D" parent="."]
 visible = false
 z_index = 10
-position = Vector2(0, -52)
+position = Vector2(0, -92)
 
 [node name="Background" type="Polygon2D" parent="TaskRequestIndicator"]
 polygon = PackedVector2Array(-23, -20, 23, -20, 23, 20, 6, 20, 0, 28, -6, 20, -23, 20)

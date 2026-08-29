@@ -1,14 +1,22 @@
-[gd_resource type="Resource" script_class="PickupItemDefinition" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="PickupItemDefinition" format=3 uid="uid://c8kvwh2vkwv0p"]
 
-[ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="1_definition"]
-[ext_resource type="Texture2D" path="res://assets/sprites/carrot/carrot.png" id="2_texture"]
-[ext_resource type="Material" path="res://resources/materials/chopped_green.tres" id="3_material"]
+[ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
+[ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="2_3hhif"]
+[ext_resource type="Texture2D" uid="uid://ouvr1ga272dv" path="res://assets/sprites/carrot/carrot.png" id="2_texture"]
+[ext_resource type="Material" uid="uid://dwsk1haatd4u3" path="res://resources/materials/chopped_green.tres" id="3_material"]
+[ext_resource type="Resource" path="res://resources/items/carrot_soup.tres" id="5_carrot_soup"]
+
+[sub_resource type="Resource" id="Resource_stove_cook_override"]
+script = ExtResource("2_3hhif")
+TransformationId = &"stove_cook"
+Output = ExtResource("5_carrot_soup")
 
 [resource]
 script = ExtResource("1_definition")
 Id = &"chopped_carrots"
 DisplayName = "Chopped Carrots"
 Texture = ExtResource("2_texture")
-VisualMaterial = ExtResource("3_material")
 VisualScale = Vector2(0.72, 0.72)
+VisualMaterial = ExtResource("3_material")
 AppliedTransformationIds = Array[StringName]([&"chop"])
+TransformationOverrides = Array[ExtResource("2_3hhif")]([SubResource("Resource_stove_cook_override")])

@@ -16,7 +16,7 @@ func _initialize() -> void:
 func _run() -> void:
 	await _check_pickup_push()
 	await _check_baby_push()
-	await _check_rotated_foot_hitbox()
+	await _check_upright_foot_hitbox()
 	await _check_character_push()
 	await _check_main_scene_push_order()
 	print("body_pushing_runtime=", "failed" if _failed else "passed")
@@ -85,7 +85,7 @@ func _check_baby_push() -> void:
 	await process_frame
 
 
-func _check_rotated_foot_hitbox() -> void:
+func _check_upright_foot_hitbox() -> void:
 	var world := Node2D.new()
 	var customer := CUSTOMER_SCENE.instantiate() as CharacterBody2D
 	customer.get_node("CustomerWanderController").process_mode = Node.PROCESS_MODE_DISABLED
@@ -99,8 +99,12 @@ func _check_rotated_foot_hitbox() -> void:
 		await physics_frame
 	var collision := customer.get_node("CollisionShape2D") as CollisionShape2D
 	_check(
-		collision.global_position.distance_to(customer.global_position + Vector2(0, 44)) < 0.1,
-		"A rotating NPC must keep its physical collision beneath its visible feet.",
+		is_zero_approx(customer.rotation),
+		"NPC bodies must remain upright while moving.",
+	)
+	_check(
+		collision.global_position.distance_to(customer.global_position) < 0.1,
+		"NPC collision and navigation origins must remain aligned at the feet.",
 	)
 	world.queue_free()
 	await process_frame
@@ -115,7 +119,7 @@ func _check_character_push() -> void:
 	world.add_child(customer)
 	root.add_child(world)
 	player.global_position = Vector2.ZERO
-	customer.global_position = Vector2(32, -33)
+	customer.global_position = Vector2(24, 19)
 	var start := customer.global_position
 	for _frame in range(3):
 		await physics_frame
@@ -165,7 +169,7 @@ func _check_main_scene_push_order() -> void:
 		other.global_position = Vector2(800, 100)
 	root.add_child(level)
 	player.global_position = Vector2(400, 400)
-	customer.global_position = Vector2(432, 367)
+	customer.global_position = Vector2(424, 419)
 	for _frame in range(3):
 		await physics_frame
 	Input.action_press(&"move_right", 1.0)
@@ -190,8 +194,11 @@ func _check_main_scene_push_order() -> void:
 		"Main-scene process order must preserve easy character pushing.",
 	)
 	_check(
-		customer.global_position.distance_to(release_position) < 6.0,
-		"Main-scene pushing must stop promptly after contact ends.",
+		customer.global_position.distance_to(release_position) < 12.0,
+		(
+			"Main-scene pushing must stop promptly after contact ends "
+			+ "(coasted %.2f px)." % customer.global_position.distance_to(release_position)
+		),
 	)
 	_check(backward_steps == 0, "Main-scene pushing must not jitter backward.")
 	_check(

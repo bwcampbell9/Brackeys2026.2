@@ -14,6 +14,9 @@ public partial class PickupItemDefinition : Resource
     public Texture2D? Texture { get; set; }
 
     [Export]
+    public SpriteFrames? SpriteFrames { get; set; }
+
+    [Export]
     public Color Modulate { get; set; } = Colors.White;
 
     [Export]

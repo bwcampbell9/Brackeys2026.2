@@ -3,6 +3,8 @@ using Godot;
 
 public partial class PickupItem : RigidBody2D, IItemSource
 {
+    private static readonly StringName IdleAnimation = "idle";
+
     private Node? _worldParent;
     private uint _worldCollisionLayer;
     private uint _worldCollisionMask;
@@ -233,9 +235,43 @@ public partial class PickupItem : RigidBody2D, IItemSource
             return;
         }
 
-        CanvasItem? visual =
-            GetNodeOrNull<Sprite2D>("Sprite2D") as CanvasItem
-            ?? GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        Sprite2D? staticSprite = GetNodeOrNull<Sprite2D>("Sprite2D");
+        AnimatedSprite2D? animatedSprite =
+            GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        if (_definition.SpriteFrames is not null && animatedSprite is null)
+        {
+            animatedSprite = new AnimatedSprite2D
+            {
+                Name = "AnimatedSprite2D",
+            };
+            AddChild(animatedSprite);
+        }
+
+        bool usesDefinitionAnimation = _definition.SpriteFrames is not null
+            && animatedSprite is not null;
+        bool usesSceneAnimation = staticSprite is null
+            && animatedSprite?.SpriteFrames is not null;
+        bool usesAnimation = usesDefinitionAnimation || usesSceneAnimation;
+        if (staticSprite is not null)
+        {
+            staticSprite.Visible = !usesAnimation;
+        }
+
+        if (animatedSprite is not null)
+        {
+            animatedSprite.Visible = usesAnimation;
+            if (usesDefinitionAnimation)
+            {
+                animatedSprite.SpriteFrames = _definition.SpriteFrames;
+                animatedSprite.Play(IdleAnimation);
+            }
+            else if (!usesSceneAnimation)
+            {
+                animatedSprite.Stop();
+            }
+        }
+
+        CanvasItem? visual = usesAnimation ? animatedSprite : staticSprite;
         if (visual is null)
         {
             return;
