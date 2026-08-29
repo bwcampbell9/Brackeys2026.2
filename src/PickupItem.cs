@@ -50,7 +50,14 @@ public partial class PickupItem : RigidBody2D, IItemSource
 
     protected virtual void OnPickedUp() { }
 
+    protected virtual void OnAttachmentMoved() { }
+
     protected virtual void OnThrown() { }
+
+    public virtual bool TrySecondaryInteract()
+    {
+        return false;
+    }
 
     public override void _Ready()
     {
@@ -100,6 +107,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
         }
 
         Reparent(attachmentPoint, true);
+        OnAttachmentMoved();
         TweenToAttachment(duration);
         return true;
     }
@@ -247,6 +255,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
     {
         if (_definition is null)
         {
+            OnDefinitionApplied();
             return;
         }
 
@@ -262,8 +271,11 @@ public partial class PickupItem : RigidBody2D, IItemSource
             AddChild(animatedSprite);
         }
 
-        bool usesAnimation = _definition.SpriteFrames is not null
+        bool usesDefinitionAnimation = _definition.SpriteFrames is not null
             && animatedSprite is not null;
+        bool usesSceneAnimation = staticSprite is null
+            && animatedSprite?.SpriteFrames is not null;
+        bool usesAnimation = usesDefinitionAnimation || usesSceneAnimation;
         if (staticSprite is not null)
         {
             staticSprite.Visible = !usesAnimation;
@@ -272,37 +284,37 @@ public partial class PickupItem : RigidBody2D, IItemSource
         if (animatedSprite is not null)
         {
             animatedSprite.Visible = usesAnimation;
-            animatedSprite.SpriteFrames = _definition.SpriteFrames;
-            if (usesAnimation)
+            if (usesDefinitionAnimation)
             {
+                animatedSprite.SpriteFrames = _definition.SpriteFrames;
                 animatedSprite.Play(IdleAnimation);
             }
-            else
+            else if (!usesSceneAnimation)
             {
                 animatedSprite.Stop();
             }
         }
 
         CanvasItem? visual = usesAnimation ? animatedSprite : staticSprite;
-        if (visual is null)
+        if (visual is not null)
         {
-            return;
+            visual.Material = _definition.VisualMaterial;
+            visual.Modulate = _definition.Modulate;
+            if (visual is Node2D visualNode)
+            {
+                visualNode.Scale = _definition.VisualScale;
+            }
+
+            if (
+                visual is Sprite2D sprite
+                && _definition.Texture is not null
+            )
+            {
+                sprite.Texture = _definition.Texture;
+            }
         }
 
-        visual.Material = _definition.VisualMaterial;
-        visual.Modulate = _definition.Modulate;
-        if (visual is Node2D visualNode)
-        {
-            visualNode.Scale = _definition.VisualScale;
-        }
-
-        if (
-            visual is Sprite2D sprite
-            && _definition.Texture is not null
-        )
-        {
-            sprite.Texture = _definition.Texture;
-        }
+        OnDefinitionApplied();
     }
 
     private CanvasItem? GetActiveVisual()
@@ -313,9 +325,10 @@ public partial class PickupItem : RigidBody2D, IItemSource
         {
             return animatedSprite;
         }
-
         return GetNodeOrNull<Sprite2D>("Sprite2D");
     }
+
+    protected virtual void OnDefinitionApplied() { }
 
     private void ApplyShakeProgress(float progress)
     {

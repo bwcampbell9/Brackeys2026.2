@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class BabyPickupItem : PickupItem
+public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
 {
     private static readonly StringName CrawlAnimation = "crawl";
 
@@ -10,6 +10,7 @@ public partial class BabyPickupItem : PickupItem
     private float _stateTime;
     private bool _isCrawling;
     private bool _isThrown;
+    private float _pushSuppressionRemaining;
 
     [Export(PropertyHint.Range, "10,300,1,or_greater")]
     public float MinimumSpeed { get; set; } = 35.0f;
@@ -32,6 +33,9 @@ public partial class BabyPickupItem : PickupItem
     [Export]
     public Rect2 CrawlBounds { get; set; } = new Rect2(96.0f, 96.0f, 768.0f, 320.0f);
 
+    [Export(PropertyHint.Range, "0.05,1,0.05,or_greater")]
+    public float PushSuppressionDuration { get; set; } = 0.2f;
+
     public override void _Ready()
     {
         base._Ready();
@@ -46,6 +50,15 @@ public partial class BabyPickupItem : PickupItem
         if (!IsAvailable)
         {
             StopCrawling();
+            return;
+        }
+
+        if (_pushSuppressionRemaining > 0.0f)
+        {
+            _pushSuppressionRemaining = Mathf.Max(
+                0.0f,
+                _pushSuppressionRemaining - (float)delta
+            );
             return;
         }
 
@@ -83,7 +96,7 @@ public partial class BabyPickupItem : PickupItem
             MinimumSpeed,
             MaximumSpeed
         );
-        Rotation = LinearVelocity.Angle();
+        SetCrawlFacing(LinearVelocity);
     }
 
     protected override void OnPickedUp()
@@ -96,6 +109,12 @@ public partial class BabyPickupItem : PickupItem
     {
         _isThrown = true;
         StartPause();
+    }
+
+    public void OnBodyPushed()
+    {
+        _pushSuppressionRemaining = PushSuppressionDuration;
+        StopCrawling(false);
     }
 
     private void StartBurst()
@@ -117,11 +136,30 @@ public partial class BabyPickupItem : PickupItem
         StopCrawling();
     }
 
-    private void StopCrawling()
+    private void StopCrawling(bool stopMotion = true)
     {
         _isCrawling = false;
-        LinearVelocity = Vector2.Zero;
+        if (stopMotion)
+        {
+            LinearVelocity = Vector2.Zero;
+        }
         _sprite.Stop();
         _sprite.Frame = 0;
+    }
+
+    private void SetCrawlFacing(Vector2 velocity)
+    {
+        if (!Mathf.IsZeroApprox(velocity.X))
+        {
+            _sprite.FlipH = velocity.X < 0.0f;
+        }
+
+        float rotation = velocity.Angle();
+        if (_sprite.FlipH)
+        {
+            rotation += Mathf.Pi;
+        }
+
+        Rotation = Mathf.Wrap(rotation, -Mathf.Pi, Mathf.Pi);
     }
 }

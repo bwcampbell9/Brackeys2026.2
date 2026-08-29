@@ -5,6 +5,7 @@ public partial class NpcMotor : Node
 {
     private CharacterBody2D _actor = null!;
     private NavigationAgent2D _navigationAgent = null!;
+    private BodyPusher _bodyPusher = null!;
     private PickupCarrier? _facingCarrier;
     private Vector2 _targetPosition;
     private bool _isMoving;
@@ -12,6 +13,10 @@ public partial class NpcMotor : Node
     [Export]
     public NodePath NavigationAgentPath { get; set; } =
         new("../NavigationAgent2D");
+
+    [Export]
+    public NodePath BodyPusherPath { get; set; } =
+        new("../BodyPusher");
 
     [Export]
     public NodePath FacingCarrierPath { get; set; } = new();
@@ -38,6 +43,11 @@ public partial class NpcMotor : Node
             ?? throw new InvalidOperationException(
                 "NpcMotor requires a NavigationAgent2D."
             );
+        _bodyPusher =
+            GetNodeOrNull<BodyPusher>(BodyPusherPath)
+            ?? throw new InvalidOperationException(
+                "NpcMotor requires a BodyPusher."
+            );
         if (!string.IsNullOrEmpty(FacingCarrierPath.ToString()))
         {
             _facingCarrier =
@@ -59,6 +69,11 @@ public partial class NpcMotor : Node
         )
         {
             Stop();
+            _bodyPusher.MoveAndPush(
+                _actor,
+                Vector2.Zero,
+                delta
+            );
             return;
         }
 
@@ -71,12 +86,16 @@ public partial class NpcMotor : Node
             direction = _actor.GlobalPosition.DirectionTo(_targetPosition);
         }
 
-        _actor.Velocity = direction * Speed;
+        Vector2 requestedVelocity = direction * Speed;
         if (!direction.IsZeroApprox() && _facingCarrier is not null)
         {
             _facingCarrier.FacingDirection = direction;
         }
-        _actor.MoveAndSlide();
+        _bodyPusher.MoveAndPush(
+            _actor,
+            requestedVelocity,
+            delta
+        );
 
         if (
             _actor.GlobalPosition.DistanceTo(_targetPosition)
@@ -110,4 +129,5 @@ public partial class NpcMotor : Node
             _actor.Velocity = Vector2.Zero;
         }
     }
+
 }

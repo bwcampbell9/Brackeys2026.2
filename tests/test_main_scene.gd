@@ -9,6 +9,7 @@ const PICKUP_ITEM_SCENE := preload("res://scenes/pickup_item.tscn")
 const CARROT_ITEM_SCENE := preload("res://scenes/carrot_item.tscn")
 const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
+const RECIPE_BOOK_ITEM_SCENE := preload("res://scenes/recipe_book_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
@@ -18,6 +19,9 @@ const EXECUTIONER_SCENE := preload("res://scenes/executioner.tscn")
 const STOVE_SCENE := preload("res://scenes/stove.tscn")
 const NPC_WORKER_SCENE := preload("res://scenes/npc_worker.tscn")
 const CUSTOMER_SCENE := preload("res://scenes/customer.tscn")
+const MLADY_CUSTOMER_SCENE := preload("res://scenes/mlady_customer.tscn")
+const LIL_CUSTOMER_SCENE := preload("res://scenes/lil_customer.tscn")
+const LIL_CUSTOMER_2_SCENE := preload("res://scenes/lil_customer_2.tscn")
 const FETCH_TASK := preload("res://resources/tasks/fetch_workstation_item.tres")
 const PROCESS_TASK := preload("res://resources/tasks/process_workstation_item.tres")
 const CHOP_RECIPE := preload("res://resources/recipes/chop.tres")
@@ -31,16 +35,113 @@ const POTATO_SOUP_DEFINITION := preload("res://resources/items/potato_soup.tres"
 const DUBIOUS_SOUP_DEFINITION := preload("res://resources/items/dubious_soup.tres")
 const STOVE_COOK_TRANSFORMATION := preload("res://resources/transformations/stove_cook.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
+const RECIPE_BOOK_DEFINITION := preload("res://resources/items/recipe_book.tres")
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
 	"move_up": {"keycodes": [KEY_W, KEY_UP], "axis": 1, "axis_value": -1.0},
 	"move_down": {"keycodes": [KEY_S, KEY_DOWN], "axis": 1, "axis_value": 1.0},
 }
+const EXPECTED_WHEEL_PAGE_INPUTS := {
+	"recipe_wheel_previous_page": {
+		"mouse_button": MOUSE_BUTTON_WHEEL_UP,
+		"joy_button": JOY_BUTTON_LEFT_SHOULDER,
+	},
+	"recipe_wheel_next_page": {
+		"mouse_button": MOUSE_BUTTON_WHEEL_DOWN,
+		"joy_button": JOY_BUTTON_RIGHT_SHOULDER,
+	},
+}
 
 
 func suite_name() -> String:
 	return "main_scene"
+
+
+func test_moving_entities_use_compact_collision_footprints() -> void:
+	var moving_character_contracts := [
+		{"scene": NPC_WORKER_SCENE, "collision_position": Vector2.ZERO},
+		{"scene": CUSTOMER_SCENE, "collision_position": Vector2.ZERO},
+		{"scene": MLADY_CUSTOMER_SCENE, "collision_position": Vector2.ZERO},
+		{"scene": LIL_CUSTOMER_SCENE, "collision_position": Vector2.ZERO},
+		{"scene": LIL_CUSTOMER_2_SCENE, "collision_position": Vector2.ZERO},
+	]
+	for contract: Dictionary in moving_character_contracts:
+		var character := track((contract.scene as PackedScene).instantiate()) as CharacterBody2D
+		var collision_shape := character.get_node("CollisionShape2D") as CollisionShape2D
+		var body_shape := collision_shape.shape as CircleShape2D
+		var navigation_agent := character.get_node("NavigationAgent2D") as NavigationAgent2D
+		var body_pusher := character.get_node_or_null("BodyPusher")
+		assert_true(body_shape != null)
+		assert_eq(collision_shape.position, contract.collision_position)
+		assert_true(navigation_agent != null)
+		assert_true(body_pusher != null)
+		if body_pusher != null:
+			assert_eq(body_pusher.get_script().resource_path, "res://src/BodyPusher.cs")
+		if body_shape != null:
+			assert_true(is_equal_approx(body_shape.radius, 12.0))
+		if navigation_agent != null:
+			assert_true(is_equal_approx(navigation_agent.radius, 12.0))
+		var interaction_collision := (
+			character.get_node_or_null("InteractionTarget/CollisionShape2D")
+			as CollisionShape2D
+		)
+		if interaction_collision != null:
+			var interaction_shape := interaction_collision.shape as CircleShape2D
+			assert_true(interaction_shape != null)
+			if interaction_shape != null:
+				assert_true(is_equal_approx(interaction_shape.radius, 34.0))
+
+	var player := track(PLAYER_SCENE.instantiate()) as CharacterBody2D
+	var player_collision := player.get_node("CollisionShape2D") as CollisionShape2D
+	var player_shape := player_collision.shape as CircleShape2D
+	var player_pusher := player.get_node_or_null("BodyPusher")
+	var close_shape := (
+		player.get_node("Interactor/CloseInteractionArea/CollisionShape2D").shape
+		as CircleShape2D
+	)
+	assert_true(player_shape != null)
+	assert_eq(player_collision.position, Vector2(0, 19))
+	assert_true(close_shape != null)
+	assert_true(player_pusher != null)
+	if player_pusher != null:
+		assert_eq(player_pusher.get_script().resource_path, "res://src/BodyPusher.cs")
+	if player_shape != null:
+		assert_true(is_equal_approx(player_shape.radius, 12.0))
+	if close_shape != null:
+		assert_true(is_equal_approx(close_shape.radius, 32.01562))
+
+	var pickup_contracts := [
+		{"scene": PICKUP_ITEM_SCENE, "body_radius": 10.0, "interaction_radius": 28.0},
+		{"scene": CARROT_ITEM_SCENE, "body_radius": 10.0, "interaction_radius": 28.0},
+		{
+			"scene": BABY_PICKUP_ITEM_SCENE,
+			"body_radius": 12.0,
+			"interaction_radius": 32.01562,
+		},
+	]
+	for contract: Dictionary in pickup_contracts:
+		var item := track((contract.scene as PackedScene).instantiate()) as RigidBody2D
+		var body_shape := item.get_node("CollisionShape2D").shape as CircleShape2D
+		var interaction_shape := (
+			item.get_node("InteractionTarget/CollisionShape2D").shape
+			as CircleShape2D
+		)
+		assert_true(body_shape != null)
+		assert_true(interaction_shape != null)
+		if body_shape != null:
+			assert_true(is_equal_approx(body_shape.radius, contract.body_radius))
+		if interaction_shape != null:
+			assert_true(is_equal_approx(interaction_shape.radius, contract.interaction_radius))
+
+	var level := track(MAIN_SCENE.instantiate())
+	var navigation_region := level.get_node("NavigationRegion2D") as NavigationRegion2D
+	var navigation_polygon := navigation_region.navigation_polygon
+	assert_true(is_equal_approx(navigation_polygon.agent_radius, 12.0))
+	var navigation_bounds := Rect2(navigation_polygon.vertices[0], Vector2.ZERO)
+	for vertex: Vector2 in navigation_polygon.vertices:
+		navigation_bounds = navigation_bounds.expand(vertex)
+	assert_eq(navigation_bounds, Rect2(76, 76, 808, 388))
 
 
 func test_main_scene_has_a_bounded_csharp_player() -> void:
@@ -56,7 +157,8 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	assert_eq(player.get_script().resource_path, "res://src/Player.cs")
 	assert_true(float(player.get("Speed")) > 0.0, "Player speed must be positive.")
 	assert_eq(player.collision_layer, 4)
-	assert_eq(player.collision_mask, 1)
+	assert_eq(player.collision_mask, 7)
+	assert_eq(player.motion_mode, CharacterBody2D.MOTION_MODE_FLOATING)
 
 	var player_shape := player.get_node("CollisionShape2D") as CollisionShape2D
 	assert_true(player_shape != null, "Player must have a collision shape.")
@@ -66,6 +168,8 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 			player_shape.shape is CircleShape2D,
 			"Player collision must use a CircleShape2D.",
 		)
+		if player_shape.shape is CircleShape2D:
+			assert_true(is_equal_approx(player_shape.shape.radius, 12.0))
 
 	assert_eq(room_tiles.position, Vector2(0, 14))
 	assert_true(room_tiles.tile_set != null, "The room must use a saved TileSet resource.")
@@ -112,6 +216,21 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	var interaction_events: Array = interaction_setting.get("events", [])
 	assert_true(_has_key_binding(interaction_events, KEY_E))
 	assert_true(_has_button_binding(interaction_events, JOY_BUTTON_A))
+	var configure_setting: Dictionary = project_config.get_value(
+		"input",
+		"configure_workstation",
+		{},
+	)
+	var configure_events: Array = configure_setting.get("events", [])
+	assert_true(_has_key_binding(configure_events, KEY_Q))
+	assert_true(_has_button_binding(configure_events, JOY_BUTTON_B))
+	for action in EXPECTED_WHEEL_PAGE_INPUTS:
+		var setting: Dictionary = project_config.get_value("input", action, {})
+		var events: Array = setting.get("events", [])
+		var expected: Dictionary = EXPECTED_WHEEL_PAGE_INPUTS[action]
+		assert_true(_has_mouse_button_binding(events, expected.mouse_button))
+		assert_true(_has_button_binding(events, expected.joy_button))
+
 	var game_over_setting: Dictionary = project_config.get_value("input", "game_over", {})
 	var game_over_events: Array = game_over_setting.get("events", [])
 	assert_true(_has_key_binding(game_over_events, KEY_SPACE))
@@ -182,14 +301,31 @@ func test_player_has_composable_interaction_components() -> void:
 	assert_true(close_area != null)
 	if close_area != null:
 		assert_eq(close_area.collision_mask, 8)
-		assert_eq(
-			close_area.get_node("CollisionShape2D").shape,
-			player.get_node("CollisionShape2D").shape,
-			"The close interaction area must match the player collision footprint.",
-		)
+		var close_shape := close_area.get_node("CollisionShape2D").shape as CircleShape2D
+		assert_true(close_shape != null)
+		if close_shape != null:
+			assert_true(is_equal_approx(close_shape.radius, 32.01562))
+			assert_true(close_shape.radius > player_shape.radius)
 
 	assert_eq(input_manager.get_script().resource_path, "res://src/PlayerInputManager.cs")
-	assert_true(is_equal_approx(float(input_manager.get("HoldThreshold")), 0.35))
+	assert_true(is_equal_approx(float(input_manager.get("HoldThreshold")), 0.2))
+
+
+func test_secondary_interaction_is_rebindable_for_held_items() -> void:
+	var project_config := ConfigFile.new()
+	assert_eq(project_config.load("res://project.godot"), OK)
+	var secondary_setting: Dictionary = project_config.get_value(
+		"input",
+		"secondary_interact",
+		{},
+	)
+	var secondary_events: Array = secondary_setting.get("events", [])
+	assert_true(_has_key_binding(secondary_events, KEY_F))
+	assert_true(_has_button_binding(secondary_events, JOY_BUTTON_B))
+
+	var player := track(PLAYER_SCENE.instantiate()) as CharacterBody2D
+	var input_manager := player.get_node("InputManager")
+	assert_eq(input_manager.get("SecondaryInteractAction"), &"secondary_interact")
 
 
 func test_executioner_has_the_game_over_animation_contract() -> void:
@@ -221,19 +357,23 @@ func test_input_manager_has_separate_rebindable_tap_and_hold_mappings() -> void:
 	var input_manager := player.get_node("InputManager")
 	var mappings: Array = input_manager.get("InteractionInputs")
 
-	assert_eq(mappings.size(), 2)
-	if mappings.size() != 2:
+	assert_eq(mappings.size(), 3)
+	if mappings.size() != 3:
 		return
 
 	var tap_mapping: Resource = mappings[0]
 	var hold_mapping: Resource = mappings[1]
+	var configure_mapping: Resource = mappings[2]
 	assert_ne(tap_mapping, hold_mapping)
 	assert_eq(tap_mapping.get("InputAction"), &"interact")
 	assert_eq(hold_mapping.get("InputAction"), &"interact")
+	assert_eq(configure_mapping.get("InputAction"), &"configure_workstation")
 	assert_eq(int(tap_mapping.get("Trigger")), 0)
 	assert_eq(int(hold_mapping.get("Trigger")), 1)
+	assert_eq(int(configure_mapping.get("Trigger")), 1)
 	assert_eq(tap_mapping.get("ActionIds"), [&"transfer"])
 	assert_eq(hold_mapping.get("ActionIds"), [&"process"])
+	assert_eq(configure_mapping.get("ActionIds"), [&"configure"])
 
 
 func test_pickup_item_has_top_down_physics_contract() -> void:
@@ -245,9 +385,13 @@ func test_pickup_item_has_top_down_physics_contract() -> void:
 
 	assert_eq(item.get_script().resource_path, "res://src/PickupItem.cs")
 	assert_eq(item.collision_layer, 2)
-	assert_eq(item.collision_mask, 1)
+	assert_eq(item.collision_mask, 7)
 	assert_eq(item.gravity_scale, 0.0)
-	assert_true(item.get_node("CollisionShape2D").shape is CircleShape2D)
+	assert_eq(item.linear_damp, 8.0)
+	var item_shape := item.get_node("CollisionShape2D").shape as CircleShape2D
+	assert_true(item_shape != null)
+	if item_shape != null:
+		assert_true(is_equal_approx(item_shape.radius, 10.0))
 	var definition: Resource = item.get("Definition")
 	assert_true(definition != null)
 	if definition != null:
@@ -256,6 +400,10 @@ func test_pickup_item_has_top_down_physics_contract() -> void:
 	assert_true(target != null)
 	if target != null:
 		assert_eq(target.collision_layer, 8)
+		var interaction_shape := target.get_node("CollisionShape2D").shape as CircleShape2D
+		assert_true(interaction_shape != null)
+		if interaction_shape != null:
+			assert_true(is_equal_approx(interaction_shape.radius, 28.0))
 		var action := target.get_node("PickupTransferAction")
 		assert_eq(action.get("ActionId"), &"transfer")
 		assert_eq(int(action.get("Trigger")), 0)
@@ -271,11 +419,13 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
 	assert_eq(baby.get("Definition").get("Id"), &"baby")
 	assert_eq(baby.collision_layer, 2)
-	assert_eq(baby.collision_mask, 1)
+	assert_eq(baby.collision_mask, 7)
+	assert_eq(baby.linear_damp, 8.0)
+	assert_true(baby.lock_rotation)
 	var shape: CircleShape2D = baby.get_node("CollisionShape2D").shape as CircleShape2D
 	assert_true(shape != null)
 	if shape != null:
-		assert_true(is_equal_approx(shape.radius, 32.01562))
+		assert_true(is_equal_approx(shape.radius, 12.0))
 
 	var sprite := baby.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	assert_true(sprite != null)
@@ -292,6 +442,10 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 	assert_true(target != null)
 	if target != null:
 		assert_eq(target.collision_layer, 8)
+		var interaction_shape := target.get_node("CollisionShape2D").shape as CircleShape2D
+		assert_true(interaction_shape != null)
+		if interaction_shape != null:
+			assert_true(is_equal_approx(interaction_shape.radius, 32.01562))
 
 
 func test_knife_item_has_pickup_definition() -> void:
@@ -311,11 +465,59 @@ func test_knife_item_has_pickup_definition() -> void:
 	assert_true(knife.get_node("InteractionTarget") is Area2D)
 
 
+func test_recipe_book_has_pickup_and_open_animation_contract() -> void:
+	var book := track(RECIPE_BOOK_ITEM_SCENE.instantiate()) as RigidBody2D
+
+	assert_true(book != null)
+	if book == null:
+		return
+
+	assert_eq(book.get_script().resource_path, "res://src/RecipeBookItem.cs")
+	assert_eq(book.get("Definition"), RECIPE_BOOK_DEFINITION)
+	assert_eq(RECIPE_BOOK_DEFINITION.get("Id"), &"recipe_book")
+	assert_eq(book.collision_layer, 2)
+	assert_eq(book.collision_mask, 1)
+	assert_eq(book.gravity_scale, 0.0)
+	assert_true(book.get_node("CollisionShape2D").shape is CircleShape2D)
+	assert_true(book.get_node("InteractionTarget") is Area2D)
+
+	var sprite := book.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite == null:
+		return
+
+	assert_eq(sprite.sprite_frames.get_frame_count(&"open"), 6)
+	assert_eq(sprite.sprite_frames.get_animation_speed(&"open"), 12.0)
+	assert_false(sprite.sprite_frames.get_animation_loop(&"open"))
+	for frame_index in 6:
+		var frame_texture := sprite.sprite_frames.get_frame_texture(&"open", frame_index)
+		assert_eq(frame_texture.get_width(), 64)
+		assert_eq(frame_texture.get_height(), 64)
+
+	var overlay_layer := book.get_node("RecipeOverlay") as CanvasLayer
+	var overlay_root := book.get_node("RecipeOverlay/OverlayRoot") as Control
+	var overlay_image := book.get_node("RecipeOverlay/OverlayRoot/Book") as TextureRect
+	assert_eq(overlay_layer.layer, 5)
+	assert_false(overlay_root.visible)
+	assert_eq(
+		overlay_image.texture.resource_path,
+		"res://assets/sprites/recipe_book/recipe_book_large.png",
+	)
+	assert_eq(overlay_image.mouse_filter, Control.MOUSE_FILTER_IGNORE)
+
+
 func test_main_scene_has_one_baby_pickup() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var baby: Node = level.get_node_or_null("BabyPickupItem")
 
 	assert_true(baby != null)
+
+
+func test_main_scene_has_one_recipe_book_pickup() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	var book: Node = level.get_node_or_null("RecipeBookItem")
+
+	assert_true(book != null)
 
 
 func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
@@ -358,6 +560,13 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 		]),
 	)
 	assert_eq(worker.scene_file_path, NPC_WORKER_SCENE.resource_path)
+	assert_eq(worker.collision_layer, 4)
+	assert_eq(worker.collision_mask, 7)
+	assert_eq(worker.motion_mode, CharacterBody2D.MOTION_MODE_FLOATING)
+	var worker_shape := worker.get_node("CollisionShape2D").shape as CircleShape2D
+	assert_true(worker_shape != null)
+	if worker_shape != null:
+		assert_true(is_equal_approx(worker_shape.radius, 12.0))
 	var worker_sprite := worker.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	assert_true(worker_sprite != null)
 	if worker_sprite != null:
@@ -387,7 +596,10 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 		if tendencies.size() == 1:
 			assert_eq(int(tendencies[0].get("Mode")), 0)
 			assert_true(is_equal_approx(float(tendencies[0].get("Weight")), 1.0))
-	assert_true(worker.get_node_or_null("NavigationAgent2D") is NavigationAgent2D)
+	var worker_agent := worker.get_node_or_null("NavigationAgent2D") as NavigationAgent2D
+	assert_true(worker_agent != null)
+	if worker_agent != null:
+		assert_true(is_equal_approx(worker_agent.radius, 12.0))
 	assert_true(worker.get_node_or_null("PickupCarrier/HoldPoint") is Node2D)
 	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
 	assert_eq(baby.get("Definition").get("Id"), &"baby")
@@ -406,6 +618,17 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 	assert_true(publisher != null)
 	assert_true(indicator != null)
 	assert_true(transfer != null)
+	assert_eq(customer.collision_layer, 4)
+	assert_eq(customer.collision_mask, 7)
+	assert_eq(customer.motion_mode, CharacterBody2D.MOTION_MODE_FLOATING)
+	var customer_shape := customer.get_node("CollisionShape2D").shape as CircleShape2D
+	assert_true(customer_shape != null)
+	if customer_shape != null:
+		assert_true(is_equal_approx(customer_shape.radius, 12.0))
+	var customer_agent := customer.get_node("NavigationAgent2D") as NavigationAgent2D
+	assert_true(customer_agent != null)
+	if customer_agent != null:
+		assert_true(is_equal_approx(customer_agent.radius, 12.0))
 	if (
 		sprite == null
 		or controller == null
@@ -496,7 +719,7 @@ func test_workstations_are_excluded_from_npc_navigation() -> void:
 		NavigationPolygon.PARSED_GEOMETRY_STATIC_COLLIDERS,
 	)
 	assert_eq(navigation_polygon.parsed_collision_mask, 1)
-	assert_eq(navigation_polygon.agent_radius, 20.0)
+	assert_eq(navigation_polygon.agent_radius, 12.0)
 	assert_eq(navigation_polygon.get_outline_count(), 1)
 	assert_true(navigation_polygon.get_polygon_count() > 1)
 
@@ -538,6 +761,14 @@ func test_workstation_and_sources_expose_npc_task_contracts() -> void:
 	assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	assert_eq(publisher.get("ActionTask"), PROCESS_TASK)
 	assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
+	assert_eq(
+		publisher.get("AvailableItems"),
+		[
+			POTATO_DEFINITION,
+			CARROT_DEFINITION,
+			CHOPPED_POTATOES_DEFINITION,
+		],
+	)
 	assert_eq(FETCH_TASK.get("Kind"), 0)
 	assert_eq(PROCESS_TASK.get("Kind"), 1)
 	assert_eq(FETCH_TASK.get("RequiredTags"), [&"kitchen"])
@@ -589,7 +820,15 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	var transfer := target.get_node("TransferItemAction")
 	var process := target.get_node("ProcessItemAction")
 	var request := target.get_node("RequestTaskAction")
+	var configure := target.get_node("ConfigureWorkstationAction")
+	var wheel := board.get_node_or_null("RequestWheelLayer/RequestWheel")
 	assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
+	assert_eq(configure.get_script().resource_path, "res://src/ConfigureWorkstationAction.cs")
+	assert_true(wheel != null)
+	assert_true(
+		board.get_node_or_null("ConfiguredItemIndicator") == null,
+		"The selected recipe must only be shown in the request wheel.",
+	)
 	assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
 	assert_eq(process.get_script().resource_path, "res://src/TimedItemProcessAction.cs")
 	assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
@@ -631,6 +870,23 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 			presentation.get_script().resource_path,
 			"res://src/CuttingBoardProcessPresentation.cs",
 		)
+
+
+func test_completing_recipe_selection_immediately_publishes_request() -> void:
+	var level := track(MAIN_SCENE.instantiate())
+	level.get_node("NpcWorker").process_mode = Node.PROCESS_MODE_DISABLED
+	Engine.get_main_loop().root.add_child(level)
+	var publisher: Node = level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
+	var broker: Node = level.get_node("TaskSystem/TaskBroker")
+	var wheel: Control = level.get_node("Workstations/CuttingBoard/RequestWheelLayer/RequestWheel")
+	var initial_open_tasks := int(broker.get("OpenTaskCount"))
+
+	assert_eq(int(publisher.get("CurrentTaskId")), 0)
+	assert_true(bool(publisher.call("BeginConfiguration")))
+	publisher.call("CompleteConfiguration")
+	assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
+	assert_eq(int(broker.get("OpenTaskCount")), initial_open_tasks + 1)
+	assert_true(int(publisher.get("CurrentTaskId")) > 0)
 
 
 func test_oven_composes_automatic_cooking_workstation() -> void:
@@ -1007,5 +1263,12 @@ func _has_button_binding(events: Array, button_index: JoyButton) -> bool:
 			and event.device == -1
 			and event.button_index == button_index
 		):
+			return true
+	return false
+
+
+func _has_mouse_button_binding(events: Array, button_index: MouseButton) -> bool:
+	for event in events:
+		if event is InputEventMouseButton and event.button_index == button_index:
 			return true
 	return false

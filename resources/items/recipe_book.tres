@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="PickupItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+Id = &"recipe_book"
+DisplayName = "Recipe Book"
+Modulate = Color(1, 1, 1, 1)
+VisualScale = Vector2(1, 1)
