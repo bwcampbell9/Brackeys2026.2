@@ -73,7 +73,7 @@ position = Vector2(480, 270)
 [node name="BabyPickupItem" parent="." unique_id=1947549762 instance=ExtResource("2_baby")]
 position = Vector2(480, 200)
 
-[node name="RecipeBookItem" parent="." instance=ExtResource("14_recipe_book")]
+[node name="RecipeBookItem" parent="." unique_id=1855219522 instance=ExtResource("14_recipe_book")]
 position = Vector2(400, 200)
 
 [node name="Oven" parent="." unique_id=298111419 instance=ExtResource("12_oven")]
@@ -84,7 +84,7 @@ process_mode = 3
 layer = 10
 script = ExtResource("13_game_over")
 
-[node name="PauseMenu" parent="." instance=ExtResource("15_pause_menu")]
+[node name="PauseMenu" parent="." unique_id=525587910 instance=ExtResource("15_pause_menu")]
 
 [node name="Stove" parent="." unique_id=1257303080 instance=ExtResource("13_stove")]
 position = Vector2(672, 238)

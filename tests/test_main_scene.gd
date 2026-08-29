@@ -11,6 +11,7 @@ const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
 const RECIPE_BOOK_ITEM_SCENE := preload("res://scenes/recipe_book_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
+const CONTAINER_SCENE := preload("res://scenes/container.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
@@ -1063,32 +1064,37 @@ func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
 
 	assert_eq(container.collision_layer, 1)
 	assert_eq(container.collision_mask, 0)
-	var container_sprite := container.get_node("Sprite2D") as Sprite2D
+	var container_sprite := container.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	assert_true(container_sprite != null)
-	var container_texture := container_sprite.texture as AtlasTexture
-	assert_true(container_texture != null)
-	if container_texture != null:
+	var frames := container_sprite.sprite_frames
+	assert_true(frames != null)
+	if frames != null:
 		assert_eq(
-			container_texture.atlas.resource_path,
-			"res://assets/sprites/workstations_tilemap/workstations.png",
+			frames.get_animation_names(),
+			PackedStringArray([&"idle", &"take"]),
 		)
-		assert_eq(container_texture.region, Rect2(64, 0, 64, 64))
+		assert_eq(frames.get_frame_count(&"idle"), 1)
+		assert_eq(frames.get_frame_count(&"take"), 4)
+		assert_eq(frames.get_animation_speed(&"take"), 10.0)
+		assert_false(frames.get_animation_loop(&"take"))
 	var shape := container.get_node("CollisionShape2D").shape as RectangleShape2D
 	assert_true(shape != null)
 	if shape != null:
 		assert_eq(shape.size, Vector2(64, 64))
+	var item_indicator := container.get_node("ItemIndicator") as Sprite2D
+	assert_true(item_indicator != null)
+	if item_indicator != null:
+		assert_eq(
+			item_indicator.position,
+			container.get_node("CollisionShape2D").position,
+		)
 	assert_eq(
-		container.get_node("InteractionTarget/PickupContainerAction").get("PickupScene"),
+		container.get("PickupScene"),
 		PICKUP_ITEM_SCENE,
 	)
 	assert_eq(
-		container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem").get("Id"),
+		container.get("ItemDefinition").get("Id"),
 		&"potato",
-	)
-	assert_true(
-		float(
-			container.get_node("InteractionTarget/PickupContainerAction").get("ReturnDuration")
-		) > 0.0
 	)
 
 
@@ -1099,44 +1105,15 @@ func test_knife_container_supplies_the_knife_scene() -> void:
 	if container == null:
 		return
 
-	var texture := container.get_node("Sprite2D").texture as AtlasTexture
-	assert_true(texture != null)
-	if texture != null:
-		assert_eq(
-			texture.atlas.resource_path,
-			"res://assets/sprites/workstations_tilemap/workstations.png",
-		)
-		assert_eq(texture.region, Rect2(192, 0, 64, 64))
 	assert_eq(
-		container.get_node("InteractionTarget/PickupContainerAction").get("PickupScene"),
+		container.get("PickupScene"),
 		KNIFE_ITEM_SCENE,
 	)
 	assert_eq(
-		container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem"),
+		container.get("ItemDefinition"),
 		KNIFE_DEFINITION,
 	)
-	assert_true(
-		float(
-			container.get_node("InteractionTarget/PickupContainerAction").get("ReturnSpinTurns")
-		) > 0.0
-	)
-
-
-func test_carrot_container_supplies_the_carrot_scene() -> void:
-	var container := track(CARROT_CONTAINER_SCENE.instantiate()) as StaticBody2D
-
-	assert_true(container != null)
-	if container == null:
-		return
-
-	var texture := container.get_node("Sprite2D").texture as Texture2D
-	assert_true(texture != null)
-	if texture != null:
-		assert_eq(texture.resource_path, "res://assets/sprites/carrot_container/carrot_container.png")
-	var action := container.get_node("InteractionTarget/PickupContainerAction")
-	assert_eq(action.get("PickupScene").resource_path, "res://scenes/carrot_item.tscn")
-	assert_eq(action.get("AcceptedItem"), CARROT_DEFINITION)
-	assert_eq(container.get_node("NpcItemSource").get("ItemDefinition"), CARROT_DEFINITION)
+	assert_true(container.get_node("ItemIndicator") is Sprite2D)
 
 
 func test_main_scene_has_interactable_container_and_cutting_board() -> void:
@@ -1190,10 +1167,7 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 	assert_true(carrot_container != null)
 	if carrot_container != null:
 		assert_eq(carrot_container.position, Vector2(96, 302))
-		assert_eq(
-			carrot_container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem"),
-			CARROT_DEFINITION,
-		)
+		assert_eq(carrot_container.get("ItemDefinition"), CARROT_DEFINITION)
 	var oven := level.get_node_or_null("Oven") as StaticBody2D
 	assert_true(oven != null)
 	if oven != null:
