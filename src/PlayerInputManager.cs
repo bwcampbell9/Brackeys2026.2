@@ -9,6 +9,7 @@ public partial class PlayerInputManager : Node
         public float HeldTime;
         public bool HoldActivated;
         public bool HoldThresholdReached;
+        public bool PressObserved;
     }
 
     private static readonly StringName DefaultInputAction = "interact";
@@ -22,6 +23,7 @@ public partial class PlayerInputManager : Node
     private Node2D _actor = null!;
     private PlayerInteractor _interactor = null!;
     private PickupCarrier _carrier = null!;
+    private bool _suppressSecondaryInteractUntilReleased;
 
     [Export(PropertyHint.Range, "0.05,2,0.01,or_greater")]
     public float HoldThreshold { get; set; } = 0.35f;
@@ -55,7 +57,17 @@ public partial class PlayerInputManager : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        if (
+        if (_suppressSecondaryInteractUntilReleased)
+        {
+            if (
+                SecondaryInteractAction.IsEmpty
+                || !Input.IsActionPressed(SecondaryInteractAction)
+            )
+            {
+                _suppressSecondaryInteractUntilReleased = false;
+            }
+        }
+        else if (
             !SecondaryInteractAction.IsEmpty
             && Input.IsActionJustPressed(SecondaryInteractAction)
         )
@@ -84,9 +96,10 @@ public partial class PlayerInputManager : Node
                 state.HeldTime = 0.0f;
                 state.HoldActivated = false;
                 state.HoldThresholdReached = false;
+                state.PressObserved = true;
             }
 
-            if (Input.IsActionPressed(inputAction))
+            if (state.PressObserved && Input.IsActionPressed(inputAction))
             {
                 state.HeldTime += (float)delta;
                 state.HoldThresholdReached =
@@ -115,6 +128,14 @@ public partial class PlayerInputManager : Node
                 continue;
             }
 
+            if (!state.PressObserved)
+            {
+                state.HeldTime = 0.0f;
+                state.HoldActivated = false;
+                state.HoldThresholdReached = false;
+                continue;
+            }
+
             if (wasHoldActivated)
             {
                 if (!justPressed)
@@ -135,7 +156,25 @@ public partial class PlayerInputManager : Node
                 state.HeldTime = 0.0f;
                 state.HoldActivated = false;
                 state.HoldThresholdReached = false;
+                state.PressObserved = false;
             }
+        }
+    }
+
+    public void SuppressCurrentGameplayInput()
+    {
+        if (_interactor.HasActiveInteraction)
+        {
+            _interactor.CancelActiveInteraction();
+        }
+
+        _suppressSecondaryInteractUntilReleased = true;
+        foreach (InputState state in _inputStates.Values)
+        {
+            state.HeldTime = 0.0f;
+            state.HoldActivated = false;
+            state.HoldThresholdReached = false;
+            state.PressObserved = false;
         }
     }
 
