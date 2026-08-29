@@ -104,6 +104,18 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	var interaction_events: Array = interaction_setting.get("events", [])
 	assert_true(_has_key_binding(interaction_events, KEY_E))
 	assert_true(_has_button_binding(interaction_events, JOY_BUTTON_A))
+	var game_over_setting: Dictionary = project_config.get_value("input", "game_over", {})
+	var game_over_events: Array = game_over_setting.get("events", [])
+	assert_true(_has_key_binding(game_over_events, KEY_SPACE))
+
+	var game_over_controller := level.get_node_or_null("GameOverController") as CanvasLayer
+	assert_true(game_over_controller != null)
+	if game_over_controller != null:
+		assert_eq(
+			game_over_controller.get_script().resource_path,
+			"res://src/GameOverController.cs",
+		)
+		assert_eq(game_over_controller.process_mode, Node.PROCESS_MODE_ALWAYS)
 
 
 func test_player_has_composable_interaction_components() -> void:
