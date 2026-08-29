@@ -4,6 +4,7 @@ public partial class PickupCarrier : Node2D
 {
 	private Node2D _holdPoint = null!;
 	private AudioStreamPlayer2D? _pickupAudio;
+	private AudioStreamPlayer2D? _throwAudio;
 	private Vector2 _facingDirection = Vector2.Up;
 	private PickupItem? _heldItem;
 
@@ -34,6 +35,7 @@ public partial class PickupCarrier : Node2D
 	{
 		_holdPoint = GetNode<Node2D>("HoldPoint");
 		_pickupAudio = GetNodeOrNull<AudioStreamPlayer2D>("../PickupAudio");
+		_throwAudio = GetNodeOrNull<AudioStreamPlayer2D>("../ThrowAudio");
 	}
 
 	public bool TryHold(PickupItem item)
@@ -110,6 +112,7 @@ public partial class PickupCarrier : Node2D
 
 		_heldItem = null;
 		item.Throw(_facingDirection * ThrowForce);
+		PlayThrowAudio();
 		return true;
 	}
 
@@ -128,6 +131,14 @@ public partial class PickupCarrier : Node2D
 		if (GodotObject.IsInstanceValid(_pickupAudio))
 		{
 			_pickupAudio!.Play();
+		}
+	}
+
+	private void PlayThrowAudio()
+	{
+		if (GodotObject.IsInstanceValid(_throwAudio))
+		{
+			_throwAudio!.Play();
 		}
 	}
 }

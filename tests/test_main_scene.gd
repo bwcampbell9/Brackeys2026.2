@@ -271,6 +271,8 @@ func test_player_has_composable_interaction_components() -> void:
 	assert_true(input_manager != null, "The player must contain an input manager.")
 	var pickup_audio := player.get_node_or_null("PickupAudio") as AudioStreamPlayer2D
 	assert_true(pickup_audio != null, "The player must contain pickup audio.")
+	var throw_audio := player.get_node_or_null("ThrowAudio") as AudioStreamPlayer2D
+	assert_true(throw_audio != null, "The player must contain throw audio.")
 	assert_true(player_shape != null, "The player must have a circular collision shape.")
 	if (
 		carrier == null
@@ -293,6 +295,9 @@ func test_player_has_composable_interaction_components() -> void:
 	if pickup_audio != null:
 		assert_eq(pickup_audio.stream.resource_path, "res://assets/sounds/pickup.wav")
 		assert_false(pickup_audio.autoplay)
+	if throw_audio != null:
+		assert_eq(throw_audio.stream.resource_path, "res://assets/sounds/throw.wav")
+		assert_false(throw_audio.autoplay)
 
 	assert_eq(interactor.get_script().resource_path, "res://src/PlayerInteractor.cs")
 	assert_eq(float(interactor.get("InteractionConeDegrees")), 140.0)
