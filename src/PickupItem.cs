@@ -50,7 +50,14 @@ public partial class PickupItem : RigidBody2D, IItemSource
 
     protected virtual void OnPickedUp() { }
 
+    protected virtual void OnAttachmentMoved() { }
+
     protected virtual void OnThrown() { }
+
+    public virtual bool TrySecondaryInteract()
+    {
+        return false;
+    }
 
     public override void _Ready()
     {
@@ -100,6 +107,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
         }
 
         Reparent(attachmentPoint, true);
+        OnAttachmentMoved();
         TweenToAttachment(duration);
         return true;
     }
@@ -232,6 +240,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
     {
         if (_definition is null)
         {
+            OnDefinitionApplied();
             return;
         }
 
@@ -272,26 +281,28 @@ public partial class PickupItem : RigidBody2D, IItemSource
         }
 
         CanvasItem? visual = usesAnimation ? animatedSprite : staticSprite;
-        if (visual is null)
+        if (visual is not null)
         {
-            return;
+            visual.Material = _definition.VisualMaterial;
+            visual.Modulate = _definition.Modulate;
+            if (visual is Node2D visualNode)
+            {
+                visualNode.Scale = _definition.VisualScale;
+            }
+
+            if (
+                visual is Sprite2D sprite
+                && _definition.Texture is not null
+            )
+            {
+                sprite.Texture = _definition.Texture;
+            }
         }
 
-        visual.Material = _definition.VisualMaterial;
-        visual.Modulate = _definition.Modulate;
-        if (visual is Node2D visualNode)
-        {
-            visualNode.Scale = _definition.VisualScale;
-        }
-
-        if (
-            visual is Sprite2D sprite
-            && _definition.Texture is not null
-        )
-        {
-            sprite.Texture = _definition.Texture;
-        }
+        OnDefinitionApplied();
     }
+
+    protected virtual void OnDefinitionApplied() { }
 
     private void ApplyShakeProgress(float progress)
     {
