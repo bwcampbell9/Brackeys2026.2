@@ -608,15 +608,20 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 		assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
 	if controller != null:
 		assert_eq(controller.get_script().resource_path, "res://src/OvenCookingController.cs")
-		assert_eq(float(controller.get("CookDuration")), 10.0)
-		var cook_transformation := controller.get("Transformation") as Resource
-		assert_true(cook_transformation != null)
-		if cook_transformation != null:
-			assert_eq(cook_transformation.get("Id"), &"cook")
-			assert_eq(
-				cook_transformation.get("FallbackMaterial").resource_path,
-				"res://resources/materials/cooked_brown_black.tres",
-			)
+		var cook_recipe := controller.get("Recipe") as Resource
+		assert_true(cook_recipe != null)
+		if cook_recipe != null:
+			assert_eq(cook_recipe.resource_path, "res://resources/recipes/cook.tres")
+			assert_eq(float(cook_recipe.get("Duration")), 10.0)
+			assert_eq(cook_recipe.get("RequiredTool"), null)
+			var cook_transformation := cook_recipe.get("Transformation") as Resource
+			assert_true(cook_transformation != null)
+			if cook_transformation != null:
+				assert_eq(cook_transformation.get("Id"), &"cook")
+				assert_eq(
+					cook_transformation.get("FallbackMaterial").resource_path,
+					"res://resources/materials/cooked_brown_black.tres",
+				)
 
 
 func test_potato_container_owns_its_visual_collision_and_interaction() -> void:

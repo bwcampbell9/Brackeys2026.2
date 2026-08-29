@@ -5,7 +5,7 @@
 [ext_resource type="Script" path="res://src/SlotTransferAction.cs" id="3_transfer"]
 [ext_resource type="Texture2D" path="res://assets/sprites/oven/oven-Sheet.png" id="4_texture"]
 [ext_resource type="Script" path="res://src/OvenCookingController.cs" id="5_controller"]
-[ext_resource type="Resource" path="res://resources/transformations/cook.tres" id="6_cook"]
+[ext_resource type="Resource" path="res://resources/recipes/cook.tres" id="6_recipe"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle"]
 atlas = ExtResource("4_texture")
@@ -79,5 +79,4 @@ script = ExtResource("3_transfer")
 
 [node name="OvenCookingController" type="Node" parent="."]
 script = ExtResource("5_controller")
-Transformation = ExtResource("6_cook")
-CookDuration = 10.0
+Recipe = ExtResource("6_recipe")
