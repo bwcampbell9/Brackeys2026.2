@@ -4,6 +4,8 @@ using Godot;
 public partial class ConfigureWorkstationAction : InteractionAction
 {
     private WorkstationTaskPublisher _publisher = null!;
+    private Node2D? _actor;
+    private bool _actorWasPhysicsProcessing;
 
     public ConfigureWorkstationAction()
     {
@@ -32,7 +34,19 @@ public partial class ConfigureWorkstationAction : InteractionAction
 
     public override bool Begin(InteractionContext context)
     {
-        return IsAvailable(context) && _publisher.BeginConfiguration();
+        if (!IsAvailable(context) || !_publisher.BeginConfiguration())
+        {
+            return false;
+        }
+
+        _actor = context.Actor;
+        _actorWasPhysicsProcessing = _actor.IsPhysicsProcessing();
+        _actor.SetPhysicsProcess(false);
+        if (_actor is CharacterBody2D body)
+        {
+            body.Velocity = Vector2.Zero;
+        }
+        return true;
     }
 
     public override InteractionRunState UpdateInteraction(
@@ -47,11 +61,40 @@ public partial class ConfigureWorkstationAction : InteractionAction
 
     public override void Cancel(InteractionContext context)
     {
-        _publisher.CancelConfiguration();
+        try
+        {
+            _publisher.CancelConfiguration();
+        }
+        finally
+        {
+            RestoreActorMovement();
+        }
     }
 
     public override void Complete(InteractionContext context)
     {
-        _publisher.CompleteConfiguration();
+        try
+        {
+            _publisher.CompleteConfiguration();
+        }
+        finally
+        {
+            RestoreActorMovement();
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        RestoreActorMovement();
+    }
+
+    private void RestoreActorMovement()
+    {
+        Node2D? actor = _actor;
+        if (GodotObject.IsInstanceValid(actor))
+        {
+            actor.SetPhysicsProcess(_actorWasPhysicsProcessing);
+        }
+        _actor = null;
     }
 }

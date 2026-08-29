@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/lil_shubungus_2/lil_shubungus_2-Sheet.png" id="1_sprite"]
 [ext_resource type="Script" path="res://src/CustomerVisualController.cs" id="2_visual"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://src/WorkstationTaskPublisher.cs" id="8_publisher"]
 [ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="9_fetch_task"]
 [ext_resource type="Resource" path="res://resources/items/knife.tres" id="10_knife"]
+[ext_resource type="Script" path="res://src/BodyPusher.cs" id="11_pusher"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lil_2_1"]
 atlas = ExtResource("1_sprite")
@@ -64,13 +65,14 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_lil_2_customer"]
-radius = 24.0
+radius = 12.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_lil_2_interaction"]
 radius = 34.0
 
 [node name="LilShubungus2Customer" type="CharacterBody2D"]
 collision_layer = 4
-collision_mask = 1
+collision_mask = 7
+motion_mode = 1
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_lil_2_customer")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -83,7 +85,9 @@ script = ExtResource("2_visual")
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
 path_desired_distance = 18.0
 target_desired_distance = 18.0
-radius = 24.0
+radius = 12.0
+[node name="BodyPusher" type="Node" parent="."]
+script = ExtResource("11_pusher")
 [node name="NpcMotor" type="Node" parent="."]
 script = ExtResource("3_motor")
 [node name="CustomerWanderController" type="Node" parent="."]

@@ -6,9 +6,10 @@
 [ext_resource type="Script" uid="uid://dw2k68gkwmy4l" path="res://src/NpcTaskRunner.cs" id="4_runner"]
 [ext_resource type="Resource" uid="uid://c3gwrfqp6g7in" path="res://resources/npc_personalities/kitchen_worker.tres" id="5_personality"]
 [ext_resource type="Script" uid="uid://dslt4oxxii36p" path="res://src/WorkerVisualController.cs" id="6_visual"]
+[ext_resource type="Script" path="res://src/BodyPusher.cs" id="7_pusher"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_worker"]
-radius = 20.0
+radius = 12.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_worker_1"]
 atlas = ExtResource("1_sprite")
@@ -53,6 +54,8 @@ animations = [{
 
 [node name="NpcWorker" type="CharacterBody2D" unique_id=1861508754]
 collision_layer = 4
+collision_mask = 7
+motion_mode = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1528392061]
 shape = SubResource("CircleShape2D_worker")
@@ -69,7 +72,10 @@ script = ExtResource("6_visual")
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=616619985]
 path_desired_distance = 18.0
 target_desired_distance = 18.0
-radius = 20.0
+radius = 12.0
+
+[node name="BodyPusher" type="Node" parent="."]
+script = ExtResource("7_pusher")
 
 [node name="NpcMotor" type="Node" parent="." unique_id=762160099]
 script = ExtResource("3_motor")

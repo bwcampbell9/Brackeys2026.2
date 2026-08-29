@@ -19,8 +19,6 @@ public partial class WorkstationTaskPublisher : Node2D
 	private TimedItemProcessAction? _processAction;
 	private Node2D _requestIndicator = null!;
 	private Sprite2D _requestIndicatorIcon = null!;
-	private Node2D? _configuredItemIndicator;
-	private Sprite2D? _configuredItemIcon;
 	private WorkstationRequestWheel? _requestWheel;
 	private Node2D? _consumerVisual;
 	private Tween? _consumptionTween;
@@ -54,14 +52,6 @@ public partial class WorkstationTaskPublisher : Node2D
 	[Export]
 	public NodePath RequestIndicatorIconPath { get; set; } =
 		new("../TaskRequestIndicator/Icon");
-
-	[Export]
-	public NodePath ConfiguredItemIndicatorPath { get; set; } =
-		new("../ConfiguredItemIndicator");
-
-	[Export]
-	public NodePath ConfiguredItemIconPath { get; set; } =
-		new("../ConfiguredItemIndicator/Icon");
 
 	[Export]
 	public NodePath RequestWheelPath { get; set; } =
@@ -122,7 +112,9 @@ public partial class WorkstationTaskPublisher : Node2D
 	public bool IsConfiguring => _isConfiguring;
 
 	public bool CanConfigure =>
-		!_isConsuming && _socket.Item is null && AvailableItems.Count > 0;
+		!_isConsuming
+		&& _socket.Item is null
+		&& AvailableItems.Count > 0;
 
 	public bool CanPublishNextTask =>
 		(
@@ -167,10 +159,6 @@ public partial class WorkstationTaskPublisher : Node2D
 			?? throw new InvalidOperationException(
                 "WorkstationTaskPublisher requires a request indicator icon."
 			);
-		_configuredItemIndicator = GetNodeOrNull<Node2D>(
-			ConfiguredItemIndicatorPath
-		);
-		_configuredItemIcon = GetNodeOrNull<Sprite2D>(ConfiguredItemIconPath);
 		_requestWheel = GetNodeOrNull<WorkstationRequestWheel>(
 			RequestWheelPath
 		);
@@ -193,7 +181,6 @@ public partial class WorkstationTaskPublisher : Node2D
 		}
 		AddToGroup(PublisherGroup);
 		ClearRequestIndicator();
-		UpdateConfiguredItemIndicator();
 	}
 
 	public override void _ExitTree()
@@ -234,7 +221,7 @@ public partial class WorkstationTaskPublisher : Node2D
 
 	public bool BeginConfiguration()
 	{
-		if (!CanConfigure || _requestWheel is null)
+		if (_isConfiguring || !CanConfigure || _requestWheel is null)
 		{
 			return false;
 		}
@@ -269,20 +256,19 @@ public partial class WorkstationTaskPublisher : Node2D
 		PickupItemDefinition? selectedItem = _requestWheel?.SelectedItem;
 		_isConfiguring = false;
 		_requestWheel?.Close();
-		if (selectedItem is null || RequestedItem?.Id == selectedItem.Id)
+		if (selectedItem is null)
 		{
 			return;
 		}
 
-		bool hadTask = _currentTaskId != 0;
-		RequestedItem = selectedItem;
-		_generation++;
-		CancelCurrentTask();
-		UpdateConfiguredItemIndicator();
-		if (hadTask)
+		if (RequestedItem?.Id != selectedItem.Id)
 		{
-			PublishPendingTask();
+			RequestedItem = selectedItem;
+			_generation++;
+			CancelCurrentTask();
 		}
+
+		PublishPendingTask();
 	}
 
 	public bool TryPublishNextTask()
@@ -510,29 +496,6 @@ public partial class WorkstationTaskPublisher : Node2D
 		_requestIndicatorIcon.Scale = item.VisualScale * 0.65f;
 		_requestIndicator.Visible = true;
 	}
-
-	private void UpdateConfiguredItemIndicator()
-	{
-		if (
-			!GodotObject.IsInstanceValid(_configuredItemIndicator)
-			|| !GodotObject.IsInstanceValid(_configuredItemIcon)
-		)
-		{
-			return;
-		}
-
-		if (RequestedItem is null)
-		{
-			_configuredItemIndicator.Visible = false;
-			return;
-		}
-
-		_configuredItemIcon.Texture = RequestedItem.Texture;
-		_configuredItemIcon.Modulate = RequestedItem.Modulate * new Color(0.4f, 0.7f, 1.0f, 1.0f);
-		_configuredItemIcon.Scale = RequestedItem.VisualScale;
-		_configuredItemIndicator.Visible = true;
-	}
-
 
 	private void ClearRequestIndicator()
 	{

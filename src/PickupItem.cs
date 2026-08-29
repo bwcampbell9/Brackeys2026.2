@@ -259,7 +259,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
         bool usesDefinitionAnimation = _definition.SpriteFrames is not null
             && animatedSprite is not null;
         bool usesSceneAnimation = staticSprite is null
-            && animatedSprite is not null;
+            && animatedSprite?.SpriteFrames is not null;
         bool usesAnimation = usesDefinitionAnimation || usesSceneAnimation;
         if (staticSprite is not null)
         {
@@ -274,7 +274,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
                 animatedSprite.SpriteFrames = _definition.SpriteFrames;
                 animatedSprite.Play(IdleAnimation);
             }
-            else if (!usesAnimation)
+            else if (!usesSceneAnimation)
             {
                 animatedSprite.Stop();
             }

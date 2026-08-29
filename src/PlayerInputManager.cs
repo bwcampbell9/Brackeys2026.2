@@ -26,7 +26,7 @@ public partial class PlayerInputManager : Node
     private bool _suppressSecondaryInteractUntilReleased;
 
     [Export(PropertyHint.Range, "0.05,2,0.01,or_greater")]
-    public float HoldThreshold { get; set; } = 0.35f;
+    public float HoldThreshold { get; set; } = 0.2f;
 
     [Export]
     public Array<InteractionInputBinding> InteractionInputs { get; set; } =

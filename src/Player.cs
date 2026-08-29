@@ -13,6 +13,7 @@ public partial class Player : CharacterBody2D
 	private Sprite2D _outerArm = null!;
 	private PickupCarrier _pickupCarrier = null!;
 	private PlayerInteractor _interactor = null!;
+	private BodyPusher _bodyPusher = null!;
 	private float _facingRotation;
 	private bool _facingRight;
 	private StringName _currentAnimation = new();
@@ -30,6 +31,7 @@ public partial class Player : CharacterBody2D
 		_outerArm = GetNode<Sprite2D>("OuterArm");
 		_pickupCarrier = GetNode<PickupCarrier>("PickupCarrier");
 		_interactor = GetNode<PlayerInteractor>("Interactor");
+		_bodyPusher = GetNode<BodyPusher>("BodyPusher");
 		_facingRotation = 0.0f;
 		SetHorizontalFacing(_sprite.FlipH);
 		SetFacingDirection(Vector2.Up);
@@ -64,8 +66,8 @@ public partial class Player : CharacterBody2D
 		}
 
 		SetAnimation(direction.IsZeroApprox() ? IdleAnimation : WalkAnimation);
-		Velocity = direction * Speed;
-		MoveAndSlide();
+		Vector2 requestedVelocity = direction * Speed;
+		_bodyPusher.MoveAndPush(this, requestedVelocity, delta);
 	}
 
 	private void SetAnimation(StringName animation)
