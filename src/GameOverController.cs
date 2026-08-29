@@ -63,7 +63,7 @@ public partial class GameOverController : CanvasLayer
 
 	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed(GameOverAction))
+		if (!GetTree().Paused && Input.IsActionJustPressed(GameOverAction))
 		{
 			if (_phase == GameOverPhase.Playing)
 			{
@@ -181,8 +181,22 @@ public partial class GameOverController : CanvasLayer
 			OffsetBottom = 48.0f,
 			MouseFilter = Control.MouseFilterEnum.Stop,
 		};
-		Button retryButton = new() { Text = "Retry", CustomMinimumSize = new Vector2(192.0f, 40.0f) };
-		Button exitButton = new() { Text = "Exit", CustomMinimumSize = new Vector2(192.0f, 40.0f) };
+		Button retryButton = new()
+		{
+			Name = "RetryButton",
+			Text = "Retry",
+			CustomMinimumSize = new Vector2(192.0f, 40.0f),
+			FocusNeighborTop = "../ExitButton",
+			FocusNeighborBottom = "../ExitButton",
+		};
+		Button exitButton = new()
+		{
+			Name = "ExitButton",
+			Text = "Exit",
+			CustomMinimumSize = new Vector2(192.0f, 40.0f),
+			FocusNeighborTop = "../RetryButton",
+			FocusNeighborBottom = "../RetryButton",
+		};
 		retryButton.Pressed += RestartScene;
 		exitButton.Pressed += ReturnToTitle;
 		menu.AddChild(retryButton);
