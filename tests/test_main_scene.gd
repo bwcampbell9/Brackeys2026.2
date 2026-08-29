@@ -13,6 +13,7 @@ const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
 const OVEN_SCENE := preload("res://scenes/oven.tscn")
+const EXECUTIONER_SCENE := preload("res://scenes/executioner.tscn")
 const STOVE_SCENE := preload("res://scenes/stove.tscn")
 const NPC_WORKER_SCENE := preload("res://scenes/npc_worker.tscn")
 const CUSTOMER_SCENE := preload("res://scenes/customer.tscn")
@@ -105,6 +106,18 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	var interaction_events: Array = interaction_setting.get("events", [])
 	assert_true(_has_key_binding(interaction_events, KEY_E))
 	assert_true(_has_button_binding(interaction_events, JOY_BUTTON_A))
+	var game_over_setting: Dictionary = project_config.get_value("input", "game_over", {})
+	var game_over_events: Array = game_over_setting.get("events", [])
+	assert_true(_has_key_binding(game_over_events, KEY_SPACE))
+
+	var game_over_controller := level.get_node_or_null("GameOverController") as CanvasLayer
+	assert_true(game_over_controller != null)
+	if game_over_controller != null:
+		assert_eq(
+			game_over_controller.get_script().resource_path,
+			"res://src/GameOverController.cs",
+		)
+		assert_eq(game_over_controller.process_mode, Node.PROCESS_MODE_ALWAYS)
 
 
 func test_player_has_composable_interaction_components() -> void:
@@ -171,6 +184,29 @@ func test_player_has_composable_interaction_components() -> void:
 
 	assert_eq(input_manager.get_script().resource_path, "res://src/PlayerInputManager.cs")
 	assert_true(is_equal_approx(float(input_manager.get("HoldThreshold")), 0.35))
+
+
+func test_executioner_has_the_game_over_animation_contract() -> void:
+	var executioner := track(EXECUTIONER_SCENE.instantiate()) as Node2D
+
+	assert_true(executioner != null)
+	if executioner == null:
+		return
+
+	var sprite := executioner.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite == null:
+		return
+
+	assert_eq(executioner.get_script().resource_path, "res://src/Executioner.cs")
+	assert_eq(sprite.sprite_frames.get_frame_count(&"idle"), 2)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"walk"), 2)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"takeout"), 5)
+	assert_eq(sprite.sprite_frames.get_frame_count(&"chop"), 6)
+	assert_true(sprite.sprite_frames.get_animation_loop(&"idle"))
+	assert_true(sprite.sprite_frames.get_animation_loop(&"walk"))
+	assert_false(sprite.sprite_frames.get_animation_loop(&"takeout"))
+	assert_false(sprite.sprite_frames.get_animation_loop(&"chop"))
 
 
 func test_input_manager_has_separate_rebindable_tap_and_hold_mappings() -> void:
