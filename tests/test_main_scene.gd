@@ -110,21 +110,30 @@ func test_player_has_composable_interaction_components() -> void:
 	var level := track(MAIN_SCENE.instantiate())
 	var player := level.get_node("Player") as CharacterBody2D
 	var carrier := player.get_node_or_null("PickupCarrier") as Node2D
+	var hold_point := player.get_node_or_null("PickupCarrier/HoldPoint") as Node2D
 	var interactor := player.get_node_or_null("Interactor") as Node2D
 	var input_manager := player.get_node_or_null("InputManager") as Node
 	var player_shape := player.get_node("CollisionShape2D").shape as CircleShape2D
 
 	assert_true(carrier != null, "The player must contain a pickup carrier.")
+	assert_true(hold_point != null, "The pickup carrier must contain a hold point.")
 	assert_true(interactor != null, "The player must contain an interactor.")
 	assert_true(input_manager != null, "The player must contain an input manager.")
 	assert_true(player_shape != null, "The player must have a circular collision shape.")
-	if carrier == null or interactor == null or input_manager == null or player_shape == null:
+	if (
+		carrier == null
+		or hold_point == null
+		or interactor == null
+		or input_manager == null
+		or player_shape == null
+	):
 		return
 
 	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
 	assert_true(is_equal_approx(float(carrier.get("PickupDuration")), 0.2))
 	assert_true(float(carrier.get("ThrowForce")) > 0.0)
-	assert_true(carrier.get_node_or_null("HoldPoint") is Node2D)
+	assert_true(carrier.visible, "The pickup carrier must keep held items visible.")
+	assert_true(hold_point.visible, "The hold point must keep held items visible.")
 	assert_true(
 		carrier.get_node_or_null("PickupArea") == null,
 		"The carrier must not own interaction sensing.",
