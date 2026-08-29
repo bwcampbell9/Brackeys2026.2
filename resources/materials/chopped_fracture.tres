@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dwsk1haatd4u3"]
+
+[ext_resource type="Shader" path="res://assets/shaders/chopped_fracture.gdshader" id="1_fracture"]
+
+[resource]
+shader = ExtResource("1_fracture")
+shader_parameter/chop_progress = 1.0
+shader_parameter/chop_count = 4
+shader_parameter/fracture_seed = 7.0
+shader_parameter/max_cut_slant = 0.18
+shader_parameter/piece_separation = 0.045

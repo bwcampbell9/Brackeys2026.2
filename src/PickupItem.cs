@@ -109,6 +109,21 @@ public partial class PickupItem : RigidBody2D, IItemSource
         Definition = definition;
     }
 
+    public Material? GetVisualMaterial()
+    {
+        return GetActiveVisual()?.Material;
+    }
+
+    public void SetVisualMaterial(Material? material)
+    {
+        CanvasItem visual =
+            GetActiveVisual()
+            ?? throw new InvalidOperationException(
+                "Pickup item requires an active visual to set its material."
+            );
+        visual.Material = material;
+    }
+
     private void TweenToAttachment(float duration)
     {
         Tween tween = StartMotionTween()
@@ -288,6 +303,18 @@ public partial class PickupItem : RigidBody2D, IItemSource
         {
             sprite.Texture = _definition.Texture;
         }
+    }
+
+    private CanvasItem? GetActiveVisual()
+    {
+        AnimatedSprite2D? animatedSprite =
+            GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        if (animatedSprite?.Visible == true)
+        {
+            return animatedSprite;
+        }
+
+        return GetNodeOrNull<Sprite2D>("Sprite2D");
     }
 
     private void ApplyShakeProgress(float progress)

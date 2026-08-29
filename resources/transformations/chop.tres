@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="ItemTransformation" load_steps=3 format=3 uid="uid://clda7o0njmqn7"]
 
 [ext_resource type="Script" uid="uid://dp10syqiux21j" path="res://src/ItemTransformation.cs" id="1_transformation"]
-[ext_resource type="Material" uid="uid://dwsk1haatd4u3" path="res://resources/materials/chopped_green.tres" id="2_material"]
+[ext_resource type="Material" path="res://resources/materials/chopped_fracture.tres" id="2_material"]
 
 [resource]
 script = ExtResource("1_transformation")

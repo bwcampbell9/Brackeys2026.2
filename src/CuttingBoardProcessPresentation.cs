@@ -3,10 +3,15 @@ using Godot;
 
 public partial class CuttingBoardProcessPresentation : Node
 {
+    private static readonly StringName ChopProgressParameter = "chop_progress";
+
     private TimedItemProcessAction _processAction = null!;
     private ProgressBar _progressBar = null!;
     private Node2D _board = null!;
     private PickupItem? _knife;
+    private PickupItem? _processingItem;
+    private Material? _originalItemMaterial;
+    private ShaderMaterial? _chopMaterial;
     private Tween? _knifeTween;
 
     [Export]
@@ -66,6 +71,7 @@ public partial class CuttingBoardProcessPresentation : Node
     private void OnProcessingStarted()
     {
         _knife = _processAction.ActiveTool;
+        StartChopPreview();
         _progressBar.Value = 0.0;
         _progressBar.Visible = true;
         StartKnifeAnimation();
@@ -73,17 +79,73 @@ public partial class CuttingBoardProcessPresentation : Node
 
     private void OnProgressChanged(float progress)
     {
-        _progressBar.Value = Mathf.Clamp(progress, 0.0f, 1.0f) * 100.0f;
+        float clampedProgress = Mathf.Clamp(progress, 0.0f, 1.0f);
+        _progressBar.Value = clampedProgress * 100.0f;
+        _chopMaterial?.SetShaderParameter(
+            ChopProgressParameter,
+            clampedProgress
+        );
     }
 
     private void OnProcessingCanceled()
     {
+        EndChopPreview(restoreOriginalMaterial: true);
         ResetPresentation();
     }
 
     private void OnProcessingCompleted(PickupItem item)
     {
+        EndChopPreview(restoreOriginalMaterial: false);
         ResetPresentation();
+    }
+
+    private void StartChopPreview()
+    {
+        _processingItem =
+            _processAction.ActiveItem
+            ?? throw new InvalidOperationException(
+                "Cutting presentation requires an active item when processing starts."
+            );
+        PickupItemDefinition definition =
+            _processingItem.Definition
+            ?? throw new InvalidOperationException(
+                "Cutting presentation requires the active item to have a definition."
+            );
+        ItemTransformation transformation =
+            _processAction.Recipe?.Transformation
+            ?? throw new InvalidOperationException(
+                "Cutting presentation requires a processing transformation."
+            );
+        ShaderMaterial sourceMaterial =
+            transformation.Resolve(definition).VisualMaterial
+                as ShaderMaterial
+            ?? throw new InvalidOperationException(
+                "Cutting presentation requires the output to use a shader material."
+            );
+
+        _originalItemMaterial = _processingItem.GetVisualMaterial();
+        _chopMaterial =
+            sourceMaterial.Duplicate() as ShaderMaterial
+            ?? throw new InvalidOperationException(
+                "Cutting presentation could not duplicate the chop material."
+            );
+        _chopMaterial.SetShaderParameter(ChopProgressParameter, 0.0f);
+        _processingItem.SetVisualMaterial(_chopMaterial);
+    }
+
+    private void EndChopPreview(bool restoreOriginalMaterial)
+    {
+        if (
+            restoreOriginalMaterial
+            && GodotObject.IsInstanceValid(_processingItem)
+        )
+        {
+            _processingItem!.SetVisualMaterial(_originalItemMaterial);
+        }
+
+        _processingItem = null;
+        _originalItemMaterial = null;
+        _chopMaterial = null;
     }
 
     private void StartKnifeAnimation()
@@ -133,6 +195,7 @@ public partial class CuttingBoardProcessPresentation : Node
 
     private void ResetPresentation()
     {
+        EndChopPreview(restoreOriginalMaterial: true);
         if (
             GodotObject.IsInstanceValid(_knife)
             && !_knife!.IsAvailable
