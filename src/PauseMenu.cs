@@ -8,13 +8,19 @@ public partial class PauseMenu : CanvasLayer
 	private const string TitleScenePath = "res://scenes/title_screen.tscn";
 
 	private Button _resumeButton = null!;
+	private PlayerInputManager _playerInputManager = null!;
 	private bool _isOpen;
 	private bool _resumePending;
-	private bool _acceptReleaseObserved;
+	private bool _blockingActionReleaseObserved;
+	private StringName _resumeBlockingAction = "";
+
+	[Export]
+	public NodePath PlayerInputManagerPath { get; set; } = "../Player/InputManager";
 
 	public override void _Ready()
 	{
 		ProcessMode = ProcessModeEnum.Always;
+		_playerInputManager = GetNode<PlayerInputManager>(PlayerInputManagerPath);
 		_resumeButton = GetNode<Button>(
 			"Overlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ResumeButton"
 		);
@@ -38,20 +44,21 @@ public partial class PauseMenu : CanvasLayer
 			return;
 		}
 
-		if (Input.IsActionPressed(AcceptAction))
+		if (Input.IsActionPressed(_resumeBlockingAction))
 		{
-			_acceptReleaseObserved = false;
+			_blockingActionReleaseObserved = false;
 			return;
 		}
 
-		if (!_acceptReleaseObserved)
+		if (!_blockingActionReleaseObserved)
 		{
-			_acceptReleaseObserved = true;
+			_blockingActionReleaseObserved = true;
 			return;
 		}
 
 		_resumePending = false;
-		_acceptReleaseObserved = false;
+		_blockingActionReleaseObserved = false;
+		_resumeBlockingAction = "";
 		GetTree().Paused = false;
 	}
 
@@ -66,7 +73,14 @@ public partial class PauseMenu : CanvasLayer
 
 		if (_isOpen)
 		{
-			CloseMenu();
+			if (cancelPressed)
+			{
+				BeginResume(CancelAction);
+			}
+			else
+			{
+				CloseMenu();
+			}
 		}
 		else if (!GetTree().Paused)
 		{
@@ -87,7 +101,8 @@ public partial class PauseMenu : CanvasLayer
 	private void OpenMenu()
 	{
 		_resumePending = false;
-		_acceptReleaseObserved = false;
+		_blockingActionReleaseObserved = false;
+		_resumeBlockingAction = "";
 		_isOpen = true;
 		Visible = true;
 		GetTree().Paused = true;
@@ -97,7 +112,8 @@ public partial class PauseMenu : CanvasLayer
 	private void CloseMenu()
 	{
 		_resumePending = false;
-		_acceptReleaseObserved = false;
+		_blockingActionReleaseObserved = false;
+		_resumeBlockingAction = "";
 		GetTree().Paused = false;
 		_isOpen = false;
 		Visible = false;
@@ -105,10 +121,17 @@ public partial class PauseMenu : CanvasLayer
 
 	private void ResumeFromSelection()
 	{
+		BeginResume(AcceptAction);
+	}
+
+	private void BeginResume(StringName blockingAction)
+	{
+		_playerInputManager.SuppressCurrentGameplayInput();
 		_isOpen = false;
 		Visible = false;
 		_resumePending = true;
-		_acceptReleaseObserved = false;
+		_blockingActionReleaseObserved = false;
+		_resumeBlockingAction = blockingAction;
 	}
 
 	private void ReturnToTitle()

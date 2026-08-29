@@ -53,13 +53,17 @@ func _run() -> void:
 		"Controller navigation must move focus to Return to Title.",
 	)
 
+	var carrier := current_scene.get_node("Player/PickupCarrier")
+	var held_item := current_scene.get_node("RecipeBookItem")
+	_check(bool(carrier.TryHold(held_item)), "The resume fixture must hold the recipe book.")
 	await _send_joy_button(JOY_BUTTON_B)
 	_check(not paused, "Controller B must resume gameplay.")
 	_check(not pause_menu.visible, "Controller B must hide the pause menu.")
+	_check(
+		not bool(held_item.get("IsOpening")),
+		"Controller B used to resume must not also open the held recipe book.",
+	)
 
-	var carrier := current_scene.get_node("Player/PickupCarrier")
-	var held_item := current_scene.get_node("BabyPickupItem")
-	_check(bool(carrier.TryHold(held_item)), "The resume fixture must hold an item.")
 	await _send_action(&"pause")
 	await _send_joy_button(JOY_BUTTON_A)
 	_check(not paused, "Activating Resume must unpause gameplay.")

@@ -15,7 +15,8 @@
 [ext_resource type="PackedScene" path="res://scenes/oven.tscn" id="12_oven"]
 [ext_resource type="Script" uid="uid://ct4taxh4aw0tb" path="res://src/GameOverController.cs" id="13_game_over"]
 [ext_resource type="PackedScene" uid="uid://bs4ml8jcscl4t" path="res://scenes/stove.tscn" id="13_stove"]
-[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="14_pause_menu"]
+[ext_resource type="PackedScene" path="res://scenes/recipe_book_item.tscn" id="14_recipe_book"]
+[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="15_pause_menu"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_kitchen"]
 vertices = PackedVector2Array(620, 354, 724, 354, 876, 456, 148, 456, 148, 378, 876, 84, 724, 250, 468, 84, 620, 250, 468, 162, 84, 378, 84, 354, 148, 354, 364, 162, 148, 250, 364, 84, 84, 250, 84, 84)
@@ -72,6 +73,9 @@ position = Vector2(480, 270)
 [node name="BabyPickupItem" parent="." unique_id=1947549762 instance=ExtResource("2_baby")]
 position = Vector2(480, 200)
 
+[node name="RecipeBookItem" parent="." instance=ExtResource("14_recipe_book")]
+position = Vector2(400, 200)
+
 [node name="Oven" parent="." unique_id=298111419 instance=ExtResource("12_oven")]
 position = Vector2(800, 302)
 
@@ -80,7 +84,7 @@ process_mode = 3
 layer = 10
 script = ExtResource("13_game_over")
 
-[node name="PauseMenu" parent="." instance=ExtResource("14_pause_menu")]
+[node name="PauseMenu" parent="." instance=ExtResource("15_pause_menu")]
 
 [node name="Stove" parent="." unique_id=1257303080 instance=ExtResource("13_stove")]
 position = Vector2(672, 238)
@@ -100,7 +104,8 @@ text = "Kitchen Training Room"
 offset_left = 56.0
 offset_top = 82.0
 offset_right = 57.0
-offset_bottom = 105.0
+offset_bottom = 128.0
 theme_override_colors/font_color = Color(0.74, 0.83, 0.83, 1)
 theme_override_font_sizes/font_size = 16
-text = "Move: WASD / Arrows / Left Stick    Tap E / South: transfer    Hold E: process    Hold Q: configure"
+text = "Move: WASD / Arrows / Left Stick
+E / South: transfer or process    F / East: use held item    Hold Q: configure"

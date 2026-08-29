@@ -13,6 +13,8 @@ public partial class PlayerInputManager : Node
     }
 
     private static readonly StringName DefaultInputAction = "interact";
+    private static readonly StringName DefaultSecondaryInteractAction =
+        "secondary_interact";
 
     private readonly System.Collections.Generic.Dictionary<
         StringName,
@@ -21,6 +23,7 @@ public partial class PlayerInputManager : Node
     private Node2D _actor = null!;
     private PlayerInteractor _interactor = null!;
     private PickupCarrier _carrier = null!;
+    private bool _suppressSecondaryInteractUntilReleased;
 
     [Export(PropertyHint.Range, "0.05,2,0.01,or_greater")]
     public float HoldThreshold { get; set; } = 0.35f;
@@ -28,6 +31,10 @@ public partial class PlayerInputManager : Node
     [Export]
     public Array<InteractionInputBinding> InteractionInputs { get; set; } =
         CreateDefaultBindings();
+
+    [Export]
+    public StringName SecondaryInteractAction { get; set; } =
+        DefaultSecondaryInteractAction;
 
     public override void _Ready()
     {
@@ -50,6 +57,24 @@ public partial class PlayerInputManager : Node
 
     public override void _PhysicsProcess(double delta)
     {
+        if (_suppressSecondaryInteractUntilReleased)
+        {
+            if (
+                SecondaryInteractAction.IsEmpty
+                || !Input.IsActionPressed(SecondaryInteractAction)
+            )
+            {
+                _suppressSecondaryInteractUntilReleased = false;
+            }
+        }
+        else if (
+            !SecondaryInteractAction.IsEmpty
+            && Input.IsActionJustPressed(SecondaryInteractAction)
+        )
+        {
+            _carrier.HeldItem?.TrySecondaryInteract();
+        }
+
         foreach (
             KeyValuePair<StringName, InputState> entry in _inputStates
         )
@@ -133,6 +158,23 @@ public partial class PlayerInputManager : Node
                 state.HoldThresholdReached = false;
                 state.PressObserved = false;
             }
+        }
+    }
+
+    public void SuppressCurrentGameplayInput()
+    {
+        if (_interactor.HasActiveInteraction)
+        {
+            _interactor.CancelActiveInteraction();
+        }
+
+        _suppressSecondaryInteractUntilReleased = true;
+        foreach (InputState state in _inputStates.Values)
+        {
+            state.HeldTime = 0.0f;
+            state.HoldActivated = false;
+            state.HoldThresholdReached = false;
+            state.PressObserved = false;
         }
     }
 
