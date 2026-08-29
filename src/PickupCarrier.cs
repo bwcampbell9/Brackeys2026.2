@@ -3,6 +3,7 @@ using Godot;
 public partial class PickupCarrier : Node2D
 {
 	private Node2D _holdPoint = null!;
+	private AudioStreamPlayer2D? _pickupAudio;
 	private Vector2 _facingDirection = Vector2.Up;
 	private PickupItem? _heldItem;
 
@@ -32,6 +33,7 @@ public partial class PickupCarrier : Node2D
 	public override void _Ready()
 	{
 		_holdPoint = GetNode<Node2D>("HoldPoint");
+		_pickupAudio = GetNodeOrNull<AudioStreamPlayer2D>("../PickupAudio");
 	}
 
 	public bool TryHold(PickupItem item)
@@ -42,6 +44,7 @@ public partial class PickupCarrier : Node2D
 		}
 
 		_heldItem = item;
+		PlayPickupAudio();
 		return true;
 	}
 
@@ -93,6 +96,7 @@ public partial class PickupCarrier : Node2D
 		}
 
 		_heldItem = item;
+		PlayPickupAudio();
 		return true;
 	}
 
@@ -117,5 +121,13 @@ public partial class PickupCarrier : Node2D
 		}
 		_heldItem = null;
 		return true;
+	}
+
+	private void PlayPickupAudio()
+	{
+		if (GodotObject.IsInstanceValid(_pickupAudio))
+		{
+			_pickupAudio!.Play();
+		}
 	}
 }

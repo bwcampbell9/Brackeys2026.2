@@ -269,6 +269,8 @@ func test_player_has_composable_interaction_components() -> void:
 	assert_true(hold_point != null, "The pickup carrier must contain a hold point.")
 	assert_true(interactor != null, "The player must contain an interactor.")
 	assert_true(input_manager != null, "The player must contain an input manager.")
+	var pickup_audio := player.get_node_or_null("PickupAudio") as AudioStreamPlayer2D
+	assert_true(pickup_audio != null, "The player must contain pickup audio.")
 	assert_true(player_shape != null, "The player must have a circular collision shape.")
 	if (
 		carrier == null
@@ -288,6 +290,9 @@ func test_player_has_composable_interaction_components() -> void:
 		carrier.get_node_or_null("PickupArea") == null,
 		"The carrier must not own interaction sensing.",
 	)
+	if pickup_audio != null:
+		assert_eq(pickup_audio.stream.resource_path, "res://assets/sounds/pickup.wav")
+		assert_false(pickup_audio.autoplay)
 
 	assert_eq(interactor.get_script().resource_path, "res://src/PlayerInteractor.cs")
 	assert_eq(float(interactor.get("InteractionConeDegrees")), 140.0)
