@@ -5,6 +5,8 @@ using Godot;
 public partial class GameScoreController : CanvasLayer
 {
     private static readonly StringName InstantWinAction = "debug_instant_win";
+    private const string WinAudioPlayerName = "WinAudio";
+    private const string WinSoundPath = "res://assets/sounds/win.wav";
     private readonly List<WorkstationTaskPublisher> _publishers = new();
     private Label _scoreLabel = null!;
     private AudioStreamPlayer _scoreUpAudio = null!;
@@ -15,6 +17,7 @@ public partial class GameScoreController : CanvasLayer
     private float _displayedScore;
     private int _displayedScoreValue;
     private int _score;
+    private bool _hasPlayedWinCelebration;
     private bool _isCompletingLevel;
 
     [Export]
@@ -47,6 +50,9 @@ public partial class GameScoreController : CanvasLayer
 
     [Export]
     public NodePath NextLevelRevealTargetPath { get; set; } = new("Player");
+
+    [Export]
+    public bool RevealNextLevelAtViewportCenter { get; set; }
 
     [ExportGroup("")]
     [Export]
@@ -189,7 +195,6 @@ public partial class GameScoreController : CanvasLayer
         else if (
             previousScore < MaximumScore
             && _score == MaximumScore
-            && !string.IsNullOrWhiteSpace(NextLevelScenePath)
         )
         {
             BeginLevelCompletion();
@@ -198,10 +203,7 @@ public partial class GameScoreController : CanvasLayer
 
     private void CompleteLevelForTesting()
     {
-        if (
-            _isCompletingLevel
-            || string.IsNullOrWhiteSpace(NextLevelScenePath)
-        )
+        if (_isCompletingLevel)
         {
             return;
         }
@@ -223,17 +225,61 @@ public partial class GameScoreController : CanvasLayer
         }
 
         _isCompletingLevel = true;
+        if (!_hasPlayedWinCelebration)
+        {
+            _hasPlayedWinCelebration = true;
+            PlayWinSound();
+            ShowWinConfetti(_scoreLabel.GetGlobalRect().GetCenter());
+        }
+        if (string.IsNullOrWhiteSpace(NextLevelScenePath))
+        {
+            return;
+        }
+
         CircleTransition transition = new();
         GetTree().Root.AddChild(transition);
         Error result = await transition.TransitionToScene(
             NextLevelScenePath,
             NextLevelRevealTargetPath,
-            _scoreLabel.GetGlobalRect().GetCenter()
+            _scoreLabel.GetGlobalRect().GetCenter(),
+            revealAtViewportCenter: RevealNextLevelAtViewportCenter
         );
         if (result != Error.Ok && IsInstanceValid(this))
         {
             _isCompletingLevel = false;
         }
+    }
+
+    private void PlayWinSound()
+    {
+        if (!ResourceLoader.Exists(WinSoundPath, "AudioStream"))
+        {
+            GD.PushWarning($"Win sound not found at '{WinSoundPath}'.");
+            return;
+        }
+
+        AudioStream? stream = GD.Load<AudioStream>(WinSoundPath);
+        if (stream is null)
+        {
+            GD.PushError($"Could not load win sound at '{WinSoundPath}'.");
+            return;
+        }
+
+        AudioStreamPlayer audioPlayer = new()
+        {
+            Name = WinAudioPlayerName,
+            Stream = stream,
+        };
+        audioPlayer.Finished += audioPlayer.QueueFree;
+        GetTree().Root.AddChild(audioPlayer);
+        audioPlayer.Play();
+    }
+
+    private void ShowWinConfetti(Vector2 origin)
+    {
+        WinConfetti confetti = new() { Name = "WinConfetti" };
+        GetTree().Root.AddChild(confetti);
+        confetti.Burst(origin);
     }
 
     private void AnimateDisplayedScore()

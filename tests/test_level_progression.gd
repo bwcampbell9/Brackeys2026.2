@@ -4,6 +4,8 @@ extends "res://addons/godot_ai/testing/test_suite.gd"
 const LEVEL_1_PATH := "res://scenes/level_1.tscn"
 const LEVEL_2_PATH := "res://scenes/level_2.tscn"
 const LEVEL_3_PATH := "res://scenes/level_3.tscn"
+const TITLE_SCREEN_PATH := "res://scenes/title_screen.tscn"
+const WIN_SCREEN_PATH := "res://scenes/win_screen.tscn"
 
 
 func suite_name() -> String:
@@ -51,7 +53,15 @@ func test_title_starts_the_game_and_levels_advance_in_order() -> void:
 
 	var level_3 := track(_instantiate_scene(LEVEL_3_PATH)) as Node2D
 	assert_true(level_3.has_node("Player"))
-	assert_eq(level_3.get_node("Hud").get("NextLevelScenePath"), "")
+	var level_3_hud := level_3.get_node("Hud")
+	assert_eq(level_3_hud.get("NextLevelScenePath"), WIN_SCREEN_PATH)
+	assert_true(bool(level_3_hud.get("RevealNextLevelAtViewportCenter")))
+
+	var win_screen := track(_instantiate_scene(WIN_SCREEN_PATH)) as Control
+	assert_eq(win_screen.get("HeadingText"), "You Win!")
+	assert_true(win_screen.has_node("Scroll/ParchmentMask/CookButton"))
+	assert_true(win_screen.has_node("Scroll/ParchmentMask/TutorialButton"))
+	assert_true(win_screen.has_node("Scroll/ParchmentMask/ExitButton"))
 
 
 func _instantiate_scene(path: String) -> Node:
