@@ -27,8 +27,13 @@ func _run() -> void:
 	var sprite := book.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	var open_audio := book.get_node("OpenCookbookAudio") as AudioStreamPlayer2D
 	var close_audio := book.get_node("CloseCookbookAudio") as AudioStreamPlayer2D
+	var forward_page_audio := book.get_node("ForwardPageAudio") as AudioStreamPlayer2D
+	var backward_page_audio := book.get_node("BackwardPageAudio") as AudioStreamPlayer2D
 	var overlay_root := book.get_node("RecipeOverlay/OverlayRoot") as Control
 	var overlay_image := book.get_node("RecipeOverlay/OverlayRoot/Book") as TextureRect
+	var second_page_image := book.get_node("RecipeOverlay/OverlayRoot/PageTwo") as TextureRect
+	var previous_page_button := book.get_node("RecipeOverlay/OverlayRoot/PreviousPageButton") as Button
+	var next_page_button := book.get_node("RecipeOverlay/OverlayRoot/NextPageButton") as Button
 	_check(not overlay_root.visible, "The recipe overlay must start hidden.")
 	_check(bool(carrier.TryHold(book)), "The recipe book must be pickable.")
 	_check(
@@ -98,6 +103,37 @@ func _run() -> void:
 		overlay_root.position.is_zero_approx(),
 		"The recipe overlay must settle in its visible position.",
 	)
+	_check(
+		overlay_image.visible
+		and not second_page_image.visible
+		and previous_page_button.disabled
+		and not next_page_button.disabled,
+		"Opening the recipe book must display its first page with only Next available.",
+	)
+	next_page_button.emit_signal("pressed")
+	_check(
+		forward_page_audio.playing and not backward_page_audio.playing,
+		"Next must play page turn 1 without playing page turn 2.",
+	)
+	_check(
+		not overlay_image.visible
+		and second_page_image.visible
+		and not previous_page_button.disabled
+		and next_page_button.disabled,
+		"Next must display the second page and disable at the last page.",
+	)
+	previous_page_button.emit_signal("pressed")
+	_check(
+		backward_page_audio.playing,
+		"Back must play page turn 2.",
+	)
+	_check(
+		overlay_image.visible
+		and not second_page_image.visible
+		and previous_page_button.disabled
+		and not next_page_button.disabled,
+		"Back must return to the first page and disable at the first page.",
+	)
 
 	var open_audio_position := open_audio.get_playback_position()
 	Input.action_press("secondary_interact")
@@ -147,6 +183,13 @@ func _run() -> void:
 	_check(
 		overlay_root.visible and overlay_root.position.is_zero_approx(),
 		"Reopening the held book must show the recipe overlay again.",
+	)
+	_check(
+		overlay_image.visible
+		and not second_page_image.visible
+		and previous_page_button.disabled
+		and not next_page_button.disabled,
+		"Reopening the recipe book must reset it to the first page.",
 	)
 
 	_check(bool(carrier.Throw()), "The open recipe book must remain throwable.")

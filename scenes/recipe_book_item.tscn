@@ -1,13 +1,15 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://src/RecipeBookItem.cs" id="1_book"]
 [ext_resource type="Texture2D" path="res://assets/sprites/recipe_book/recipe_book-Sheet.png" id="2_sheet"]
 [ext_resource type="Resource" path="res://resources/items/recipe_book.tres" id="3_definition"]
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="4_target"]
 [ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="5_transfer"]
-[ext_resource type="Texture2D" uid="uid://b2jv754x83j68" path="res://assets/sprites/recipe_book/recipe_book_large.png" id="6_overlay"]
+[ext_resource type="Texture2D" path="res://assets/sprites/recipe_book/recipe_book_large_pages-Sheet.png" id="6_overlay"]
 [ext_resource type="AudioStream" path="res://assets/sounds/open_cookbook.wav" id="7_open_audio"]
 [ext_resource type="AudioStream" path="res://assets/sounds/close_cookbook.wav" id="8_close_audio"]
+[ext_resource type="AudioStream" path="res://assets/sounds/page_turn_1.wav" id="9_forward_page_audio"]
+[ext_resource type="AudioStream" path="res://assets/sounds/page_turn_2.wav" id="10_backward_page_audio"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_book"]
 radius = 24.0
@@ -62,6 +64,14 @@ animations = [{
 "speed": 12.0
 }]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_page_one"]
+atlas = ExtResource("6_overlay")
+region = Rect2(0, 0, 448, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_page_two"]
+atlas = ExtResource("6_overlay")
+region = Rect2(448, 0, 448, 256)
+
 [node name="RecipeBookItem" type="RigidBody2D"]
 collision_layer = 2
 collision_mask = 1
@@ -83,6 +93,12 @@ stream = ExtResource("7_open_audio")
 
 [node name="CloseCookbookAudio" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("8_close_audio")
+
+[node name="ForwardPageAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("9_forward_page_audio")
+
+[node name="BackwardPageAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("10_backward_page_audio")
 
 [node name="RecipeOverlay" type="CanvasLayer" parent="."]
 layer = 5
@@ -108,9 +124,49 @@ offset_right = 224.0
 offset_bottom = 280.0
 grow_horizontal = 2
 mouse_filter = 2
-texture = ExtResource("6_overlay")
+texture = SubResource("AtlasTexture_page_one")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="PageTwo" type="TextureRect" parent="RecipeOverlay/OverlayRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -224.0
+offset_top = 24.0
+offset_right = 224.0
+offset_bottom = 280.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = SubResource("AtlasTexture_page_two")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PreviousPageButton" type="Button" parent="RecipeOverlay/OverlayRoot"]
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -212.0
+offset_top = 236.0
+offset_right = -142.0
+offset_bottom = 268.0
+grow_horizontal = 2
+text = "Back"
+
+[node name="NextPageButton" type="Button" parent="RecipeOverlay/OverlayRoot"]
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 142.0
+offset_top = 236.0
+offset_right = 212.0
+offset_bottom = 268.0
+grow_horizontal = 2
+text = "Next"
 
 [node name="InteractionTarget" type="Area2D" parent="."]
 collision_layer = 8
