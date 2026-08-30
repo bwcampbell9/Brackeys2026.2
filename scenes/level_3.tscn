@@ -174,7 +174,7 @@ autoplay = true
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
 script = ExtResource("17_ciptj")
-NextLevelScenePath = "res://scenes/title_screen.tscn"
+NextLevelScenePath = "res://scenes/win_screen.tscn"
 RevealNextLevelAtViewportCenter = true
 
 [node name="Score" type="Label" parent="Hud" unique_id=1806985607]

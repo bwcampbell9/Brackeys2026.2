@@ -3,7 +3,7 @@ extends SceneTree
 const LEVEL_1_PATH := "res://scenes/level_1.tscn"
 const LEVEL_2_PATH := "res://scenes/level_2.tscn"
 const LEVEL_3_PATH := "res://scenes/level_3.tscn"
-const TITLE_SCREEN_PATH := "res://scenes/title_screen.tscn"
+const WIN_SCREEN_PATH := "res://scenes/win_screen.tscn"
 
 var _failed := false
 
@@ -100,8 +100,30 @@ func _run() -> void:
 	)
 	await create_timer(1.5, true, false, true).timeout
 	_check(
-		current_scene.scene_file_path == TITLE_SCREEN_PATH,
-		"Winning Level 3 must return to the title screen.",
+		current_scene.scene_file_path == WIN_SCREEN_PATH,
+		"Winning Level 3 must open the win screen.",
+	)
+	var heading := current_scene.get_node_or_null(
+		"Scroll/ParchmentMask/Heading",
+	) as Label
+	_check(
+		heading != null
+			and heading.text == "You Win!"
+			and heading.get_theme_font("font").resource_path
+				== "res://fonts/Pixel Game.otf",
+		"The win screen must show 'You Win!' in the menu font.",
+	)
+	_check(
+		current_scene.has_node("Scroll/ParchmentMask/CookButton")
+			and current_scene.has_node("Scroll/ParchmentMask/TutorialButton")
+			and current_scene.has_node("Scroll/ParchmentMask/ExitButton"),
+		"The win screen must retain all main-menu buttons.",
+	)
+	_check(
+		not current_scene.get_node("Scroll/ParchmentMask/AtTitle").visible
+			and not current_scene.get_node("Scroll/ParchmentMask/YourTitle").visible
+			and not current_scene.get_node("Scroll/ParchmentMask/ServiceTitle").visible,
+		"The win heading must replace the main-menu title artwork.",
 	)
 	await create_timer(1.0, true, false, true).timeout
 	await process_frame
