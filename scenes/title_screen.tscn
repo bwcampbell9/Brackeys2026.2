@@ -116,11 +116,11 @@ Phase = 4.189
 [node name="CookButton" type="TextureButton" parent="Scroll/ParchmentMask" unique_id=472722608]
 layout_mode = 0
 offset_left = 195.5
-offset_top = 220.0
+offset_top = 185.0
 offset_right = 415.5
-offset_bottom = 285.0
+offset_bottom = 250.0
 focus_neighbor_top = NodePath("../ExitButton")
-focus_neighbor_bottom = NodePath("../ExitButton")
+focus_neighbor_bottom = NodePath("../TutorialButton")
 mouse_default_cursor_shape = 2
 texture_normal = ExtResource("9_banner")
 ignore_texture_size = true
@@ -148,10 +148,10 @@ expand_mode = 1
 [node name="ExitButton" type="TextureButton" parent="Scroll/ParchmentMask" unique_id=1169966253]
 layout_mode = 0
 offset_left = 195.5
-offset_top = 295.0
+offset_top = 335.0
 offset_right = 415.5
-offset_bottom = 360.0
-focus_neighbor_top = NodePath("../CookButton")
+offset_bottom = 400.0
+focus_neighbor_top = NodePath("../TutorialButton")
 focus_neighbor_bottom = NodePath("../CookButton")
 mouse_default_cursor_shape = 2
 texture_normal = ExtResource("9_banner")
@@ -159,6 +159,35 @@ ignore_texture_size = true
 stretch_mode = 5
 script = ExtResource("14_button")
 HoverRotationDegrees = -2.0
+
+[node name="TutorialButton" type="TextureButton" parent="Scroll/ParchmentMask"]
+layout_mode = 0
+offset_left = 195.5
+offset_top = 260.0
+offset_right = 415.5
+offset_bottom = 325.0
+focus_neighbor_top = NodePath("../CookButton")
+focus_neighbor_bottom = NodePath("../ExitButton")
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("9_banner")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("14_button")
+HoverRotationDegrees = -2.5
+
+[node name="Word" type="Label" parent="Scroll/ParchmentMask/TutorialButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.16, 0.09, 0.04, 1)
+theme_override_font_sizes/font_size = 24
+text = "TUTORIAL"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Word" type="TextureRect" parent="Scroll/ParchmentMask/ExitButton" unique_id=456977386]
 layout_mode = 1

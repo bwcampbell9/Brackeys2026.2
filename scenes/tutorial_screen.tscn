@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/TutorialScreen.cs" id="1_tutorial"]
+
+[node name="TutorialScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_tutorial")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055, 0.047, 0.04, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 48.0
+offset_right = 840.0
+offset_bottom = 96.0
+theme_override_colors/font_color = Color(1, 0.82, 0.41, 1)
+theme_override_font_sizes/font_size = 36
+text = "HOW TO SERVE"
+horizontal_alignment = 1
+
+[node name="TutorialText" type="Label" parent="."]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 110.0
+offset_right = 810.0
+offset_bottom = 472.0
+theme_override_colors/font_color = Color(0.96, 0.91, 0.78, 1)
+theme_override_font_sizes/font_size = 16
+text = "Your customers request recipes. Check the recipe book, collect the ingredients, and prepare each order before they lose patience.\n\nMove with WASD or the arrow keys.\nPress E to interact, pick up items, and use workstations. Hold E when an action takes time.\nPress F to use your held item's secondary action.\n\nHold Q to configure a workstation. Press E to request a worker for a workstation.\n\nCareful! Workers can't always be trusted to grab the right items. Make sure the baby Prince stays safe!!"
+autowrap_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReturnPrompt" type="Label" parent="."]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 500.0
+offset_right = 840.0
+offset_bottom = 532.0
+theme_override_colors/font_color = Color(0.72, 0.65, 0.51, 1)
+theme_override_font_sizes/font_size = 14
+text = "Press Enter, Space, Escape, or controller A/B to return"
+horizontal_alignment = 1
