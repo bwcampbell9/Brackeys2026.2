@@ -3,6 +3,7 @@ using Godot;
 public partial class TitleScreen : Control
 {
     private const string LevelOneScenePath = "res://scenes/level_1.tscn";
+    private const string TutorialScenePath = "res://scenes/tutorial_screen.tscn";
     private static readonly NodePath LevelOnePlayerPath = "Player";
 
     [Export(PropertyHint.Range, "0.1,2.0,0.05,or_greater")]
@@ -20,6 +21,7 @@ public partial class TitleScreen : Control
     private TextureRect _topRoll = null!;
     private TextureRect _bottomRoll = null!;
     private MenuBannerButton _cookButton = null!;
+    private MenuBannerButton _tutorialButton = null!;
     private MenuBannerButton _exitButton = null!;
     private bool _menuEnabled;
     private bool _isTransitioning;
@@ -32,9 +34,11 @@ public partial class TitleScreen : Control
         _topRoll = GetNode<TextureRect>("Scroll/TopRoll");
         _bottomRoll = GetNode<TextureRect>("Scroll/BottomRoll");
         _cookButton = GetNode<MenuBannerButton>("Scroll/ParchmentMask/CookButton");
+        _tutorialButton = GetNode<MenuBannerButton>("Scroll/ParchmentMask/TutorialButton");
         _exitButton = GetNode<MenuBannerButton>("Scroll/ParchmentMask/ExitButton");
         SetMenuEnabled(false);
         _cookButton.Pressed += OnCookPressed;
+        _tutorialButton.Pressed += OnTutorialPressed;
         _exitButton.Pressed += OnExitPressed;
         Input.Singleton.JoyConnectionChanged += OnJoyConnectionChanged;
 
@@ -115,6 +119,7 @@ public partial class TitleScreen : Control
     {
         _menuEnabled = enabled;
         _cookButton.Disabled = !enabled;
+        _tutorialButton.Disabled = !enabled;
         _exitButton.Disabled = !enabled;
     }
 
@@ -152,15 +157,38 @@ public partial class TitleScreen : Control
         GetTree().Quit();
     }
 
+    private void OnTutorialPressed()
+    {
+        if (_isTransitioning)
+        {
+            return;
+        }
+
+        _isTransitioning = true;
+        SetMenuEnabled(false);
+        Error result = GetTree().ChangeSceneToFile(TutorialScenePath);
+        if (result != Error.Ok && IsInstanceValid(this))
+        {
+            _isTransitioning = false;
+            SetMenuEnabled(true);
+            if (MenuInputMode.IsControllerActive)
+            {
+                _tutorialButton.GrabFocus();
+            }
+        }
+    }
+
     private bool HasMenuFocus()
     {
         return _cookButton.HasFocus()
+            || _tutorialButton.HasFocus()
             || _exitButton.HasFocus();
     }
 
     private void ReleaseMenuFocus()
     {
         _cookButton.ReleaseFocus();
+        _tutorialButton.ReleaseFocus();
         _exitButton.ReleaseFocus();
     }
 

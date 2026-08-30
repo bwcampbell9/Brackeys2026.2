@@ -11,19 +11,12 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var startup_path := String(
-		ProjectSettings.get_setting("application/run/main_scene")
-	)
-	_check(
-		startup_path == LEVEL_1_PATH,
-		"Running the project must target Level 1.",
-	)
-	change_scene_to_file(startup_path)
+	change_scene_to_file(LEVEL_1_PATH)
 	await process_frame
 	await process_frame
 	_check(
 		current_scene.scene_file_path == LEVEL_1_PATH,
-		"Running the project must start Level 1.",
+		"The progression fixture must load Level 1.",
 	)
 
 	var hud := current_scene.get_node("Hud")

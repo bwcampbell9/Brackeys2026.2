@@ -9,12 +9,12 @@ func suite_name() -> String:
 	return "level_progression"
 
 
-func test_play_starts_level_one_and_level_one_advances_to_level_two() -> void:
+func test_title_starts_the_game_and_level_one_advances_to_level_two() -> void:
 	var project_config := ConfigFile.new()
 	assert_eq(project_config.load("res://project.godot"), OK)
 	assert_eq(
 		project_config.get_value("application", "run/main_scene"),
-		LEVEL_1_PATH,
+		"res://scenes/title_screen.tscn",
 	)
 
 	var level_1 := track(_instantiate_scene(LEVEL_1_PATH)) as Node2D
