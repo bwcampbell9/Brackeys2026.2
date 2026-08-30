@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://bgtt8b717jetk" path="res://assets/sprites/menu/exit.png" id="12_exit"]
 [ext_resource type="Script" uid="uid://oanepy21hbte" path="res://src/BobbingMenuArt.cs" id="13_bobbing"]
 [ext_resource type="Script" uid="uid://dxusw00bibdri" path="res://src/MenuBannerButton.cs" id="14_button"]
+[ext_resource type="FontFile" uid="uid://caidkm36bym2d" path="res://fonts/Pixel Game.otf" id="15_menu_font"]
 
 [node name="TitleScreen" type="Control" unique_id=1533789356]
 layout_mode = 3
@@ -184,6 +185,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.16, 0.09, 0.04, 1)
+theme_override_fonts/font = ExtResource("15_menu_font")
 theme_override_font_sizes/font_size = 24
 text = "TUTORIAL"
 horizontal_alignment = 1
