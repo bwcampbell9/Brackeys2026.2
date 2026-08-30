@@ -81,6 +81,7 @@ script = ExtResource("7_pusher")
 
 [node name="NpcMotor" type="Node" parent="." unique_id=762160099]
 script = ExtResource("3_motor")
+Speed = 132.0
 FacingCarrierPath = NodePath("../PickupCarrier")
 
 [node name="PickupCarrier" type="Node2D" parent="." unique_id=1354174656]

@@ -116,6 +116,7 @@ script = ExtResource("11_pusher")
 
 [node name="NpcMotor" type="Node" parent="."]
 script = ExtResource("3_motor")
+Speed = 88.0
 
 [node name="CustomerWanderController" type="Node" parent="."]
 script = ExtResource("4_controller")
