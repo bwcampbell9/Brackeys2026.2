@@ -639,7 +639,14 @@ public partial class WorkstationTaskPublisher : Node2D
 		_orderTimeRemaining = 0.0f;
 		_isConsuming = true;
 		StartOrderCooldown();
-		CustomerOrderResolved?.Invoke(outcome);
+		if (item is BabyPickupItem baby)
+		{
+			baby.TriggerDeath(BabyDeathCause.Eaten);
+		}
+		else
+		{
+			CustomerOrderResolved?.Invoke(outcome);
+		}
 		PlayConsumption(item);
 		return true;
 	}

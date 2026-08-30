@@ -1,8 +1,19 @@
+using System;
 using Godot;
+
+public enum BabyDeathCause
+{
+    Chopped,
+    Cooked,
+    Eaten,
+}
 
 public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
 {
     private static readonly StringName CrawlAnimation = "crawl";
+    private static readonly StringName ChopTransformation = "chop";
+    private static readonly StringName CookTransformation = "cook";
+    private static readonly StringName StoveCookTransformation = "stove_cook";
 
     private AnimatedSprite2D _sprite = null!;
     private RandomNumberGenerator _random = null!;
@@ -10,7 +21,10 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     private float _stateTime;
     private bool _isCrawling;
     private bool _isThrown;
+    private bool _deathTriggered;
     private float _pushSuppressionRemaining;
+
+    public event Action<BabyDeathCause>? Died;
 
     [Export(PropertyHint.Range, "10,300,1,or_greater")]
     public float MinimumSpeed { get; set; } = 35.0f;
@@ -115,6 +129,42 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     {
         _pushSuppressionRemaining = PushSuppressionDuration;
         StopCrawling(false);
+    }
+
+    public void TriggerDeath(BabyDeathCause cause)
+    {
+        if (_deathTriggered)
+        {
+            return;
+        }
+
+        _deathTriggered = true;
+        _isThrown = false;
+        StopCrawling();
+        AngularVelocity = 0.0f;
+        Freeze = true;
+        Died?.Invoke(cause);
+    }
+
+    protected override void OnDefinitionApplied()
+    {
+        PickupItemDefinition? definition = Definition;
+        if (!IsNodeReady() || definition is null || _deathTriggered)
+        {
+            return;
+        }
+
+        if (definition.HasAppliedTransformation(ChopTransformation))
+        {
+            TriggerDeath(BabyDeathCause.Chopped);
+        }
+        else if (
+            definition.HasAppliedTransformation(CookTransformation)
+            || definition.HasAppliedTransformation(StoveCookTransformation)
+        )
+        {
+            TriggerDeath(BabyDeathCause.Cooked);
+        }
     }
 
     private void StartBurst()
