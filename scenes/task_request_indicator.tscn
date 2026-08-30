@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Texture2D" uid="uid://tv2lvw2rttsw" path="res://assets/sprites/thought/thought-Sheet.png" id="1_bubble"]
+[ext_resource type="Texture2D" path="res://assets/sprites/thought/timer_bar-Sheet.png" id="2_timer"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bubble_1"]
 atlas = ExtResource("1_bubble")
@@ -47,3 +48,10 @@ sprite_frames = SubResource("SpriteFrames_bubble")
 animation = &"open"
 
 [node name="Icon" type="Sprite2D" parent="."]
+
+[node name="TimerBar" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(0, -31)
+texture = ExtResource("2_timer")
+hframes = 8
+vframes = 8
