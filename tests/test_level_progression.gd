@@ -17,6 +17,16 @@ func test_title_starts_the_game_and_levels_advance_in_order() -> void:
 		project_config.get_value("application", "run/main_scene"),
 		"res://scenes/title_screen.tscn",
 	)
+	var instant_win_input := project_config.get_value(
+		"input",
+		"debug_instant_win",
+	) as Dictionary
+	assert_true(
+		instant_win_input.events.any(
+			func(event: InputEvent) -> bool:
+				return event is InputEventKey and event.keycode == KEY_F10
+		)
+	)
 
 	var level_1 := track(_instantiate_scene(LEVEL_1_PATH)) as Node2D
 	var level_1_hud := level_1.get_node("Hud")
@@ -37,6 +47,7 @@ func test_title_starts_the_game_and_levels_advance_in_order() -> void:
 		level_2_hud.get("NextLevelRevealTargetPath"),
 		NodePath("Player"),
 	)
+	assert_false(level_2_hud.has_node("InstantWinButton"))
 
 	var level_3 := track(_instantiate_scene(LEVEL_3_PATH)) as Node2D
 	assert_true(level_3.has_node("Player"))

@@ -4,6 +4,7 @@ using Godot;
 
 public partial class GameScoreController : CanvasLayer
 {
+    private static readonly StringName InstantWinAction = "debug_instant_win";
     private readonly List<WorkstationTaskPublisher> _publishers = new();
     private Label _scoreLabel = null!;
     private AudioStreamPlayer _scoreUpAudio = null!;
@@ -127,6 +128,18 @@ public partial class GameScoreController : CanvasLayer
         _publishers.Clear();
     }
 
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (
+            @event.IsActionPressed(InstantWinAction)
+            && @event is not InputEventKey { Echo: true }
+        )
+        {
+            CompleteLevelForTesting();
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
     private void ConnectPublishers()
     {
         foreach (
@@ -181,6 +194,25 @@ public partial class GameScoreController : CanvasLayer
         {
             BeginLevelCompletion();
         }
+    }
+
+    private void CompleteLevelForTesting()
+    {
+        if (
+            _isCompletingLevel
+            || string.IsNullOrWhiteSpace(NextLevelScenePath)
+        )
+        {
+            return;
+        }
+
+        _scoreTween?.Kill();
+        _scoreTween = null;
+        _score = MaximumScore;
+        _displayedScore = _score;
+        _displayedScoreValue = _score;
+        UpdateScoreLabel(_score);
+        BeginLevelCompletion();
     }
 
     private async void BeginLevelCompletion()

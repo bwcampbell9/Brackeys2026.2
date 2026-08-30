@@ -60,7 +60,7 @@ tile_map_data = PackedByteArray("AAABAAsAAwABAAQAAAACAAsAAwABAAQAAAADAAsAAwABAAQ
 tile_set = ExtResource("1_7qsfm")
 
 [node name="Workstations" type="TileMapLayer" parent="." unique_id=346724267 groups=["workstation_navigation_source"]]
-tile_map_data = PackedByteArray("AAABAAYAAAAAAAAAAAAGAAEAAAAAAAAAAgABAAQAAAAAAAAAAwAMAAEAAAAAAAAABQAJAAEAAAAAAAAABAAIAAYAAAAAAAAAAQAKAAYAAAAAAAAAAQAMAAYAAAAAAAAAAQANAAQAAAAAAAAABgA=")
+tile_map_data = PackedByteArray("AAABAAYAAAAAAAAAAAAGAAEAAAAAAAAAAgAMAAEAAAAAAAAABQAJAAEAAAAAAAAABAAIAAYAAAAAAAAAAQAKAAYAAAAAAAAAAQAMAAYAAAAAAAAAAQANAAQAAAAAAAAABgABAAQAAAAAAAAAAwA=")
 tile_set = ExtResource("2_bv48q")
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=957661959]
@@ -88,22 +88,26 @@ navigation_polygon = SubResource("NavigationPolygon_customers")
 [node name="MladyShubungusCustomer" parent="CustomersNavigationRegion2D" unique_id=850852891 instance=ExtResource("4_k6a82")]
 position = Vector2(921, 788)
 PossibleRequests = 25604
-MaximumRequestCooldownSeconds = 11.0
+MinimumRequestCooldownSeconds = 8.0
+MaximumRequestCooldownSeconds = 16.0
 
 [node name="Customer" parent="CustomersNavigationRegion2D" unique_id=873843052 instance=ExtResource("5_1sb0y")]
 position = Vector2(-27, 793)
 PossibleRequests = 19716
-MaximumRequestCooldownSeconds = 11.0
+MinimumRequestCooldownSeconds = 8.0
+MaximumRequestCooldownSeconds = 16.0
 
 [node name="LilShubungusCustomer" parent="CustomersNavigationRegion2D" unique_id=90190885 instance=ExtResource("6_k22d5")]
 position = Vector2(921, 924)
 PossibleRequests = 18688
-MaximumRequestCooldownSeconds = 11.0
+MinimumRequestCooldownSeconds = 8.0
+MaximumRequestCooldownSeconds = 16.0
 
 [node name="LilShubungus2Customer" parent="CustomersNavigationRegion2D" unique_id=130411882 instance=ExtResource("7_k6a82")]
 position = Vector2(-25, 913)
 PossibleRequests = 1036
-MaximumRequestCooldownSeconds = 11.0
+MinimumRequestCooldownSeconds = 8.0
+MaximumRequestCooldownSeconds = 16.0
 
 [node name="TaskSystem" type="Node" parent="." unique_id=873822971]
 script = ExtResource("6_vhnap")

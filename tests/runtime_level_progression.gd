@@ -36,12 +36,14 @@ func _run() -> void:
 	)
 
 	hud = current_scene.get_node("Hud")
-	for _index in range(10):
-		hud.ApplyCustomerOrderOutcome(0)
+	var instant_win_event := InputEventAction.new()
+	instant_win_event.action = &"debug_instant_win"
+	instant_win_event.pressed = true
+	hud._UnhandledInput(instant_win_event)
 	await process_frame
 	_check(
 		_has_circle_transition(),
-		"Winning Level 2 must start the circle transition.",
+		"F10 must start Level 2's circle transition.",
 	)
 
 	await create_timer(1.5, true, false, true).timeout
