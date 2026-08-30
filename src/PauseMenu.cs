@@ -95,6 +95,7 @@ public partial class PauseMenu : CanvasLayer
 
 	public override void _Input(InputEvent @event)
 	{
+		bool wasControllerActive = MenuInputMode.IsControllerActive;
 		if (!MenuInputMode.Observe(@event) || !_isOpen)
 		{
 			return;
@@ -102,22 +103,19 @@ public partial class PauseMenu : CanvasLayer
 
 		if (!MenuInputMode.IsControllerActive)
 		{
-			if (MenuInputMode.IsMouseRelease(@event))
-			{
-				Callable.From(ReleaseMenuFocusIfActive).CallDeferred();
-			}
-			else if (!MenuInputMode.IsMouseDrag(@event))
+			if (MenuInputMode.IsKeyboardInput(@event))
 			{
 				ReleaseMenuFocus();
 			}
+			RefreshMenuPresentation();
 			return;
 		}
 
-		if (!HasMenuFocus())
+		if (!wasControllerActive || !HasMenuFocus())
 		{
 			_resumeButton.GrabFocus();
-			GetViewport().SetInputAsHandled();
 		}
+		RefreshMenuPresentation();
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
@@ -300,12 +298,11 @@ public partial class PauseMenu : CanvasLayer
 		_quitButton.ReleaseFocus();
 	}
 
-	private void ReleaseMenuFocusIfActive()
+	private void RefreshMenuPresentation()
 	{
-		if (IsInstanceValid(this) && IsInsideTree())
-		{
-			ReleaseMenuFocus();
-		}
+		_resumeButton.RefreshInputModePresentation();
+		_titleButton.RefreshInputModePresentation();
+		_quitButton.RefreshInputModePresentation();
 	}
 
 	private void OnJoyConnectionChanged(long device, bool connected)

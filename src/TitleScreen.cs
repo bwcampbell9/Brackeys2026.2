@@ -79,6 +79,7 @@ public partial class TitleScreen : Control
 
     public override void _Input(InputEvent @event)
     {
+        bool wasControllerActive = MenuInputMode.IsControllerActive;
         if (!MenuInputMode.Observe(@event) || !_menuEnabled)
         {
             return;
@@ -86,22 +87,19 @@ public partial class TitleScreen : Control
 
         if (!MenuInputMode.IsControllerActive)
         {
-            if (MenuInputMode.IsMouseRelease(@event))
-            {
-                Callable.From(ReleaseMenuFocusIfActive).CallDeferred();
-            }
-            else if (!MenuInputMode.IsMouseDrag(@event))
+            if (MenuInputMode.IsKeyboardInput(@event))
             {
                 ReleaseMenuFocus();
             }
+            RefreshMenuPresentation();
             return;
         }
 
-        if (!HasMenuFocus())
+        if (!wasControllerActive || !HasMenuFocus())
         {
             _cookButton.GrabFocus();
-            GetViewport().SetInputAsHandled();
         }
+        RefreshMenuPresentation();
     }
 
     public override void _ExitTree()
@@ -199,12 +197,11 @@ public partial class TitleScreen : Control
         _exitButton.ReleaseFocus();
     }
 
-    private void ReleaseMenuFocusIfActive()
+    private void RefreshMenuPresentation()
     {
-        if (IsInstanceValid(this) && IsInsideTree())
-        {
-            ReleaseMenuFocus();
-        }
+        _cookButton.RefreshInputModePresentation();
+        _tutorialButton.RefreshInputModePresentation();
+        _exitButton.RefreshInputModePresentation();
     }
 
     private void OnJoyConnectionChanged(long device, bool connected)
