@@ -4,12 +4,16 @@
 [ext_resource type="PackedScene" uid="uid://bwnef5k3486q" path="res://scenes/cutting_board.tscn" id="2_8fjr4"]
 [ext_resource type="PackedScene" path="res://scenes/knife_container.tscn" id="3_knife"]
 [ext_resource type="PackedScene" uid="uid://dmpprh57f3rb7" path="res://scenes/carrot_container.tscn" id="4_carrot"]
+[ext_resource type="PackedScene" uid="uid://bs4ml8jcscl4t" path="res://scenes/stove.tscn" id="5_decba"]
+[ext_resource type="PackedScene" path="res://scenes/oven.tscn" id="6_apa2c"]
 
 [sub_resource type="TileSetScenesCollectionSource" id="TileSetScenesCollectionSource_yvu83"]
 scenes/0/scene = ExtResource("1_potato")
 scenes/1/scene = ExtResource("2_8fjr4")
 scenes/2/scene = ExtResource("3_knife")
 scenes/3/scene = ExtResource("4_carrot")
+scenes/4/scene = ExtResource("5_decba")
+scenes/5/scene = ExtResource("6_apa2c")
 
 [resource]
 tile_size = Vector2i(64, 64)

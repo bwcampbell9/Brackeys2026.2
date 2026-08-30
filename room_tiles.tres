@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://d3ac1pdfyw4ma" path="res://assets/sprites/floor_tilemap/floor_tilemap-Sheet.png" id="1_wcucs"]
 [ext_resource type="Texture2D" uid="uid://b73xj35fgychj" path="res://assets/sprites/floor_tilemap/tables.png" id="2_f5pur"]
+[ext_resource type="Texture2D" uid="uid://cv1aabm4ysax2" path="res://assets/sprites/floor_tilemap/floor_tilemap_brick-Sheet.png" id="3_8sdfp"]
 
 [sub_resource type="Image" id="Image_f5pur"]
 data = {
@@ -84,6 +85,81 @@ texture_region_size = Vector2i(64, 64)
 7:9/0 = 0
 1:4/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_xv78q"]
+texture = ExtResource("3_8sdfp")
+texture_region_size = Vector2i(64, 64)
+5:5/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+9:5/0 = 0
+10:5/0 = 0
+11:5/0 = 0
+5:6/0 = 0
+6:6/0 = 0
+7:6/0 = 0
+8:6/0 = 0
+9:6/0 = 0
+10:6/0 = 0
+12:6/0 = 0
+13:6/0 = 0
+14:6/0 = 0
+5:7/0 = 0
+6:7/0 = 0
+7:7/0 = 0
+8:7/0 = 0
+9:7/0 = 0
+10:7/0 = 0
+12:7/0 = 0
+13:7/0 = 0
+14:7/0 = 0
+5:8/0 = 0
+6:8/0 = 0
+7:8/0 = 0
+8:8/0 = 0
+9:8/0 = 0
+10:8/0 = 0
+12:8/0 = 0
+13:8/0 = 0
+14:8/0 = 0
+5:9/0 = 0
+6:9/0 = 0
+7:9/0 = 0
+8:9/0 = 0
+9:9/0 = 0
+10:9/0 = 0
+11:9/0 = 0
+12:9/0 = 0
+13:9/0 = 0
+6:10/0 = 0
+7:10/0 = 0
+8:10/0 = 0
+9:10/0 = 0
+11:10/0 = 0
+12:10/0 = 0
+13:10/0 = 0
+14:10/0 = 0
+15:10/0 = 0
+6:11/0 = 0
+7:11/0 = 0
+8:11/0 = 0
+9:11/0 = 0
+11:11/0 = 0
+12:11/0 = 0
+13:11/0 = 0
+6:12/0 = 0
+9:12/0 = 0
+11:12/0 = 0
+12:12/0 = 0
+6:13/0 = 0
+7:13/0 = 0
+8:13/0 = 0
+9:13/0 = 0
+11:13/0 = 0
+12:13/0 = 0
+11:14/0 = 0
+12:14/0 = 0
+
 [resource]
 tile_size = Vector2i(64, 64)
 physics_layer_0/collision_layer = 1
@@ -91,3 +167,4 @@ sources/0 = SubResource("TileSetAtlasSource_f5pur")
 sources/1 = SubResource("TileSetAtlasSource_floor_replacement")
 sources/2 = SubResource("TileSetAtlasSource_8sdfp")
 sources/3 = SubResource("TileSetAtlasSource_lvfgn")
+sources/4 = SubResource("TileSetAtlasSource_xv78q")
