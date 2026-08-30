@@ -74,7 +74,7 @@ public partial class TitleScreen : Control
         tween.TweenProperty(_parchmentMask, "position", maskOpenPosition, _openDuration);
         tween.TweenProperty(_parchmentMask, "size", maskOpenSize, _openDuration);
         tween.TweenProperty(_parchment, "position", parchmentOpenPosition, _openDuration);
-        tween.Chain().TweenCallback(Callable.From(EnableMenu));
+        tween.TweenCallback(Callable.From(EnableMenu));
     }
 
     public override void _Input(InputEvent @event)
