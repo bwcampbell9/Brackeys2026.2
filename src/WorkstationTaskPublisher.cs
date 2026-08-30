@@ -48,6 +48,10 @@ public partial class WorkstationTaskPublisher : Node2D
 	private Sprite2D? _orderTimerBar;
 	private float _orderTimeRemaining;
 	private float _orderCooldownRemaining;
+	private readonly Array<PickupItemDefinition> _customerRequests = new();
+	private readonly RandomNumberGenerator _orderRandom = new();
+	private float _minimumOrderCooldownSeconds;
+	private float _maximumOrderCooldownSeconds;
 
 	public event Action<CustomerOrderOutcome>? CustomerOrderResolved;
 
@@ -152,6 +156,8 @@ public partial class WorkstationTaskPublisher : Node2D
 
 	public bool IsConfiguring => _isConfiguring;
 
+	public float OrderCooldownRemaining => _orderCooldownRemaining;
+
 	public bool IsAcceptingCustomerDelivery =>
 		ConsumeDeliveredItem
 		&& !_isConsuming
@@ -181,6 +187,7 @@ public partial class WorkstationTaskPublisher : Node2D
 
 	public override void _Ready()
 	{
+		_orderRandom.Randomize();
 		_socket =
 			GetNodeOrNull<PickupSocket>(SocketPath)
 			?? throw new InvalidOperationException(
@@ -348,6 +355,7 @@ public partial class WorkstationTaskPublisher : Node2D
 			return;
 		}
 
+		bool isInitialConfiguration = _broker is null;
 		if (_broker is not null && _currentTaskId != 0)
 		{
 			_broker.Cancel(_currentTaskId);
@@ -355,7 +363,76 @@ public partial class WorkstationTaskPublisher : Node2D
 		}
 
 		_broker = broker;
+		if (
+			isInitialConfiguration
+			&& ConsumeDeliveredItem
+			&& _customerRequests.Count > 0
+		)
+		{
+			StartOrderCooldown();
+			return;
+		}
+
 		ReconcileTask();
+	}
+
+	public void ConfigureCustomerOrders(
+		Array<PickupItemDefinition> requests,
+		float minimumCooldownSeconds,
+		float maximumCooldownSeconds,
+		float orderDurationSeconds
+	)
+	{
+		if (!ConsumeDeliveredItem)
+		{
+			throw new InvalidOperationException(
+				"Only consuming publishers can configure customer orders."
+			);
+		}
+		if (requests.Count == 0)
+		{
+			throw new ArgumentException(
+				"Customer orders require at least one request.",
+				nameof(requests)
+			);
+		}
+		if (
+			minimumCooldownSeconds < 0.0f
+			|| maximumCooldownSeconds < minimumCooldownSeconds
+		)
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(maximumCooldownSeconds),
+				"Customer order cooldowns require 0 <= minimum <= maximum."
+			);
+		}
+
+		_customerRequests.Clear();
+		foreach (PickupItemDefinition? request in requests)
+		{
+			if (request is null)
+			{
+				throw new ArgumentException(
+					"Customer order requests cannot contain null entries.",
+					nameof(requests)
+				);
+			}
+			if (_customerRequests.Contains(request))
+			{
+				continue;
+			}
+			_customerRequests.Add(request);
+		}
+		_minimumOrderCooldownSeconds = minimumCooldownSeconds;
+		_maximumOrderCooldownSeconds = maximumCooldownSeconds;
+		OrderDurationSeconds = Mathf.Max(0.1f, orderDurationSeconds);
+
+		if (_broker is not null)
+		{
+			_generation++;
+			CancelCurrentTask();
+			ReconcileTask();
+		}
 	}
 
 	public bool BeginConfiguration()
@@ -613,7 +690,14 @@ public partial class WorkstationTaskPublisher : Node2D
 			_broker is null
 			|| _currentTaskId != 0
 			|| _orderCooldownRemaining > 0.0f
-			|| !TryGetPendingTask(
+		)
+		{
+			return false;
+		}
+
+		ChooseCustomerRequest();
+		if (
+			!TryGetPendingTask(
 				out NpcTaskDefinition? task,
 				out PickupItemDefinition? requestedItem,
 				out PickupItemDefinition? requiredTool
@@ -648,6 +732,22 @@ public partial class WorkstationTaskPublisher : Node2D
 			}
 		}
 		return true;
+	}
+
+	private void ChooseCustomerRequest()
+	{
+		if (
+			!ConsumeDeliveredItem
+			|| _customerRequests.Count == 0
+			|| _socket.Item is not null
+		)
+		{
+			return;
+		}
+
+		RequestedItem = _customerRequests[
+			_orderRandom.RandiRange(0, _customerRequests.Count - 1)
+		];
 	}
 
 	private bool TryGetPendingTask(
@@ -936,7 +1036,13 @@ public partial class WorkstationTaskPublisher : Node2D
 
 	private void StartOrderCooldown()
 	{
-		_orderCooldownRemaining = Mathf.Max(0.0f, OrderCooldownSeconds);
+		_orderCooldownRemaining =
+			_customerRequests.Count > 0
+				? _orderRandom.RandfRange(
+					_minimumOrderCooldownSeconds,
+					_maximumOrderCooldownSeconds
+				)
+				: Mathf.Max(0.0f, OrderCooldownSeconds);
 		if (
 			Mathf.IsZeroApprox(_orderCooldownRemaining)
 			&& !_isConsuming

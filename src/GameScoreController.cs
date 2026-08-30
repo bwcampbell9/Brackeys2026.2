@@ -14,6 +14,7 @@ public partial class GameScoreController : CanvasLayer
     private float _displayedScore;
     private int _displayedScoreValue;
     private int _score;
+    private bool _isCompletingLevel;
 
     [Export]
     public NodePath ScoreLabelPath { get; set; } = new("Score");
@@ -39,6 +40,14 @@ public partial class GameScoreController : CanvasLayer
     [Export(PropertyHint.Range, "1,10000,1,or_greater")]
     public int StartingScore { get; set; } = 50;
 
+    [ExportGroup("Level Progression")]
+    [Export(PropertyHint.File, "*.tscn")]
+    public string NextLevelScenePath { get; set; } = string.Empty;
+
+    [Export]
+    public NodePath NextLevelRevealTargetPath { get; set; } = new("Player");
+
+    [ExportGroup("")]
     [Export]
     public NodePath GameOverControllerPath { get; set; } =
         new("../GameOverController");
@@ -163,6 +172,35 @@ public partial class GameScoreController : CanvasLayer
         if (_score == 0)
         {
             _gameOverController.TriggerGameOver();
+        }
+        else if (
+            previousScore < MaximumScore
+            && _score == MaximumScore
+            && !string.IsNullOrWhiteSpace(NextLevelScenePath)
+        )
+        {
+            BeginLevelCompletion();
+        }
+    }
+
+    private async void BeginLevelCompletion()
+    {
+        if (_isCompletingLevel)
+        {
+            return;
+        }
+
+        _isCompletingLevel = true;
+        CircleTransition transition = new();
+        GetTree().Root.AddChild(transition);
+        Error result = await transition.TransitionToScene(
+            NextLevelScenePath,
+            NextLevelRevealTargetPath,
+            _scoreLabel.GetGlobalRect().GetCenter()
+        );
+        if (result != Error.Ok && IsInstanceValid(this))
+        {
+            _isCompletingLevel = false;
         }
     }
 

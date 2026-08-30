@@ -1,0 +1,128 @@
+[gd_scene format=3 uid="uid://c1scevcp8sipg"]
+
+[ext_resource type="Texture2D" uid="uid://bhb1qet1v5m7y" path="res://assets/sprites/cutting_board/cutting_board.png" id="1_id12v"]
+[ext_resource type="Script" uid="uid://bfv3ehapyq5le" path="res://src/PickupSocket.cs" id="2_fepxv"]
+[ext_resource type="Script" uid="uid://danmdb4xmbt07" path="res://src/InteractionTarget.cs" id="3_n2cfr"]
+[ext_resource type="Script" uid="uid://dfhgf8mk0ixqy" path="res://src/RequestWorkstationTaskAction.cs" id="4_v5jmb"]
+[ext_resource type="Script" uid="uid://713uiq3kgd10" path="res://src/ConfigureWorkstationAction.cs" id="5_ytuak"]
+[ext_resource type="Script" uid="uid://t64dona7dy2s" path="res://src/SlotTransferAction.cs" id="6_0g75a"]
+[ext_resource type="Script" uid="uid://df0god6j7t1d8" path="res://src/TimedItemProcessAction.cs" id="7_ugijp"]
+[ext_resource type="Resource" path="res://resources/recipes/chop.tres" id="8_st7a2"]
+[ext_resource type="Script" uid="uid://cdkfafc7e4aee" path="res://src/CuttingBoardProcessPresentation.cs" id="9_w5g5j"]
+[ext_resource type="AudioStream" uid="uid://bb1iji5nn0yxv" path="res://assets/sounds/chopping.wav" id="10_ua637"]
+[ext_resource type="PackedScene" path="res://scenes/task_request_indicator.tscn" id="11_38bqg"]
+[ext_resource type="Script" uid="uid://bfxqc1hxhnjuj" path="res://src/WorkstationRequestWheel.cs" id="12_2o2y2"]
+[ext_resource type="Script" uid="uid://c11srsvcex0r4" path="res://src/WorkstationTaskPublisher.cs" id="13_cb7ok"]
+[ext_resource type="Resource" uid="uid://b74us0qawgkhp" path="res://resources/tasks/fetch_workstation_item.tres" id="14_dogso"]
+[ext_resource type="Resource" path="res://resources/tasks/process_workstation_item.tres" id="15_1p70b"]
+[ext_resource type="Resource" uid="uid://bjolwtrgs7uqf" path="res://resources/items/potato.tres" id="16_ngrl1"]
+[ext_resource type="Resource" uid="uid://ccxychc5mvwbn" path="res://resources/items/carrot.tres" id="17_16a03"]
+[ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="17_fepxv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_board"]
+size = Vector2(43, 28)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_background"]
+bg_color = Color(0.08, 0.1, 0.12, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(0.94, 0.72, 0.28, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 32.06244
+
+[node name="CuttingBoard" type="StaticBody2D" unique_id=932346822]
+rotation = 1.5707421
+collision_mask = 0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=248353075]
+position = Vector2(0.0023318487, -11)
+texture = ExtResource("1_id12v")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1568811181]
+position = Vector2(-0.49940336, -9.999946)
+shape = SubResource("RectangleShape2D_board")
+
+[node name="PickupSocket" type="Node2D" parent="." unique_id=241161687]
+position = Vector2(0.0023318487, -19)
+script = ExtResource("2_fepxv")
+NpcApproachOffset = Vector2(0, 72)
+
+[node name="ProgressBar" type="ProgressBar" parent="." unique_id=979702778]
+visible = false
+offset_left = -27.0
+offset_top = 23.0
+offset_right = 27.0
+offset_bottom = 30.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+show_percentage = false
+
+[node name="InteractionTarget" type="Area2D" parent="." unique_id=1826123472]
+position = Vector2(0.0023318487, -11)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 2
+script = ExtResource("3_n2cfr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget" unique_id=1864369131]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="RequestTaskAction" type="Node" parent="InteractionTarget" unique_id=1034457015]
+script = ExtResource("4_v5jmb")
+
+[node name="ConfigureWorkstationAction" type="Node" parent="InteractionTarget" unique_id=1544562745]
+script = ExtResource("5_ytuak")
+
+[node name="TransferItemAction" type="Node" parent="InteractionTarget" unique_id=1409940106]
+script = ExtResource("6_0g75a")
+
+[node name="ProcessItemAction" type="Node" parent="InteractionTarget" unique_id=766050956]
+script = ExtResource("7_ugijp")
+Recipe = ExtResource("8_st7a2")
+
+[node name="ProcessPresentation" type="Node" parent="." unique_id=1731752949]
+script = ExtResource("9_w5g5j")
+
+[node name="ChoppingAudio" type="AudioStreamPlayer2D" parent="." unique_id=1042628803]
+position = Vector2(0.0023318487, -11)
+stream = ExtResource("10_ua637")
+
+[node name="TaskRequestIndicator" parent="." unique_id=2091777706 instance=ExtResource("11_38bqg")]
+position = Vector2(0, -52)
+
+[node name="RequestWheelLayer" type="CanvasLayer" parent="." unique_id=2142299877]
+layer = 100
+
+[node name="RequestWheel" type="Control" parent="RequestWheelLayer" unique_id=783263517]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 11.0
+offset_top = 0.0017356873
+offset_right = 11.0
+offset_bottom = 0.0017089844
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("12_2o2y2")
+
+[node name="WorkstationTaskPublisher" type="Node2D" parent="." unique_id=270596586]
+position = Vector2(0.0023318487, 53)
+script = ExtResource("13_cb7ok")
+RequestMode = 2
+FetchTask = ExtResource("14_dogso")
+ActionTask = ExtResource("15_1p70b")
+RequestedItem = ExtResource("16_ngrl1")
+AvailableItems = Array[ExtResource("17_fepxv")]([ExtResource("16_ngrl1"), ExtResource("17_16a03")])

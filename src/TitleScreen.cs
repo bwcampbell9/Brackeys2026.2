@@ -2,9 +2,9 @@ using Godot;
 
 public partial class TitleScreen : Control
 {
-    private const string MainScenePath = "res://scenes/main.tscn";
+    private const string LevelOneScenePath = "res://scenes/level_1.tscn";
     private const string TutorialScenePath = "res://scenes/tutorial_screen.tscn";
-    private static readonly NodePath MainScenePlayerPath = "Player";
+    private static readonly NodePath LevelOnePlayerPath = "Player";
 
     [Export(PropertyHint.Range, "0.1,2.0,0.05,or_greater")]
     private float _dropDuration = 0.65f;
@@ -137,8 +137,8 @@ public partial class TitleScreen : Control
         GetTree().Root.AddChild(transition);
         Vector2 closeCenter = _cookButton.GlobalPosition + (_cookButton.Size * 0.5f);
         Error result = await transition.TransitionToScene(
-            MainScenePath,
-            MainScenePlayerPath,
+            LevelOneScenePath,
+            LevelOnePlayerPath,
             closeCenter
         );
         if (result != Error.Ok && IsInstanceValid(this))

@@ -2,8 +2,14 @@
 
 [ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
 [ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="1_kdccu"]
+[ext_resource type="Texture2D" uid="uid://dr1u5qmdm5gua" path="res://assets/sprites/recipe_book/recipe_book-Sheet.png" id="2_book_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_recipe_book_icon"]
+atlas = ExtResource("2_book_sheet")
+region = Rect2(0, 0, 64, 64)
 
 [resource]
 script = ExtResource("1_definition")
 Id = &"recipe_book"
 DisplayName = "Recipe Book"
+Texture = SubResource("AtlasTexture_recipe_book_icon")

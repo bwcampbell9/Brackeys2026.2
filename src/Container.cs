@@ -76,8 +76,7 @@ public partial class Container : StaticBody2D
             "CollisionShape2D"
         );
         _itemIndicator.Position = collision.Position;
-        _itemIndicator.Texture = definition.Texture
-            ?? GetIdleFrameTexture(definition.SpriteFrames);
+        _itemIndicator.Texture = definition.GetDisplayTexture();
         _itemIndicator.Material = definition.VisualMaterial;
         _itemIndicator.Modulate = definition.Modulate;
         _itemIndicator.Scale =
@@ -85,17 +84,4 @@ public partial class Container : StaticBody2D
         _itemIndicator.Visible = _itemIndicator.Texture is not null;
     }
 
-    private static Texture2D? GetIdleFrameTexture(SpriteFrames? frames)
-    {
-        if (
-            frames is null
-            || !frames.HasAnimation(IdleAnimation)
-            || frames.GetFrameCount(IdleAnimation) == 0
-        )
-        {
-            return null;
-        }
-
-        return frames.GetFrameTexture(IdleAnimation, 0);
-    }
 }

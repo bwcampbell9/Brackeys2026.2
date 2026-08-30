@@ -11,6 +11,7 @@ const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
 const RECIPE_BOOK_ITEM_SCENE := preload("res://scenes/recipe_book_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
+const ROTATED_CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board_90.tscn")
 const CONTAINER_SCENE := preload("res://scenes/container.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
@@ -972,6 +973,20 @@ func test_workstation_and_sources_expose_npc_task_contracts() -> void:
 	assert_eq(knife_item_source.get("ItemDefinition"), KNIFE_DEFINITION)
 	assert_eq(potato_item_source.position, Vector2(64, 0))
 	assert_eq(knife_item_source.position, Vector2(0, 64))
+
+
+func test_rotated_cutting_board_preserves_available_items() -> void:
+	var board := track(ROTATED_CUTTING_BOARD_SCENE.instantiate()) as StaticBody2D
+	var publisher := board.get_node_or_null("WorkstationTaskPublisher") as Node2D
+	assert_true(publisher != null)
+	if publisher != null:
+		assert_eq(
+			publisher.get("AvailableItems"),
+			[
+				POTATO_DEFINITION,
+				CARROT_DEFINITION,
+			],
+		)
 
 
 func test_cutting_board_composes_transfer_process_and_socket() -> void:

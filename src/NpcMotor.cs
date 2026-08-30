@@ -3,6 +3,9 @@ using Godot;
 
 public partial class NpcMotor : Node
 {
+    private const int WorkstationApproachSampleCount = 8;
+    private const float MaximumApproachProjectionDistance = 24.0f;
+
     private CharacterBody2D _actor = null!;
     private NavigationAgent2D _navigationAgent = null!;
     private BodyPusher _bodyPusher = null!;
@@ -109,8 +112,12 @@ public partial class NpcMotor : Node
     public void SetTarget(Vector2 targetPosition)
     {
         if (
-            _isMoving
-            && _targetPosition.DistanceSquaredTo(targetPosition) < 16.0f
+            _targetPosition.DistanceSquaredTo(targetPosition) < 16.0f
+            && (
+                _isMoving
+                || _actor.GlobalPosition.DistanceTo(targetPosition)
+                    <= ArrivalDistance
+            )
         )
         {
             return;
@@ -119,6 +126,95 @@ public partial class NpcMotor : Node
         _targetPosition = targetPosition;
         _navigationAgent.TargetPosition = targetPosition;
         _isMoving = true;
+    }
+
+    public bool TrySetNavigableTarget(Vector2 preferredPosition)
+    {
+        if (
+            !TryGetReachablePoint(
+                preferredPosition,
+                float.PositiveInfinity,
+                out Vector2 targetPosition,
+                out _
+            )
+        )
+        {
+            return false;
+        }
+
+        SetTarget(targetPosition);
+        return true;
+    }
+
+    public bool TrySetApproachTarget(
+        Node2D targetNode,
+        Vector2 preferredPosition
+    )
+    {
+        StaticBody2D? workstation = FindStaticBodyAncestor(targetNode);
+        if (workstation is null)
+        {
+            if (
+                !TryGetReachablePoint(
+                    preferredPosition,
+                    MaximumApproachProjectionDistance,
+                    out Vector2 targetPosition,
+                    out _
+                )
+            )
+            {
+                return false;
+            }
+
+            SetTarget(targetPosition);
+            return true;
+        }
+
+        Vector2 center = workstation.GlobalPosition;
+        Vector2 preferredDirection = center.DirectionTo(preferredPosition);
+        if (preferredDirection.IsZeroApprox())
+        {
+            preferredDirection = Vector2.Down;
+        }
+        float approachRadius = Mathf.Max(
+            center.DistanceTo(preferredPosition),
+            ArrivalDistance * 2.0f
+        );
+        float bestPathLength = float.PositiveInfinity;
+        Vector2 bestTarget = default;
+        bool foundTarget = false;
+        for (int index = 0; index < WorkstationApproachSampleCount; index++)
+        {
+            Vector2 candidate =
+                center
+                + preferredDirection.Rotated(
+                    Mathf.Tau * index / WorkstationApproachSampleCount
+                ) * approachRadius;
+            if (
+                !TryGetReachablePoint(
+                    candidate,
+                    MaximumApproachProjectionDistance,
+                    out Vector2 navigableCandidate,
+                    out float pathLength
+                )
+                || pathLength >= bestPathLength
+            )
+            {
+                continue;
+            }
+
+            foundTarget = true;
+            bestTarget = navigableCandidate;
+            bestPathLength = pathLength;
+        }
+
+        if (!foundTarget)
+        {
+            return false;
+        }
+
+        SetTarget(bestTarget);
+        return true;
     }
 
     public void Stop()
@@ -130,4 +226,74 @@ public partial class NpcMotor : Node
         }
     }
 
+    private bool TryGetReachablePoint(
+        Vector2 preferredPosition,
+        float maximumProjectionDistance,
+        out Vector2 targetPosition,
+        out float pathLength
+    )
+    {
+        targetPosition = default;
+        pathLength = float.PositiveInfinity;
+        Rid navigationMap = _navigationAgent.GetNavigationMap();
+        if (NavigationServer2D.MapGetIterationId(navigationMap) == 0)
+        {
+            return false;
+        }
+
+        Vector2 navigableOrigin = NavigationServer2D.MapGetClosestPoint(
+            navigationMap,
+            _actor.GlobalPosition
+        );
+        Vector2 navigableTarget = NavigationServer2D.MapGetClosestPoint(
+            navigationMap,
+            preferredPosition
+        );
+        if (
+            preferredPosition.DistanceTo(navigableTarget)
+            > maximumProjectionDistance
+        )
+        {
+            return false;
+        }
+
+        Vector2[] path = NavigationServer2D.MapGetPath(
+            navigationMap,
+            navigableOrigin,
+            navigableTarget,
+            true,
+            _navigationAgent.NavigationLayers
+        );
+        if (
+            path.Length == 0
+            && navigableOrigin.DistanceTo(navigableTarget) > ArrivalDistance
+        )
+        {
+            return false;
+        }
+
+        pathLength = navigableOrigin.DistanceTo(
+            path.Length > 0 ? path[0] : navigableTarget
+        );
+        for (int index = 1; index < path.Length; index++)
+        {
+            pathLength += path[index - 1].DistanceTo(path[index]);
+        }
+        targetPosition = navigableTarget;
+        return true;
+    }
+
+    private static StaticBody2D? FindStaticBodyAncestor(Node node)
+    {
+        Node? current = node;
+        while (current is not null)
+        {
+            if (current is StaticBody2D staticBody)
+            {
+                return staticBody;
+            }
+            current = current.GetParent();
+        }
+        return null;
+    }
 }

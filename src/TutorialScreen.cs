@@ -18,8 +18,9 @@ public partial class TutorialScreen : Control
             return;
         }
 
+
         _isLeaving = true;
-        GetTree().ChangeSceneToFile(TitleScenePath);
         GetViewport().SetInputAsHandled();
+        GetTree().ChangeSceneToFile(TitleScenePath);
     }
 }

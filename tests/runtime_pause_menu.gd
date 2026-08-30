@@ -99,12 +99,23 @@ func _run() -> void:
 	var play_button := current_scene.get_node(
 		"Scroll/ParchmentMask/CookButton"
 	)
+	var tutorial_button := current_scene.get_node(
+		"Scroll/ParchmentMask/TutorialButton"
+	)
 	var exit_button := current_scene.get_node(
 		"Scroll/ParchmentMask/ExitButton"
 	)
 	_check(root.gui_get_focus_owner() == play_button, "The title screen must focus Cook.")
 	await _send_action(&"ui_down")
-	_check(root.gui_get_focus_owner() == exit_button, "Controller navigation must focus Exit.")
+	_check(
+		root.gui_get_focus_owner() == tutorial_button,
+		"Controller navigation must focus Tutorial after Cook.",
+	)
+	await _send_action(&"ui_down")
+	_check(
+		root.gui_get_focus_owner() == exit_button,
+		"Controller navigation must focus Exit after Tutorial.",
+	)
 	await _send_mouse_motion()
 	_check(root.gui_get_focus_owner() == null, "Mouse input must clear title button selection.")
 	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
@@ -112,11 +123,27 @@ func _run() -> void:
 		root.gui_get_focus_owner() == play_button,
 		"Controller input must restore title focus to Cook.",
 	)
+	await _send_mouse_click(tutorial_button.get_global_rect().get_center())
+	await create_timer(1.5).timeout
+	_check(
+		current_scene != null
+		and current_scene.scene_file_path == "res://scenes/tutorial_screen.tscn",
+		"Clicking Tutorial with the mouse must load the tutorial screen.",
+	)
+	await _send_action(&"ui_cancel")
+	await create_timer(1.5).timeout
+	_check(
+		current_scene != null
+		and current_scene.scene_file_path == "res://scenes/title_screen.tscn",
+		"Controller B must return from the tutorial to the title screen.",
+	)
+	await create_timer(2.0).timeout
+	play_button = current_scene.get_node("Scroll/ParchmentMask/CookButton")
 	await _send_mouse_click(play_button.get_global_rect().get_center())
 	await create_timer(1.5).timeout
 	_check(
-		current_scene != null and current_scene.scene_file_path == "res://scenes/main.tscn",
-		"Clicking Cook with the mouse must load the main scene.",
+		current_scene != null and current_scene.scene_file_path == "res://scenes/level_1.tscn",
+		"Clicking Cook with the mouse must load Level 1.",
 	)
 
 	_finish()
