@@ -35,6 +35,7 @@ void fragment() {
 	const float branch_width = 0.004;
 
 	float progress = clamp(chop_progress, 0.0, 1.0);
+	vec2 local_uv = (UV - REGION_RECT.xy) / REGION_RECT.zw;
 	float chop_count_float = float(chop_count);
 	float piece_count = float(chop_count + 1);
 	float effective_max_slant = min(
@@ -58,8 +59,8 @@ void fragment() {
 		float boundary_slant = (random_angle * 2.0 - 1.0)
 			* effective_max_slant;
 		float boundary_x = boundary / piece_count
-			+ boundary_slant * (UV.y - 0.5);
-		slice_index += step(boundary_x, UV.x);
+			+ boundary_slant * (local_uv.y - 0.5);
+		slice_index += step(boundary_x, local_uv.x);
 
 		vec2 boundary_start = vec2(
 			boundary / piece_count - boundary_slant * 0.5,
@@ -70,7 +71,7 @@ void fragment() {
 			1.0
 		);
 		float boundary_distance = distance_to_segment(
-			UV,
+			local_uv,
 			boundary_start,
 			boundary_end
 		);
@@ -97,18 +98,19 @@ void fragment() {
 			* piece_separation
 			* mix(0.75, 1.0, slice_random)
 	) * piece_progress;
-	vec2 source_uv = UV - piece_offset;
+	vec2 source_uv = local_uv - piece_offset;
 
 	float inside_source = step(0.0, source_uv.x)
 		* step(source_uv.x, 1.0)
 		* step(0.0, source_uv.y)
 		* step(source_uv.y, 1.0);
-	vec4 source = texture(TEXTURE, source_uv) * sprite_modulate;
+	vec2 texture_uv = REGION_RECT.xy + source_uv * REGION_RECT.zw;
+	vec4 source = texture(TEXTURE, texture_uv) * sprite_modulate;
 
 	float cut_reveal = step(nearest_boundary / chop_count_float, progress)
 		* step(0.5, nearest_boundary)
 		* step(nearest_boundary, piece_count - 0.5);
-	float antialias_width = max(fwidth(UV.x) * 1.5, 0.001);
+	float antialias_width = max(fwidth(local_uv.x) * 1.5, 0.001);
 	float straight_cut_mask = smoothstep(
 		cut_width,
 		cut_width + antialias_width,
@@ -121,12 +123,12 @@ void fragment() {
 	float upper_cut_x = cut_x + cut_slant * (upper_anchor - 0.5);
 	float lower_cut_x = cut_x + cut_slant * (lower_anchor - 0.5);
 	float upper_branch = distance_to_segment(
-		UV,
+		local_uv,
 		vec2(upper_cut_x, upper_anchor),
 		vec2(upper_cut_x + branch_side * 0.065, upper_anchor - 0.055)
 	);
 	float lower_branch = distance_to_segment(
-		UV,
+		local_uv,
 		vec2(lower_cut_x, lower_anchor),
 		vec2(lower_cut_x - branch_side * 0.055, lower_anchor + 0.07)
 	);
