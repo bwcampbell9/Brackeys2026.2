@@ -2,6 +2,7 @@ extends SceneTree
 
 const LEVEL_1_PATH := "res://scenes/level_1.tscn"
 const LEVEL_2_PATH := "res://scenes/level_2.tscn"
+const LEVEL_3_PATH := "res://scenes/level_3.tscn"
 
 var _failed := false
 
@@ -32,6 +33,23 @@ func _run() -> void:
 	_check(
 		current_scene.scene_file_path == LEVEL_2_PATH,
 		"Winning Level 1 must load Level 2.",
+	)
+
+	hud = current_scene.get_node("Hud")
+	var instant_win_event := InputEventAction.new()
+	instant_win_event.action = &"debug_instant_win"
+	instant_win_event.pressed = true
+	hud._UnhandledInput(instant_win_event)
+	await process_frame
+	_check(
+		_has_circle_transition(),
+		"F10 must start Level 2's circle transition.",
+	)
+
+	await create_timer(1.5, true, false, true).timeout
+	_check(
+		current_scene.scene_file_path == LEVEL_3_PATH,
+		"Winning Level 2 must load Level 3.",
 	)
 
 	current_scene.queue_free()
