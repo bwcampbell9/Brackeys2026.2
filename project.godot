@@ -157,4 +157,5 @@ debug_instant_win={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+textures/vram_compression/import_etc2_astc=true
 rendering/renderer/rendering_method.web="gl_compatibility"
