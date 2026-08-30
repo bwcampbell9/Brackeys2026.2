@@ -1,6 +1,31 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" uid="uid://b3l63pn85rovm" path="res://scenes/title_screen.tscn" id="1_title"]
+[ext_resource type="FontFile" uid="uid://caidkm36bym2d" path="res://fonts/Pixel Game.otf" id="2_font"]
 
 [node name="WinScreen" instance=ExtResource("1_title")]
-HeadingText = "You Win!"
+
+[node name="AtTitle" parent="Scroll/ParchmentMask" index="1"]
+visible = false
+
+[node name="YourTitle" parent="Scroll/ParchmentMask" index="2"]
+visible = false
+
+[node name="ServiceTitle" parent="Scroll/ParchmentMask" index="3"]
+visible = false
+
+[node name="Heading" type="Label" parent="Scroll/ParchmentMask" index="4"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 45.0
+offset_right = 551.0
+offset_bottom = 145.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.16, 0.09, 0.04, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 64
+text = "You Win!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[editable path="Scroll/ParchmentMask"]

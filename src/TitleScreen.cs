@@ -26,9 +26,6 @@ public partial class TitleScreen : Control
     private bool _menuEnabled;
     private bool _isTransitioning;
 
-    [Export]
-    public string HeadingText { get; set; } = string.Empty;
-
     public override void _Ready()
     {
         _scroll = GetNode<Control>("Scroll");
@@ -39,7 +36,6 @@ public partial class TitleScreen : Control
         _cookButton = GetNode<MenuBannerButton>("Scroll/ParchmentMask/CookButton");
         _tutorialButton = GetNode<MenuBannerButton>("Scroll/ParchmentMask/TutorialButton");
         _exitButton = GetNode<MenuBannerButton>("Scroll/ParchmentMask/ExitButton");
-        ConfigureHeading();
         SetMenuEnabled(false);
         _cookButton.Pressed += OnCookPressed;
         _tutorialButton.Pressed += OnTutorialPressed;
@@ -79,40 +75,6 @@ public partial class TitleScreen : Control
         tween.TweenProperty(_parchmentMask, "size", maskOpenSize, _openDuration);
         tween.TweenProperty(_parchment, "position", parchmentOpenPosition, _openDuration);
         tween.TweenCallback(Callable.From(EnableMenu));
-    }
-
-    private void ConfigureHeading()
-    {
-        if (string.IsNullOrWhiteSpace(HeadingText))
-        {
-            return;
-        }
-
-        GetNode<Control>("Scroll/ParchmentMask/AtTitle").Hide();
-        GetNode<Control>("Scroll/ParchmentMask/YourTitle").Hide();
-        GetNode<Control>("Scroll/ParchmentMask/ServiceTitle").Hide();
-
-        Label tutorialLabel = _tutorialButton.GetNode<Label>("Word");
-        Label heading = new()
-        {
-            Name = "Heading",
-            Text = HeadingText,
-            Position = new Vector2(60.0f, 45.0f),
-            Size = new Vector2(491.0f, 100.0f),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore,
-        };
-        heading.AddThemeColorOverride(
-            "font_color",
-            tutorialLabel.GetThemeColor("font_color")
-        );
-        heading.AddThemeFontOverride(
-            "font",
-            tutorialLabel.GetThemeFont("font")
-        );
-        heading.AddThemeFontSizeOverride("font_size", 64);
-        _parchmentMask.AddChild(heading);
     }
 
     public override void _Input(InputEvent @event)
