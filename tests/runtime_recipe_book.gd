@@ -22,6 +22,28 @@ func _run() -> void:
 	await process_frame
 	await physics_frame
 
+	var previous_page_events := InputMap.action_get_events(&"cookbook_previous_page")
+	var next_page_events := InputMap.action_get_events(&"cookbook_next_page")
+	_check(
+		previous_page_events.size() == 1,
+		"Cookbook previous page must have exactly one input binding.",
+	)
+	_check(
+		next_page_events.size() == 1,
+		"Cookbook next page must have exactly one input binding.",
+	)
+	if previous_page_events.size() == 1 and next_page_events.size() == 1:
+		_check(
+			previous_page_events[0] is InputEventJoypadButton
+			and previous_page_events[0].button_index == JOY_BUTTON_DPAD_LEFT,
+			"Cookbook previous page must be bound to D-pad left.",
+		)
+		_check(
+			next_page_events[0] is InputEventJoypadButton
+			and next_page_events[0].button_index == JOY_BUTTON_DPAD_RIGHT,
+			"Cookbook next page must be bound to D-pad right.",
+		)
+
 	var carrier := player.get_node("PickupCarrier")
 	var hold_point := player.get_node("PickupCarrier/HoldPoint") as Node2D
 	var sprite := book.get_node("AnimatedSprite2D") as AnimatedSprite2D
@@ -34,7 +56,30 @@ func _run() -> void:
 	var second_page_image := book.get_node("RecipeOverlay/OverlayRoot/PageTwo") as TextureRect
 	var previous_page_button := book.get_node("RecipeOverlay/OverlayRoot/PreviousPageButton") as Button
 	var next_page_button := book.get_node("RecipeOverlay/OverlayRoot/NextPageButton") as Button
+	var previous_page_icon := previous_page_button.icon as AtlasTexture
+	var next_page_icon := next_page_button.icon as AtlasTexture
 	_check(not overlay_root.visible, "The recipe overlay must start hidden.")
+	_check(
+		previous_page_icon != null
+		and previous_page_icon.atlas.resource_path
+		== "res://assets/sprites/controller/d-pad-Sheet.png"
+		and previous_page_icon.region == Rect2(64, 0, 32, 32),
+		"The Back button must show the D-pad left icon.",
+	)
+	_check(
+		next_page_icon != null
+		and next_page_icon.atlas.resource_path
+		== "res://assets/sprites/controller/d-pad-Sheet.png"
+		and next_page_icon.region == Rect2(32, 0, 32, 32),
+		"The Next button must show the D-pad right icon.",
+	)
+	_check(
+		previous_page_button.get_theme_font(&"font").resource_path
+		== "res://fonts/Pixel Game.otf"
+		and next_page_button.get_theme_font(&"font").resource_path
+		== "res://fonts/Pixel Game.otf",
+		"The cookbook page buttons must use the pixel game font.",
+	)
 	_check(bool(carrier.TryHold(book)), "The recipe book must be pickable.")
 	_check(
 		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
@@ -43,6 +88,11 @@ func _run() -> void:
 	_check(
 		not overlay_root.visible,
 		"Holding a closed recipe book must not show the recipe overlay.",
+	)
+	await _send_joypad_button(JOY_BUTTON_DPAD_RIGHT)
+	_check(
+		overlay_image.visible and not second_page_image.visible,
+		"D-pad input must not turn pages while the cookbook is closed.",
 	)
 
 	var transformed_definition = CHOP_TRANSFORMATION.Resolve(book.get("Definition"))
@@ -65,12 +115,14 @@ func _run() -> void:
 	)
 	_check(sprite.frame == 0 and not sprite.is_playing(), "The book must start closed.")
 
-	Input.action_press("secondary_interact")
-	await _wait_physics_frames(2)
-	Input.action_release("secondary_interact")
+	await _send_joypad_button(JOY_BUTTON_B)
 	_check(
 		sprite.animation == &"open" and sprite.is_playing(),
 		"Secondary interaction must start the opening animation while held.",
+	)
+	_check(
+		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		"Opening the cookbook with controller B must not throw it.",
 	)
 	_check(
 		open_audio.playing,
@@ -80,6 +132,11 @@ func _run() -> void:
 	_check(
 		not bool(book.TrySecondaryInteract()),
 		"The book must ignore secondary interaction while opening.",
+	)
+	await _send_joypad_button(JOY_BUTTON_B)
+	_check(
+		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		"Repeated controller B input while opening must not throw the cookbook.",
 	)
 	_check(
 		not overlay_root.visible,
@@ -110,38 +167,56 @@ func _run() -> void:
 		and not next_page_button.disabled,
 		"Opening the recipe book must display its first page with only Next available.",
 	)
-	next_page_button.emit_signal("pressed")
+	await _send_joypad_button(JOY_BUTTON_DPAD_RIGHT)
 	_check(
 		forward_page_audio.playing and not backward_page_audio.playing,
-		"Next must play page turn 1 without playing page turn 2.",
+		"D-pad right must play page turn 1 without playing page turn 2.",
 	)
 	_check(
 		not overlay_image.visible
 		and second_page_image.visible
 		and not previous_page_button.disabled
 		and next_page_button.disabled,
-		"Next must display the second page and disable at the last page.",
+		"D-pad right must display the second page and disable at the last page.",
 	)
-	previous_page_button.emit_signal("pressed")
+	await _send_joypad_button(JOY_BUTTON_DPAD_LEFT)
 	_check(
 		backward_page_audio.playing,
-		"Back must play page turn 2.",
+		"D-pad left must play page turn 2.",
 	)
 	_check(
 		overlay_image.visible
 		and not second_page_image.visible
 		and previous_page_button.disabled
 		and not next_page_button.disabled,
-		"Back must return to the first page and disable at the first page.",
+		"D-pad left must return to the first page and disable at the first page.",
+	)
+	forward_page_audio.stop()
+	backward_page_audio.stop()
+	next_page_button.emit_signal("pressed")
+	_check(
+		forward_page_audio.playing
+		and not overlay_image.visible
+		and second_page_image.visible,
+		"The Next button must continue to turn to the second page.",
+	)
+	previous_page_button.emit_signal("pressed")
+	_check(
+		backward_page_audio.playing
+		and overlay_image.visible
+		and not second_page_image.visible,
+		"The Back button must continue to return to the first page.",
 	)
 
-	var open_audio_position := open_audio.get_playback_position()
-	Input.action_press("secondary_interact")
-	await _wait_physics_frames(2)
-	Input.action_release("secondary_interact")
+	open_audio.stop()
+	await _send_joypad_button(JOY_BUTTON_B)
 	_check(sprite.is_playing(), "Secondary interaction must start closing an open book.")
 	_check(
-		open_audio.get_playback_position() > open_audio_position,
+		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		"Closing the cookbook with controller B must not throw it.",
+	)
+	_check(
+		not open_audio.playing,
 		"Closing the recipe book must not restart the cookbook sound.",
 	)
 	_check(
@@ -173,12 +248,14 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	_check(not overlay_root.visible, "A closed book must keep the recipe overlay hidden.")
 
-	Input.action_press("secondary_interact")
-	await _wait_physics_frames(2)
-	Input.action_release("secondary_interact")
+	await _send_joypad_button(JOY_BUTTON_B)
 	await create_timer(0.65).timeout
 	_check(sprite.frame == 5, "The closed recipe book must be openable again.")
 	_check(bool(book.get("IsOpen")), "Repeated secondary interaction must toggle the book.")
+	_check(
+		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		"Reopening the cookbook with controller B must keep it held.",
+	)
 	await create_timer(0.4).timeout
 	_check(
 		overlay_root.visible and overlay_root.position.is_zero_approx(),
@@ -192,7 +269,11 @@ func _run() -> void:
 		"Reopening the recipe book must reset it to the first page.",
 	)
 
-	_check(bool(carrier.Throw()), "The open recipe book must remain throwable.")
+	await _send_joypad_button(JOY_BUTTON_A)
+	_check(
+		carrier.get("HeldItem") == null,
+		"Controller A must still throw the open cookbook.",
+	)
 	_check(
 		book.get_parent() == world and not book.freeze,
 		"Throwing must return the recipe book to world physics.",
@@ -230,6 +311,20 @@ func _run() -> void:
 func _wait_physics_frames(count: int) -> void:
 	for _frame in count:
 		await physics_frame
+
+
+func _send_joypad_button(button_index: JoyButton) -> void:
+	var press_event := InputEventJoypadButton.new()
+	press_event.button_index = button_index
+	press_event.pressed = true
+	Input.parse_input_event(press_event)
+	await physics_frame
+	var release_event := InputEventJoypadButton.new()
+	release_event.button_index = button_index
+	release_event.pressed = false
+	Input.parse_input_event(release_event)
+	await physics_frame
+	await physics_frame
 
 
 func _check(condition: bool, message: String) -> void:

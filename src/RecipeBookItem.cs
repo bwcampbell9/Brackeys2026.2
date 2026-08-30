@@ -4,6 +4,10 @@ using Godot;
 public partial class RecipeBookItem : PickupItem
 {
     private static readonly StringName OpenAnimation = "open";
+    private static readonly StringName PreviousPageAction =
+        "cookbook_previous_page";
+    private static readonly StringName NextPageAction =
+        "cookbook_next_page";
     private static readonly Vector2 HiddenOverlayPosition =
         new(0.0f, -304.0f);
 
@@ -68,6 +72,25 @@ public partial class RecipeBookItem : PickupItem
         _overlayRoot.Visible = false;
         SetPage(0);
         ApplyOverlayDefinition();
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (!_overlayShownForPlayer)
+        {
+            return;
+        }
+
+        if (@event.IsActionPressed(PreviousPageAction))
+        {
+            ShowPreviousPage();
+            GetViewport().SetInputAsHandled();
+        }
+        else if (@event.IsActionPressed(NextPageAction))
+        {
+            ShowNextPage();
+            GetViewport().SetInputAsHandled();
+        }
     }
 
     protected override void OnPickedUp()

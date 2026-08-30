@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://src/RecipeBookItem.cs" id="1_book"]
 [ext_resource type="Texture2D" path="res://assets/sprites/recipe_book/recipe_book-Sheet.png" id="2_sheet"]
@@ -10,6 +10,8 @@
 [ext_resource type="AudioStream" path="res://assets/sounds/close_cookbook.wav" id="8_close_audio"]
 [ext_resource type="AudioStream" path="res://assets/sounds/page_turn_1.wav" id="9_forward_page_audio"]
 [ext_resource type="AudioStream" path="res://assets/sounds/page_turn_2.wav" id="10_backward_page_audio"]
+[ext_resource type="Texture2D" uid="uid://b3ik4e6kr63d7" path="res://assets/sprites/controller/d-pad-Sheet.png" id="11_dpad"]
+[ext_resource type="FontFile" uid="uid://caidkm36bym2d" path="res://fonts/Pixel Game.otf" id="12_button_font"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_book"]
 radius = 24.0
@@ -71,6 +73,14 @@ region = Rect2(0, 0, 448, 256)
 [sub_resource type="AtlasTexture" id="AtlasTexture_page_two"]
 atlas = ExtResource("6_overlay")
 region = Rect2(448, 0, 448, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dpad_left"]
+atlas = ExtResource("11_dpad")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dpad_right"]
+atlas = ExtResource("11_dpad")
+region = Rect2(32, 0, 32, 32)
 
 [node name="RecipeBookItem" type="RigidBody2D"]
 collision_layer = 2
@@ -151,22 +161,28 @@ anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -212.0
 offset_top = 236.0
-offset_right = -142.0
+offset_right = -112.0
 offset_bottom = 268.0
 grow_horizontal = 2
+theme_override_fonts/font = ExtResource("12_button_font")
 text = "Back"
+icon = SubResource("AtlasTexture_dpad_left")
+expand_icon = true
 
 [node name="NextPageButton" type="Button" parent="RecipeOverlay/OverlayRoot"]
 layout_mode = 1
 anchors_preset = 10
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = 142.0
+offset_left = 112.0
 offset_top = 236.0
 offset_right = 212.0
 offset_bottom = 268.0
 grow_horizontal = 2
+theme_override_fonts/font = ExtResource("12_button_font")
 text = "Next"
+icon = SubResource("AtlasTexture_dpad_right")
+expand_icon = true
 
 [node name="InteractionTarget" type="Area2D" parent="."]
 collision_layer = 8
