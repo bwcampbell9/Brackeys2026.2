@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CookingRecipe" format=3]
+
+[ext_resource type="Script" path="res://src/CookingRecipe.cs" id="1_recipe"]
+[ext_resource type="Resource" uid="uid://c8kvwh2vkwv0p" path="res://resources/items/chopped_carrots.tres" id="2_input"]
+[ext_resource type="Resource" uid="uid://cw0ykycqs1uyw" path="res://resources/items/carrot_soup.tres" id="3_output"]
+
+[resource]
+script = ExtResource("1_recipe")
+Output = ExtResource("3_output")
+Ingredients = Array[ExtResource("2_input")]([ExtResource("2_input")])
+Duration = 10.0

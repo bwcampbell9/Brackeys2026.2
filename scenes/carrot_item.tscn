@@ -1,10 +1,14 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://src/PickupItem.cs" id="1_pickup"]
-[ext_resource type="Texture2D" path="res://assets/sprites/carrot/carrot.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/sprites/carrot/carrot-Sheet.png" id="2_sheet"]
 [ext_resource type="Resource" path="res://resources/items/carrot.tres" id="3_definition"]
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="4_target"]
 [ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="5_transfer"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_carrot"]
+atlas = ExtResource("2_sheet")
+region = Rect2(0, 0, 64, 64)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
 radius = 10.0
@@ -25,7 +29,7 @@ Definition = ExtResource("3_definition")
 shape = SubResource("CircleShape2D_pickup")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_sprite")
+texture = SubResource("AtlasTexture_carrot")
 
 [node name="InteractionTarget" type="Area2D" parent="."]
 collision_layer = 8

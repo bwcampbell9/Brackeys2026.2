@@ -103,13 +103,13 @@ func _run() -> void:
 		progress_bar.value > 0.0 and progress_bar.value < 100.0,
 		"Cutting progress must advance continuously.",
 	)
-	var cutting_material := held_potato.get_node("Sprite2D").material as ShaderMaterial
+	var cutting_sprite := held_potato.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	_check(
-		cutting_material != null
-		and cutting_material.resource_path.is_empty()
-		and float(cutting_material.get_shader_parameter("chop_progress")) > 0.0
-		and float(cutting_material.get_shader_parameter("chop_progress")) < 1.0,
-		"Cutting must animate a unique fracture material with process progress.",
+		cutting_sprite.visible
+		and cutting_sprite.sprite_frames
+		== held_potato.get("Definition").get("ProcessingSpriteFrames")
+		and cutting_sprite.frame > 0,
+		"Cutting must play the authored process-only animation.",
 	)
 	_check(
 		knife.global_position.distance_to(board.global_position) < 50.0,
@@ -123,8 +123,9 @@ func _run() -> void:
 	_check(is_zero_approx(progress_bar.value), "Canceled cutting must reset progress.")
 	_check(_held_item_id(hold_point) == &"knife", "A coalesced re-press must keep the tool held.")
 	_check(
-		held_potato.get_node("Sprite2D").material == null,
-		"Canceled cutting must restore the raw item's original material.",
+		held_potato.get_node("Sprite2D").visible
+		and not held_potato.get_node("AnimatedSprite2D").visible,
+		"Canceled cutting must restore the raw static visual.",
 	)
 
 	Input.action_release("interact")
@@ -150,15 +151,11 @@ func _run() -> void:
 	_check(_held_item_id(hold_point) == &"knife", "Cutting must not consume the knife.")
 	_check(not progress_bar.visible, "Completed cutting must hide the progress bar.")
 	_check(knife.position.is_zero_approx(), "Completed cutting must restore the held knife.")
-	var chopped_material := held_potato.get_node("Sprite2D").material as ShaderMaterial
 	_check(
-		chopped_material != null
-		and chopped_material.resource_path == "res://resources/materials/chopped_fracture.tres"
-		and is_equal_approx(
-			float(chopped_material.get_shader_parameter("chop_progress")),
-			1.0,
-		),
-		"Completed cutting must leave the fracture shader fully progressed.",
+		held_potato.get_node("Sprite2D").visible
+		and held_potato.get_node("Sprite2D").material == null
+		and not held_potato.get_node("AnimatedSprite2D").visible,
+		"Completed cutting must show the authored static chopped sprite.",
 	)
 
 	player.global_position = Vector2(736, 370)

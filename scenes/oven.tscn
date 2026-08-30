@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://src/PickupSocket.cs" id="1_socket"]
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="2_target"]
@@ -15,6 +15,10 @@
 [ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="13_definition"]
 [ext_resource type="Script" path="res://src/WorkstationRequestWheel.cs" id="14_wheel"]
 [ext_resource type="PackedScene" path="res://scenes/task_request_indicator.tscn" id="15_indicator"]
+[ext_resource type="Resource" path="res://resources/cooking_recipes/baked_potato.tres" id="16_baked_potato"]
+[ext_resource type="Resource" path="res://resources/cooking_recipes/baked_chopped_potatoes.tres" id="17_baked_chopped_potatoes"]
+[ext_resource type="Resource" path="res://resources/cooking_recipes/baked_chopped_carrots.tres" id="18_baked_chopped_carrots"]
+[ext_resource type="Resource" path="res://resources/cooking_recipes/baked_chopped_vegetables.tres" id="19_baked_chopped_vegetables"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle"]
 atlas = ExtResource("4_texture")
@@ -73,6 +77,12 @@ autoplay = "idle"
 shape = SubResource("RectangleShape2D_oven")
 
 [node name="PickupSocket" type="Node2D" parent="."]
+position = Vector2(-8, 0)
+script = ExtResource("1_socket")
+NpcApproachOffset = Vector2(0, 72)
+
+[node name="SecondaryPickupSocket" type="Node2D" parent="."]
+position = Vector2(8, 0)
 script = ExtResource("1_socket")
 NpcApproachOffset = Vector2(0, 72)
 
@@ -94,10 +104,15 @@ script = ExtResource("8_configure_action")
 
 [node name="TransferItemAction" type="Node" parent="InteractionTarget"]
 script = ExtResource("3_transfer")
+AdditionalSocketPaths = Array[NodePath]([NodePath("../../SecondaryPickupSocket")])
+CookingControllerPath = NodePath("../../OvenCookingController")
 
 [node name="OvenCookingController" type="Node" parent="."]
 script = ExtResource("5_controller")
+AdditionalSocketPaths = Array[NodePath]([NodePath("../SecondaryPickupSocket")])
 Recipe = ExtResource("6_recipe")
+Recipes = Array[ExtResource("16_baked_potato")]([ExtResource("16_baked_potato"), ExtResource("17_baked_chopped_potatoes"), ExtResource("18_baked_chopped_carrots"), ExtResource("19_baked_chopped_vegetables")])
+SelectedCookingRecipe = ExtResource("16_baked_potato")
 
 [node name="TaskRequestIndicator" parent="." instance=ExtResource("15_indicator")]
 position = Vector2(0, -84)
@@ -124,6 +139,7 @@ script = ExtResource("14_wheel")
 [node name="WorkstationTaskPublisher" type="Node2D" parent="."]
 position = Vector2(0, 64)
 script = ExtResource("9_task_publisher")
+CookingControllerPath = NodePath("../OvenCookingController")
 RequestMode = 1
 FetchTask = ExtResource("10_fetch_task")
 RequestedItem = ExtResource("11_potato")

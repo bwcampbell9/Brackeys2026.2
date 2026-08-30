@@ -4,6 +4,22 @@ using Godot.Collections;
 
 public partial class WorkstationRequestWheel : Control
 {
+    private sealed class WheelEntry
+    {
+        public WheelEntry(
+            List<PickupItemDefinition> ingredients,
+            CookingRecipe? recipe = null
+        )
+        {
+            Ingredients = ingredients;
+            Recipe = recipe;
+        }
+
+        public List<PickupItemDefinition> Ingredients { get; }
+
+        public CookingRecipe? Recipe { get; }
+    }
+
     private static readonly StringName WheelLeftAction = "move_left";
     private static readonly StringName WheelRightAction = "move_right";
     private static readonly StringName WheelUpAction = "move_up";
@@ -20,7 +36,7 @@ public partial class WorkstationRequestWheel : Control
     private const float ItemGap = 8.0f;
     private const float WheelPadding = 16.0f;
     private const float MouseDeadzoneSquared = 64.0f;
-    private readonly List<PickupItemDefinition> _items = new();
+    private readonly List<WheelEntry> _entries = new();
     private int _selectedIndex;
     private Vector2 _requestedCenter;
     private Vector2 _drawCenter;
@@ -32,12 +48,17 @@ public partial class WorkstationRequestWheel : Control
     private bool _controllerSelectionActive;
 
     public PickupItemDefinition? SelectedItem =>
-        _items.Count == 0 ? null : _items[_selectedIndex];
+        _entries.Count == 0 ? null : _entries[_selectedIndex].Ingredients[0];
+
+    public CookingRecipe? SelectedRecipe =>
+        _entries.Count == 0 ? null : _entries[_selectedIndex].Recipe;
 
     public int PageCount =>
-        Mathf.CeilToInt((float)_items.Count / ItemsPerPage);
+        Mathf.CeilToInt((float)_entries.Count / ItemsPerPage);
 
     public int CurrentPageIndex => _pageIndex;
+
+    public int EntryCount => _entries.Count;
 
     public override void _Ready()
     {
@@ -52,12 +73,14 @@ public partial class WorkstationRequestWheel : Control
         Vector2 center
     )
     {
-        _items.Clear();
+        _entries.Clear();
         foreach (PickupItemDefinition item in items)
         {
             if (item is not null)
             {
-                _items.Add(item);
+                _entries.Add(
+                    new WheelEntry(new List<PickupItemDefinition> { item })
+                );
             }
         }
 
@@ -68,6 +91,64 @@ public partial class WorkstationRequestWheel : Control
         SetProcess(true);
         Show();
         QueueRedraw();
+    }
+
+    public void OpenRecipes(
+        Array<CookingRecipe> recipes,
+        CookingRecipe? currentRecipe,
+        Vector2 center
+    )
+    {
+        _entries.Clear();
+        foreach (CookingRecipe recipe in recipes)
+        {
+            if (recipe is null || recipe.Ingredients.Count == 0)
+            {
+                continue;
+            }
+
+            var ingredients = new List<PickupItemDefinition>();
+            foreach (PickupItemDefinition ingredient in recipe.Ingredients)
+            {
+                if (ingredient is not null)
+                {
+                    ingredients.Add(ingredient);
+                }
+            }
+            if (ingredients.Count > 0)
+            {
+                _entries.Add(new WheelEntry(ingredients, recipe));
+            }
+        }
+
+        _selectedIndex = FindSelectedRecipeIndex(currentRecipe);
+        _pageIndex = _selectedIndex / ItemsPerPage;
+        _controllerSelectionActive = false;
+        SetCenter(center);
+        SetProcess(true);
+        Show();
+        QueueRedraw();
+    }
+
+    public int GetSelectedIngredientCount()
+    {
+        return _entries.Count == 0
+            ? 0
+            : _entries[_selectedIndex].Ingredients.Count;
+    }
+
+    public PickupItemDefinition? GetSelectedIngredient(int index)
+    {
+        if (
+            _entries.Count == 0
+            || index < 0
+            || index >= _entries[_selectedIndex].Ingredients.Count
+        )
+        {
+            return null;
+        }
+
+        return _entries[_selectedIndex].Ingredients[index];
     }
 
     public void Close()
@@ -176,7 +257,7 @@ public partial class WorkstationRequestWheel : Control
         _pageIndex = Mathf.PosMod(_pageIndex + offset, PageCount);
         _selectedIndex = Mathf.Min(
             _pageIndex * ItemsPerPage + localIndex,
-            _items.Count - 1
+            _entries.Count - 1
         );
         UpdateLayout();
         QueueRedraw();
@@ -186,7 +267,7 @@ public partial class WorkstationRequestWheel : Control
     {
         return Mathf.Min(
             ItemsPerPage,
-            _items.Count - _pageIndex * ItemsPerPage
+            _entries.Count - _pageIndex * ItemsPerPage
         );
     }
 
@@ -261,9 +342,28 @@ public partial class WorkstationRequestWheel : Control
     {
         if (currentItem is not null)
         {
-            for (int index = 0; index < _items.Count; index++)
+            for (int index = 0; index < _entries.Count; index++)
             {
-                if (_items[index].Id == currentItem.Id)
+                if (_entries[index].Ingredients[0].Id == currentItem.Id)
+                {
+                    return index;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private int FindSelectedRecipeIndex(CookingRecipe? currentRecipe)
+    {
+        if (currentRecipe?.Output is not null)
+        {
+            for (int index = 0; index < _entries.Count; index++)
+            {
+                if (
+                    _entries[index].Recipe?.Output?.Id
+                    == currentRecipe.Output.Id
+                )
                 {
                     return index;
                 }
@@ -275,7 +375,7 @@ public partial class WorkstationRequestWheel : Control
 
     public override void _Draw()
     {
-        if (_items.Count == 0)
+        if (_entries.Count == 0)
         {
             return;
         }
@@ -341,24 +441,45 @@ public partial class WorkstationRequestWheel : Control
                 selected ? BlueTint : Colors.White,
                 2.0f
             );
-            PickupItemDefinition item = _items[itemIndex];
-            if (item.Texture is not null)
+            DrawIngredientGroup(_entries[itemIndex].Ingredients, itemCenter);
+        }
+    }
+
+    private void DrawIngredientGroup(
+        List<PickupItemDefinition> ingredients,
+        Vector2 center
+    )
+    {
+        float spacing = _itemRadius * 0.85f;
+        float startX = -spacing * (ingredients.Count - 1) * 0.5f;
+        float maxIconSize =
+            ingredients.Count == 1 ? _itemRadius * 1.5f : _itemRadius * 0.9f;
+        for (int index = 0; index < ingredients.Count; index++)
+        {
+            PickupItemDefinition ingredient = ingredients[index];
+            if (ingredient.Texture is null)
             {
-                Vector2 size =
-                    item.Texture.GetSize() * item.VisualScale * 0.55f;
-                float maxDimension = Mathf.Max(size.X, size.Y);
-                float maxIconSize = _itemRadius * 1.5f;
-                if (maxDimension > maxIconSize)
-                {
-                    size *= maxIconSize / maxDimension;
-                }
-                DrawTextureRect(
-                    item.Texture,
-                    new Rect2(itemCenter - size * 0.5f, size),
-                    false,
-                    item.Modulate
-                );
+                continue;
             }
+
+            Vector2 size =
+                ingredient.Texture.GetSize()
+                * ingredient.VisualScale
+                * 0.55f;
+            float maxDimension = Mathf.Max(size.X, size.Y);
+            if (maxDimension > maxIconSize)
+            {
+                size *= maxIconSize / maxDimension;
+            }
+
+            Vector2 iconCenter =
+                center + Vector2.Right * (startX + index * spacing);
+            DrawTextureRect(
+                ingredient.Texture,
+                new Rect2(iconCenter - size * 0.5f, size),
+                false,
+                ingredient.Modulate
+            );
         }
     }
 }

@@ -49,6 +49,9 @@ animation = &"open"
 
 [node name="Icon" type="Sprite2D" parent="."]
 
+[node name="SecondaryIcon" type="Sprite2D" parent="."]
+visible = false
+
 [node name="TimerBar" type="Sprite2D" parent="."]
 visible = false
 position = Vector2(0, -31)

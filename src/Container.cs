@@ -17,6 +17,9 @@ public partial class Container : StaticBody2D
     [Export]
     public PickupItemDefinition? ItemDefinition { get; set; }
 
+    [Export(PropertyHint.Range, "0.1,2,0.05,or_greater")]
+    public float ItemIndicatorScaleMultiplier { get; set; } = 0.5f;
+
     public override void _Ready()
     {
         if (PickupScene is null || ItemDefinition is null)
@@ -77,7 +80,8 @@ public partial class Container : StaticBody2D
             ?? GetIdleFrameTexture(definition.SpriteFrames);
         _itemIndicator.Material = definition.VisualMaterial;
         _itemIndicator.Modulate = definition.Modulate;
-        _itemIndicator.Scale = definition.VisualScale * 0.5f;
+        _itemIndicator.Scale =
+            definition.VisualScale * ItemIndicatorScaleMultiplier;
         _itemIndicator.Visible = _itemIndicator.Texture is not null;
     }
 

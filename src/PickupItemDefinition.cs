@@ -17,6 +17,9 @@ public partial class PickupItemDefinition : Resource
     public SpriteFrames? SpriteFrames { get; set; }
 
     [Export]
+    public SpriteFrames? ProcessingSpriteFrames { get; set; }
+
+    [Export]
     public Color Modulate { get; set; } = Colors.White;
 
     [Export]
