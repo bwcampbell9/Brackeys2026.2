@@ -51,6 +51,9 @@ public partial class GameScoreController : CanvasLayer
     [Export]
     public NodePath NextLevelRevealTargetPath { get; set; } = new("Player");
 
+    [Export]
+    public bool RevealNextLevelAtViewportCenter { get; set; }
+
     [ExportGroup("")]
     [Export]
     public NodePath GameOverControllerPath { get; set; } =
@@ -238,7 +241,8 @@ public partial class GameScoreController : CanvasLayer
         Error result = await transition.TransitionToScene(
             NextLevelScenePath,
             NextLevelRevealTargetPath,
-            _scoreLabel.GetGlobalRect().GetCenter()
+            _scoreLabel.GetGlobalRect().GetCenter(),
+            revealAtViewportCenter: RevealNextLevelAtViewportCenter
         );
         if (result != Error.Ok && IsInstanceValid(this))
         {

@@ -3,6 +3,7 @@ extends SceneTree
 const LEVEL_1_PATH := "res://scenes/level_1.tscn"
 const LEVEL_2_PATH := "res://scenes/level_2.tscn"
 const LEVEL_3_PATH := "res://scenes/level_3.tscn"
+const TITLE_SCREEN_PATH := "res://scenes/title_screen.tscn"
 
 var _failed := false
 
@@ -94,10 +95,15 @@ func _run() -> void:
 	_check(
 		_is_win_audio_playing()
 			and _has_single_confetti_burst()
-			and not _has_circle_transition(),
-		"The terminal level must celebrate without starting another transition.",
+			and _has_circle_transition(),
+		"Winning Level 3 must celebrate and start the circle transition.",
 	)
-	await create_timer(2.5, true, false, true).timeout
+	await create_timer(1.5, true, false, true).timeout
+	_check(
+		current_scene.scene_file_path == TITLE_SCREEN_PATH,
+		"Winning Level 3 must return to the title screen.",
+	)
+	await create_timer(1.0, true, false, true).timeout
 	await process_frame
 	_check(
 		_count_win_audio_players() == 0 and _count_confetti_bursts() == 0,
@@ -108,7 +114,10 @@ func _run() -> void:
 	if music_player != null:
 		music_player.stop()
 		music_player.stream = null
+		music_player.queue_free()
+		await create_timer(0.25, true, false, true).timeout
 	current_scene.queue_free()
+	await process_frame
 	await process_frame
 	print("level_progression_runtime=", "failed" if _failed else "passed")
 	quit(1 if _failed else 0)
