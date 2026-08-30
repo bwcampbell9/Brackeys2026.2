@@ -4,6 +4,8 @@ using Godot.Collections;
 public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
 {
     private static readonly StringName CrawlAnimation = "crawl";
+    private static readonly StringName StabbedAnimation = "stabbed";
+    private static readonly StringName KnifeItemId = "knife";
 
     private AnimatedSprite2D _sprite = null!;
     private AudioStreamPlayer2D _cryAudio = null!;
@@ -12,6 +14,7 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     private float _stateTime;
     private bool _isCrawling;
     private bool _isThrown;
+    private bool _isDead;
     private float _pushSuppressionRemaining;
 
     [Export]
@@ -44,6 +47,11 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     [Export(PropertyHint.Range, "0.05,1,0.05,or_greater")]
     public float PushSuppressionDuration { get; set; } = 0.2f;
 
+    [Export(PropertyHint.Range, "0.1,1000,0.1,or_greater")]
+    public float MinimumLethalKnifeSpeed { get; set; } = 30.0f;
+
+    public bool IsDead => _isDead;
+
     public override void _Ready()
     {
         base._Ready();
@@ -51,11 +59,18 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
         _cryAudio = GetNode<AudioStreamPlayer2D>(CryAudioPath);
         _random = new RandomNumberGenerator();
         _random.Randomize();
+        BodyEntered += OnBodyEntered;
         StartPause();
     }
 
     public override void _PhysicsProcess(double delta)
     {
+        if (_isDead)
+        {
+            StopDeadMotion();
+            return;
+        }
+
         if (!IsAvailable)
         {
             StopCrawling();
@@ -108,9 +123,19 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
         SetCrawlFacing(LinearVelocity);
     }
 
+    public override bool TryPickUp(Node2D holdPoint, float duration)
+    {
+        return !_isDead && base.TryPickUp(holdPoint, duration);
+    }
+
     protected override void OnPickedUp()
     {
         _isThrown = false;
+        if (_isDead)
+        {
+            StopDeadMotion();
+            return;
+        }
         StopCrawling();
         PlayRandomCry();
     }
@@ -128,14 +153,57 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
 
     protected override void OnThrown()
     {
+        if (_isDead)
+        {
+            StopDeadMotion();
+            return;
+        }
         _isThrown = true;
         StartPause();
     }
 
     public void OnBodyPushed()
     {
+        if (_isDead)
+        {
+            return;
+        }
         _pushSuppressionRemaining = PushSuppressionDuration;
         StopCrawling(false);
+    }
+
+    private void OnBodyEntered(Node body)
+    {
+        if (
+            _isDead
+            || body is not PickupItem knife
+            || !knife.IsAvailable
+            || knife.IsQueuedForDeletion()
+            || knife.Definition?.Id != KnifeItemId
+            || knife.LinearVelocity.IsZeroApprox()
+            || knife.LinearVelocity.LengthSquared()
+                < MinimumLethalKnifeSpeed * MinimumLethalKnifeSpeed
+        )
+        {
+            return;
+        }
+
+        _isDead = true;
+        _isCrawling = false;
+        _isThrown = false;
+        _pushSuppressionRemaining = 0.0f;
+        _sprite.Animation = StabbedAnimation;
+        _sprite.Frame = 0;
+        _sprite.Stop();
+        StopDeadMotion();
+        knife.QueueFree();
+    }
+
+    private void StopDeadMotion()
+    {
+        LinearVelocity = Vector2.Zero;
+        AngularVelocity = 0.0f;
+        SetDeferred(PropertyName.Freeze, true);
     }
 
     private void StartBurst()

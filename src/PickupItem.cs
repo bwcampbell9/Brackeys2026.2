@@ -66,7 +66,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
         AddToGroup(ItemSourceCatalog.ItemSourceGroup);
     }
 
-    public bool TryPickUp(Node2D holdPoint, float duration)
+    public virtual bool TryPickUp(Node2D holdPoint, float duration)
     {
         if (duration < 0.0f)
         {

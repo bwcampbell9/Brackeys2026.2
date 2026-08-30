@@ -504,6 +504,29 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 			assert_true(is_equal_approx(interaction_shape.radius, 32.01562))
 
 
+func test_baby_pickup_item_has_knife_death_contract() -> void:
+	var baby := track(BABY_PICKUP_ITEM_SCENE.instantiate()) as RigidBody2D
+
+	assert_true(baby != null)
+	if baby == null:
+		return
+
+	assert_true(baby.contact_monitor)
+	assert_true(baby.max_contacts_reported > 0)
+	assert_true(float(baby.get("MinimumLethalKnifeSpeed")) > 0.0)
+	var sprite := baby.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite == null:
+		return
+
+	assert_eq(sprite.sprite_frames.get_frame_count("stabbed"), 1)
+	assert_false(sprite.sprite_frames.get_animation_loop("stabbed"))
+	assert_eq(
+		sprite.sprite_frames.get_frame_texture("stabbed", 0).resource_path,
+		"res://assets/sprites/baby/baby_stabbed.png",
+	)
+
+
 func test_knife_item_has_pickup_definition() -> void:
 	var knife := track(KNIFE_ITEM_SCENE.instantiate()) as RigidBody2D
 

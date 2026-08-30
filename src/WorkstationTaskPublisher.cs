@@ -12,12 +12,14 @@ public enum WorkstationTaskRequestMode
 public partial class WorkstationTaskPublisher : Node2D
 {
 	public static readonly StringName PublisherGroup = "workstation_task_publishers";
+	private static readonly StringName RequestIndicatorOpenAnimation = new("open");
 
 	private TaskBroker? _broker;
 	private PickupSocket _socket = null!;
 	private InteractionTarget _interactionTarget = null!;
 	private TimedItemProcessAction? _processAction;
 	private Node2D _requestIndicator = null!;
+	private AnimatedSprite2D _requestIndicatorAnimation = null!;
 	private Sprite2D _requestIndicatorIcon = null!;
 	private WorkstationRequestWheel? _requestWheel;
 	private Node2D? _consumerVisual;
@@ -50,8 +52,15 @@ public partial class WorkstationTaskPublisher : Node2D
 		new("../TaskRequestIndicator");
 
 	[Export]
+	public NodePath RequestIndicatorAnimationPath { get; set; } =
+		new("../TaskRequestIndicator/Background");
+
+	[Export]
 	public NodePath RequestIndicatorIconPath { get; set; } =
 		new("../TaskRequestIndicator/Icon");
+
+	[Export(PropertyHint.Range, "1,60,1")]
+	public float RequestIndicatorOpenFramesPerSecond { get; set; } = 24.0f;
 
 	[Export]
 	public NodePath RequestWheelPath { get; set; } =
@@ -153,6 +162,11 @@ public partial class WorkstationTaskPublisher : Node2D
 			GetNodeOrNull<Node2D>(RequestIndicatorPath)
 			?? throw new InvalidOperationException(
                 "WorkstationTaskPublisher requires a request indicator."
+			);
+		_requestIndicatorAnimation =
+			GetNodeOrNull<AnimatedSprite2D>(RequestIndicatorAnimationPath)
+			?? throw new InvalidOperationException(
+                "WorkstationTaskPublisher requires an animated request indicator background."
 			);
 		_requestIndicatorIcon =
 			GetNodeOrNull<Sprite2D>(RequestIndicatorIconPath)
@@ -495,6 +509,12 @@ public partial class WorkstationTaskPublisher : Node2D
 		_requestIndicatorIcon.Modulate = item.Modulate;
 		_requestIndicatorIcon.Scale = item.VisualScale * 0.65f;
 		_requestIndicator.Visible = true;
+		_requestIndicatorAnimation.Stop();
+		_requestIndicatorAnimation.Frame = 0;
+		_requestIndicatorAnimation.Play(
+			RequestIndicatorOpenAnimation,
+			RequestIndicatorOpenFramesPerSecond
+		);
 	}
 
 	private void ClearRequestIndicator()
@@ -507,6 +527,11 @@ public partial class WorkstationTaskPublisher : Node2D
 		if (GodotObject.IsInstanceValid(_requestIndicatorIcon))
 		{
 			_requestIndicatorIcon.Texture = null;
+		}
+		if (GodotObject.IsInstanceValid(_requestIndicatorAnimation))
+		{
+			_requestIndicatorAnimation.Stop();
+			_requestIndicatorAnimation.Frame = 0;
 		}
 	}
 
