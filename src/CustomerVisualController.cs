@@ -85,10 +85,10 @@ public partial class CustomerVisualController : Node
             );
         _random = new RandomNumberGenerator();
         _random.Randomize();
-            ScheduleNextHmm(
-                InitialMinimumHmmDelaySeconds,
-                InitialMaximumHmmDelaySeconds
-            );
+        ScheduleNextHmm(
+            InitialMinimumHmmDelaySeconds,
+            InitialMaximumHmmDelaySeconds
+        );
         SetAnimation(IdleAnimation);
     }
 
