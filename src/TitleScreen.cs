@@ -86,7 +86,14 @@ public partial class TitleScreen : Control
 
         if (!MenuInputMode.IsControllerActive)
         {
-            ReleaseMenuFocus();
+            if (MenuInputMode.IsMouseRelease(@event))
+            {
+                Callable.From(ReleaseMenuFocusIfActive).CallDeferred();
+            }
+            else if (!MenuInputMode.IsMouseDrag(@event))
+            {
+                ReleaseMenuFocus();
+            }
             return;
         }
 
@@ -190,6 +197,14 @@ public partial class TitleScreen : Control
         _cookButton.ReleaseFocus();
         _tutorialButton.ReleaseFocus();
         _exitButton.ReleaseFocus();
+    }
+
+    private void ReleaseMenuFocusIfActive()
+    {
+        if (IsInstanceValid(this) && IsInsideTree())
+        {
+            ReleaseMenuFocus();
+        }
     }
 
     private void OnJoyConnectionChanged(long device, bool connected)

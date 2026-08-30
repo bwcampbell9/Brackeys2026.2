@@ -32,11 +32,19 @@ func _run() -> void:
 		root.gui_get_focus_owner() == null,
 		"Opening pause without controller input must not select a button.",
 	)
+	await create_timer(0.8).timeout
+	var resume_button := pause_menu.get_node(
+		"Overlay/Scroll/ParchmentMask/ResumeButton"
+	)
+	await _send_mouse_click(resume_button.get_global_rect().get_center())
+	await create_timer(0.1).timeout
+	_check(not paused, "Clicking Resume with slight mouse motion must unpause gameplay.")
+	_check(not pause_menu.visible, "Clicking Resume must hide the pause menu.")
+
+	await _send_action(&"pause")
 	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
 	_check(
-		root.gui_get_focus_owner() == pause_menu.get_node(
-			"Overlay/Scroll/ParchmentMask/ResumeButton"
-		),
+		root.gui_get_focus_owner() == resume_button,
 		"Opening the pause menu must focus Resume for controller input.",
 	)
 	await _send_mouse_motion()
@@ -123,6 +131,11 @@ func _run() -> void:
 	play_button = current_scene.get_node("Scroll/ParchmentMask/CookButton")
 	tutorial_button = current_scene.get_node("Scroll/ParchmentMask/TutorialButton")
 	exit_button = current_scene.get_node("Scroll/ParchmentMask/ExitButton")
+	await _send_cancelled_mouse_drag(exit_button.get_global_rect().get_center())
+	_check(
+		root.gui_get_focus_owner() == null,
+		"Canceling a mouse drag must clear its temporary button focus.",
+	)
 	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
 	_check(root.gui_get_focus_owner() == play_button, "The title screen must focus Cook.")
 	await _send_action(&"ui_down")
@@ -228,12 +241,46 @@ func _send_mouse_click(position: Vector2) -> void:
 	root.push_input(press, true)
 	await process_frame
 
+	var motion := InputEventMouseMotion.new()
+	motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+	motion.position = position + Vector2.ONE
+	motion.relative = Vector2.ONE
+	root.push_input(motion, true)
+	await process_frame
+
 	var release := InputEventMouseButton.new()
 	release.button_index = MOUSE_BUTTON_LEFT
 	release.position = position
 	release.global_position = position
 	release.pressed = false
 	root.push_input(release, true)
+	await process_frame
+
+
+func _send_cancelled_mouse_drag(position: Vector2) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.button_mask = MOUSE_BUTTON_MASK_LEFT
+	press.position = position
+	press.global_position = position
+	press.pressed = true
+	root.push_input(press, true)
+	await process_frame
+
+	var motion := InputEventMouseMotion.new()
+	motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+	motion.position = Vector2(20, 20)
+	motion.relative = motion.position - position
+	root.push_input(motion, true)
+	await process_frame
+
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.position = motion.position
+	release.global_position = motion.position
+	release.pressed = false
+	root.push_input(release, true)
+	await process_frame
 	await process_frame
 
 
