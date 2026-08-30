@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://bs4ml8jcscl4t" path="res://scenes/stove.tscn" id="13_stove"]
 [ext_resource type="PackedScene" path="res://scenes/recipe_book_item.tscn" id="14_recipe_book"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="15_pause_menu"]
+[ext_resource type="AudioStream" uid="uid://cynt36n0m0jxu" path="res://assets/sounds/game_music.mp3" id="16_gamemusic"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_kitchen"]
 vertices = PackedVector2Array(628, 346, 716, 346, 884, 464, 140, 464, 140, 386, 884, 76, 716, 258, 460, 76, 628, 258, 460, 154, 76, 386, 76, 346, 140, 346, 372, 154, 140, 258, 372, 76, 76, 258, 76, 76)
@@ -73,7 +74,7 @@ position = Vector2(480, 270)
 [node name="BabyPickupItem" parent="." unique_id=1947549762 instance=ExtResource("2_baby")]
 position = Vector2(480, 200)
 
-[node name="RecipeBookItem" parent="." unique_id=1855219522 instance=ExtResource("14_recipe_book")]
+[node name="RecipeBookItem" parent="." unique_id=2037827658 instance=ExtResource("14_recipe_book")]
 position = Vector2(400, 200)
 
 [node name="Oven" parent="." unique_id=298111419 instance=ExtResource("12_oven")]
@@ -84,10 +85,15 @@ process_mode = 3
 layer = 10
 script = ExtResource("13_game_over")
 
-[node name="PauseMenu" parent="." unique_id=525587910 instance=ExtResource("15_pause_menu")]
+[node name="PauseMenu" parent="." unique_id=1389617114 instance=ExtResource("15_pause_menu")]
 
 [node name="Stove" parent="." unique_id=1257303080 instance=ExtResource("13_stove")]
 position = Vector2(672, 238)
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=56665474]
+stream = ExtResource("16_gamemusic")
+volume_db = -25.0
+autoplay = true
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
 

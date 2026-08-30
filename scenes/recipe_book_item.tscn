@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://src/RecipeBookItem.cs" id="1_book"]
 [ext_resource type="Texture2D" path="res://assets/sprites/recipe_book/recipe_book-Sheet.png" id="2_sheet"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="4_target"]
 [ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="5_transfer"]
 [ext_resource type="Texture2D" uid="uid://b2jv754x83j68" path="res://assets/sprites/recipe_book/recipe_book_large.png" id="6_overlay"]
+[ext_resource type="AudioStream" path="res://assets/sounds/open_cookbook.wav" id="7_open_audio"]
+[ext_resource type="AudioStream" path="res://assets/sounds/close_cookbook.wav" id="8_close_audio"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_book"]
 radius = 24.0
@@ -75,6 +77,12 @@ shape = SubResource("CircleShape2D_book")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_book")
 animation = &"open"
+
+[node name="OpenCookbookAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("7_open_audio")
+
+[node name="CloseCookbookAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("8_close_audio")
 
 [node name="RecipeOverlay" type="CanvasLayer" parent="."]
 layer = 5
