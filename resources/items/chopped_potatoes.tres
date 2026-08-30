@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://coq2rm448lkux" path="res://assets/sprites/Potato.png" id="2_texture"]
 [ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="3_override"]
 [ext_resource type="Resource" uid="uid://6hciapqedump" path="res://resources/items/potato_soup.tres" id="4_potato_soup"]
-[ext_resource type="Material" path="res://resources/materials/chopped_fracture.tres" id="5_material"]
+[ext_resource type="Material" uid="uid://dwsk1haatd4u3" path="res://resources/materials/chopped_fracture.tres" id="5_material"]
 
 [sub_resource type="Resource" id="Resource_stove_cook_override"]
 script = ExtResource("3_override")

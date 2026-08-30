@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://dwsk1haatd4u3"]
 
-[ext_resource type="Shader" path="res://assets/shaders/chopped_fracture.gdshader" id="1_fracture"]
+[ext_resource type="Shader" uid="uid://2pr3kv73f1gp" path="res://assets/shaders/chopped_fracture.gdshader" id="1_fracture"]
 
 [resource]
 shader = ExtResource("1_fracture")
