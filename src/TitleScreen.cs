@@ -74,7 +74,7 @@ public partial class TitleScreen : Control
         tween.TweenProperty(_parchmentMask, "position", maskOpenPosition, _openDuration);
         tween.TweenProperty(_parchmentMask, "size", maskOpenSize, _openDuration);
         tween.TweenProperty(_parchment, "position", parchmentOpenPosition, _openDuration);
-        tween.Chain().TweenCallback(Callable.From(EnableMenu));
+        tween.TweenCallback(Callable.From(EnableMenu));
     }
 
     public override void _Input(InputEvent @event)
@@ -86,7 +86,14 @@ public partial class TitleScreen : Control
 
         if (!MenuInputMode.IsControllerActive)
         {
-            ReleaseMenuFocus();
+            if (MenuInputMode.IsMouseRelease(@event))
+            {
+                Callable.From(ReleaseMenuFocusIfActive).CallDeferred();
+            }
+            else if (!MenuInputMode.IsMouseDrag(@event))
+            {
+                ReleaseMenuFocus();
+            }
             return;
         }
 
@@ -190,6 +197,14 @@ public partial class TitleScreen : Control
         _cookButton.ReleaseFocus();
         _tutorialButton.ReleaseFocus();
         _exitButton.ReleaseFocus();
+    }
+
+    private void ReleaseMenuFocusIfActive()
+    {
+        if (IsInstanceValid(this) && IsInsideTree())
+        {
+            ReleaseMenuFocus();
+        }
     }
 
     private void OnJoyConnectionChanged(long device, bool connected)

@@ -102,7 +102,14 @@ public partial class PauseMenu : CanvasLayer
 
 		if (!MenuInputMode.IsControllerActive)
 		{
-			ReleaseMenuFocus();
+			if (MenuInputMode.IsMouseRelease(@event))
+			{
+				Callable.From(ReleaseMenuFocusIfActive).CallDeferred();
+			}
+			else if (!MenuInputMode.IsMouseDrag(@event))
+			{
+				ReleaseMenuFocus();
+			}
 			return;
 		}
 
@@ -291,6 +298,14 @@ public partial class PauseMenu : CanvasLayer
 		_resumeButton.ReleaseFocus();
 		_titleButton.ReleaseFocus();
 		_quitButton.ReleaseFocus();
+	}
+
+	private void ReleaseMenuFocusIfActive()
+	{
+		if (IsInstanceValid(this) && IsInsideTree())
+		{
+			ReleaseMenuFocus();
+		}
 	}
 
 	private void OnJoyConnectionChanged(long device, bool connected)

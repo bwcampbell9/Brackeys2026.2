@@ -32,11 +32,19 @@ func _run() -> void:
 		root.gui_get_focus_owner() == null,
 		"Opening pause without controller input must not select a button.",
 	)
+	await create_timer(0.8).timeout
+	var resume_button := pause_menu.get_node(
+		"Overlay/Scroll/ParchmentMask/ResumeButton"
+	)
+	await _send_mouse_click(resume_button.get_global_rect().get_center())
+	await create_timer(0.1).timeout
+	_check(not paused, "Clicking Resume with slight mouse motion must unpause gameplay.")
+	_check(not pause_menu.visible, "Clicking Resume must hide the pause menu.")
+
+	await _send_action(&"pause")
 	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
 	_check(
-		root.gui_get_focus_owner() == pause_menu.get_node(
-			"Overlay/Scroll/ParchmentMask/ResumeButton"
-		),
+		root.gui_get_focus_owner() == resume_button,
 		"Opening the pause menu must focus Resume for controller input.",
 	)
 	await _send_mouse_motion()
@@ -87,14 +95,13 @@ func _run() -> void:
 	await _send_action(&"pause")
 	await _send_action(&"ui_down")
 	await _send_action(&"ui_accept")
-	await create_timer(1.5).timeout
+	var title_loaded := await _wait_for_scene("res://scenes/title_screen.tscn")
 	_check(
-		current_scene != null
-		and current_scene.scene_file_path == "res://scenes/title_screen.tscn",
+		title_loaded,
 		"Return to Title must load the title screen.",
 	)
 	_check(not paused, "Returning to the title screen must leave the scene tree unpaused.")
-	await create_timer(2.0).timeout
+	await create_timer(1.3).timeout
 
 	var play_button := current_scene.get_node(
 		"Scroll/ParchmentMask/CookButton"
@@ -105,6 +112,31 @@ func _run() -> void:
 	var exit_button := current_scene.get_node(
 		"Scroll/ParchmentMask/ExitButton"
 	)
+	var tutorial_click_position: Vector2 = tutorial_button.get_global_rect().get_center()
+	await _send_mouse_click(tutorial_click_position)
+	await create_timer(1.5).timeout
+	_check(
+		current_scene != null
+		and current_scene.scene_file_path == "res://scenes/tutorial_screen.tscn",
+		"Clicking visible Tutorial during the menu reveal must load the tutorial screen.",
+	)
+	await _send_action(&"ui_cancel")
+	await create_timer(1.5).timeout
+	_check(
+		current_scene != null
+		and current_scene.scene_file_path == "res://scenes/title_screen.tscn",
+		"Controller B must return from the tutorial to the title screen.",
+	)
+	await create_timer(2.0).timeout
+	play_button = current_scene.get_node("Scroll/ParchmentMask/CookButton")
+	tutorial_button = current_scene.get_node("Scroll/ParchmentMask/TutorialButton")
+	exit_button = current_scene.get_node("Scroll/ParchmentMask/ExitButton")
+	await _send_cancelled_mouse_drag(exit_button.get_global_rect().get_center())
+	_check(
+		root.gui_get_focus_owner() == null,
+		"Canceling a mouse drag must clear its temporary button focus.",
+	)
+	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
 	_check(root.gui_get_focus_owner() == play_button, "The title screen must focus Cook.")
 	await _send_action(&"ui_down")
 	_check(
@@ -123,22 +155,6 @@ func _run() -> void:
 		root.gui_get_focus_owner() == play_button,
 		"Controller input must restore title focus to Cook.",
 	)
-	await _send_mouse_click(tutorial_button.get_global_rect().get_center())
-	await create_timer(1.5).timeout
-	_check(
-		current_scene != null
-		and current_scene.scene_file_path == "res://scenes/tutorial_screen.tscn",
-		"Clicking Tutorial with the mouse must load the tutorial screen.",
-	)
-	await _send_action(&"ui_cancel")
-	await create_timer(1.5).timeout
-	_check(
-		current_scene != null
-		and current_scene.scene_file_path == "res://scenes/title_screen.tscn",
-		"Controller B must return from the tutorial to the title screen.",
-	)
-	await create_timer(2.0).timeout
-	play_button = current_scene.get_node("Scroll/ParchmentMask/CookButton")
 	await _send_mouse_click(play_button.get_global_rect().get_center())
 	await create_timer(1.5).timeout
 	_check(
@@ -225,6 +241,13 @@ func _send_mouse_click(position: Vector2) -> void:
 	root.push_input(press, true)
 	await process_frame
 
+	var motion := InputEventMouseMotion.new()
+	motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+	motion.position = position + Vector2.ONE
+	motion.relative = Vector2.ONE
+	root.push_input(motion, true)
+	await process_frame
+
 	var release := InputEventMouseButton.new()
 	release.button_index = MOUSE_BUTTON_LEFT
 	release.position = position
@@ -232,6 +255,42 @@ func _send_mouse_click(position: Vector2) -> void:
 	release.pressed = false
 	root.push_input(release, true)
 	await process_frame
+
+
+func _send_cancelled_mouse_drag(position: Vector2) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.button_mask = MOUSE_BUTTON_MASK_LEFT
+	press.position = position
+	press.global_position = position
+	press.pressed = true
+	root.push_input(press, true)
+	await process_frame
+
+	var motion := InputEventMouseMotion.new()
+	motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+	motion.position = Vector2(20, 20)
+	motion.relative = motion.position - position
+	root.push_input(motion, true)
+	await process_frame
+
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.position = motion.position
+	release.global_position = motion.position
+	release.pressed = false
+	root.push_input(release, true)
+	await process_frame
+	await process_frame
+
+
+func _wait_for_scene(scene_path: String, timeout_seconds := 3.0) -> bool:
+	var deadline := Time.get_ticks_msec() + int(timeout_seconds * 1000.0)
+	while Time.get_ticks_msec() < deadline:
+		if current_scene != null and current_scene.scene_file_path == scene_path:
+			return true
+		await process_frame
+	return false
 
 
 func _check(condition: bool, message: String) -> void:

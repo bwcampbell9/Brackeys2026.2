@@ -23,7 +23,7 @@ public static class MenuInputMode
 
         if (
             @event is InputEventMouseMotion
-            || @event is InputEventMouseButton { Pressed: true }
+            || @event is InputEventMouseButton
             || @event is InputEventKey { Pressed: true, Echo: false }
         )
         {
@@ -32,5 +32,16 @@ public static class MenuInputMode
         }
 
         return false;
+    }
+
+    public static bool IsMouseDrag(InputEvent @event)
+    {
+        return @event is InputEventMouseMotion mouseMotion
+            && mouseMotion.ButtonMask != (MouseButtonMask)0;
+    }
+
+    public static bool IsMouseRelease(InputEvent @event)
+    {
+        return @event is InputEventMouseButton { Pressed: false };
     }
 }
