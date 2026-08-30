@@ -34,14 +34,8 @@ public static class MenuInputMode
         return false;
     }
 
-    public static bool IsMouseDrag(InputEvent @event)
+    public static bool IsKeyboardInput(InputEvent @event)
     {
-        return @event is InputEventMouseMotion mouseMotion
-            && mouseMotion.ButtonMask != (MouseButtonMask)0;
-    }
-
-    public static bool IsMouseRelease(InputEvent @event)
-    {
-        return @event is InputEventMouseButton { Pressed: false };
+        return @event is InputEventKey { Pressed: true, Echo: false };
     }
 }

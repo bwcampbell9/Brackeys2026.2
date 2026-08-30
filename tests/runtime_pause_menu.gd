@@ -36,23 +36,34 @@ func _run() -> void:
 	var resume_button := pause_menu.get_node(
 		"Overlay/Scroll/ParchmentMask/ResumeButton"
 	)
+	var title_button := pause_menu.get_node(
+		"Overlay/Scroll/ParchmentMask/TitleButton"
+	)
 	await _send_mouse_click(resume_button.get_global_rect().get_center())
 	await create_timer(0.1).timeout
 	_check(not paused, "Clicking Resume with slight mouse motion must unpause gameplay.")
 	_check(not pause_menu.visible, "Clicking Resume must hide the pause menu.")
 
 	await _send_action(&"pause")
-	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
+	await _send_joy_button(JOY_BUTTON_DPAD_DOWN)
 	_check(
-		root.gui_get_focus_owner() == resume_button,
-		"Opening the pause menu must focus Resume for controller input.",
+		root.gui_get_focus_owner() == title_button,
+		"The first controller direction after mouse input must move focus.",
 	)
 	await _send_mouse_motion()
 	_check(
-		root.gui_get_focus_owner() == null,
-		"Mouse input must clear controller button selection.",
+		root.gui_get_focus_owner() == title_button,
+		"Mouse input must preserve logical focus for controller handoff.",
 	)
-	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
+	await create_timer(0.25).timeout
+	_check(
+		title_button.scale.is_equal_approx(Vector2.ONE),
+		"Mouse input must hide controller focus presentation.",
+	)
+	await _send_joy_button(JOY_BUTTON_A)
+	_check(not paused, "The first controller A press after mouse input must activate Resume.")
+	_check(not pause_menu.visible, "Controller A after mouse input must hide the pause menu.")
+	await _send_action(&"pause")
 
 	Input.action_press(&"game_over")
 	await process_frame
@@ -64,11 +75,14 @@ func _run() -> void:
 		"Game over must not start while the pause menu owns the paused state.",
 	)
 
-	await _send_action(&"ui_down")
+	await _send_key(KEY_DOWN)
 	_check(
-		root.gui_get_focus_owner() == pause_menu.get_node(
-			"Overlay/Scroll/ParchmentMask/TitleButton"
-		),
+		root.gui_get_focus_owner() == null,
+		"Keyboard input must clear controller button selection.",
+	)
+	await _send_joy_button(JOY_BUTTON_DPAD_DOWN)
+	_check(
+		root.gui_get_focus_owner() == title_button,
 		"Controller navigation must move focus to Return to Title.",
 	)
 
@@ -132,16 +146,10 @@ func _run() -> void:
 	tutorial_button = current_scene.get_node("Scroll/ParchmentMask/TutorialButton")
 	exit_button = current_scene.get_node("Scroll/ParchmentMask/ExitButton")
 	await _send_cancelled_mouse_drag(exit_button.get_global_rect().get_center())
-	_check(
-		root.gui_get_focus_owner() == null,
-		"Canceling a mouse drag must clear its temporary button focus.",
-	)
-	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
-	_check(root.gui_get_focus_owner() == play_button, "The title screen must focus Cook.")
-	await _send_action(&"ui_down")
+	await _send_joy_button(JOY_BUTTON_DPAD_DOWN)
 	_check(
 		root.gui_get_focus_owner() == tutorial_button,
-		"Controller navigation must focus Tutorial after Cook.",
+		"The first controller direction after a canceled drag must move focus.",
 	)
 	await _send_action(&"ui_down")
 	_check(
@@ -149,11 +157,19 @@ func _run() -> void:
 		"Controller navigation must focus Exit after Tutorial.",
 	)
 	await _send_mouse_motion()
-	_check(root.gui_get_focus_owner() == null, "Mouse input must clear title button selection.")
-	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
 	_check(
-		root.gui_get_focus_owner() == play_button,
-		"Controller input must restore title focus to Cook.",
+		root.gui_get_focus_owner() == exit_button,
+		"Mouse input must preserve title menu logical focus.",
+	)
+	await create_timer(0.25).timeout
+	_check(
+		exit_button.scale.is_equal_approx(Vector2.ONE),
+		"Mouse input must hide title controller focus presentation.",
+	)
+	await _send_joy_button(JOY_BUTTON_DPAD_DOWN)
+	_check(
+		root.gui_get_focus_owner() == tutorial_button,
+		"The first controller direction after mouse motion must navigate from Cook.",
 	)
 	await _send_mouse_click(play_button.get_global_rect().get_center())
 	await create_timer(1.5).timeout
@@ -220,6 +236,20 @@ func _send_joy_button(button_index: int) -> void:
 	Input.parse_input_event(release)
 	await process_frame
 	await process_frame
+	await process_frame
+
+
+func _send_key(keycode: int) -> void:
+	var press := InputEventKey.new()
+	press.keycode = keycode
+	press.pressed = true
+	Input.parse_input_event(press)
+	await process_frame
+
+	var release := InputEventKey.new()
+	release.keycode = keycode
+	release.pressed = false
+	Input.parse_input_event(release)
 	await process_frame
 
 

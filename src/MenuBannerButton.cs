@@ -27,6 +27,11 @@ public partial class MenuBannerButton : TextureButton
         FocusExited += OnFocusExited;
     }
 
+    public void RefreshInputModePresentation()
+    {
+        UpdatePresentation();
+    }
+
     private void OnMouseEntered()
     {
         _isHovered = true;
