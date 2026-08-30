@@ -290,10 +290,19 @@ func test_score_hud_uses_pixel_font_contract() -> void:
 	var level := track(main_scene.instantiate())
 	var hud := level.get_node_or_null("Hud") as CanvasLayer
 	var score_label := level.get_node_or_null("Hud/Score") as Label
+	var score_up_audio := level.get_node_or_null("Hud/ScoreUpAudio") as AudioStreamPlayer
+	var score_down_audio := level.get_node_or_null("Hud/ScoreDownAudio") as AudioStreamPlayer
 
 	assert_true(hud != null)
 	assert_true(score_label != null)
-	if hud == null or score_label == null:
+	assert_true(score_up_audio != null)
+	assert_true(score_down_audio != null)
+	if (
+		hud == null
+		or score_label == null
+		or score_up_audio == null
+		or score_down_audio == null
+	):
 		return
 
 	assert_eq(hud.get_script().resource_path, "res://src/GameScoreController.cs")
@@ -301,6 +310,14 @@ func test_score_hud_uses_pixel_font_contract() -> void:
 	assert_true(score_label.has_theme_font_override("font"))
 	assert_eq(score_label.get_theme_color("font_outline_color"), Color.BLACK)
 	assert_eq(score_label.get_theme_constant("outline_size"), 6)
+	assert_eq(score_label.get_theme_font_size("font_size"), 48)
+	assert_true(score_up_audio.stream != null)
+	assert_true(score_down_audio.stream != null)
+	assert_eq(score_up_audio.max_polyphony, 4)
+	assert_eq(score_down_audio.max_polyphony, 4)
+	assert_true(
+		absf(db_to_linear(score_down_audio.volume_db) - 0.85) < 0.001,
+	)
 
 
 func test_player_has_composable_interaction_components() -> void:
