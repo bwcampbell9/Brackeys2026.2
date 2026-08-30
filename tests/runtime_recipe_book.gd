@@ -50,6 +50,14 @@ func _run() -> void:
 		overlay_image.modulate == sprite.modulate,
 		"The recipe overlay must share the held item's transformation color.",
 	)
+	var fracture_shader := (sprite.material as ShaderMaterial).shader
+	_check(
+		fracture_shader.code.contains("(UV - REGION_RECT.xy) / REGION_RECT.zw")
+		and fracture_shader.code.contains(
+			"REGION_RECT.xy + source_uv * REGION_RECT.zw"
+		),
+		"The fracture shader must calculate cuts in atlas-frame-local UV space.",
+	)
 	_check(sprite.frame == 0 and not sprite.is_playing(), "The book must start closed.")
 
 	Input.action_press("secondary_interact")

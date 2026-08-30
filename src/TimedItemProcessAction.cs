@@ -42,6 +42,9 @@ public partial class TimedItemProcessAction : InteractionAction
     public PickupItem? ActiveTool =>
         GodotObject.IsInstanceValid(_activeTool) ? _activeTool : null;
 
+    public PickupItem? ActiveItem =>
+        _isProcessing ? _socket.Item : null;
+
     public override void _Ready()
     {
         _socket =

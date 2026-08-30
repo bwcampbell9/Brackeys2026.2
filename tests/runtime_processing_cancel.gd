@@ -41,6 +41,7 @@ func _run() -> void:
 	var second_hold_point := second_player.get_node("PickupCarrier/HoldPoint") as Node2D
 	var socket := board.get_node("PickupSocket")
 	var progress_bar := board.get_node("ProgressBar") as ProgressBar
+	var chopping_audio := board.get_node("ChoppingAudio") as AudioStreamPlayer2D
 	_check(bool(carrier.TryHold(potato)), "The fixture must let the player hold a potato.")
 	_check(bool(carrier.TryPlace(socket)), "The fixture must place the potato on the board.")
 	_check(bool(carrier.TryHold(knife)), "The fixture must let the player hold a knife.")
@@ -90,6 +91,7 @@ func _run() -> void:
 		progress_bar.value > 0.0 and progress_bar.value < 100.0,
 		"Processing must have partial progress before cancellation.",
 	)
+	_check(chopping_audio.playing, "Active processing must play the chopping sound.")
 	_check(
 		socket.get_child(0).get("Definition").get("Id") == &"potato",
 		"A second actor must not begin the same action and double processing speed.",
@@ -112,6 +114,10 @@ func _run() -> void:
 	_check(socket.get_child_count() == 0, "Taking the item must empty the cutting board.")
 	_check(not progress_bar.visible, "Taking the item must hide processing progress.")
 	_check(is_zero_approx(progress_bar.value), "Taking the item must reset processing progress.")
+	_check(
+		not chopping_audio.playing,
+		"Taking the item must stop the chopping sound.",
+	)
 	_check(
 		second_hold_point.get_child_count() == 1
 		and second_hold_point.get_child(0) == second_knife

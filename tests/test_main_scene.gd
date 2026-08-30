@@ -898,8 +898,13 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	assert_eq(CHOP_TRANSFORMATION.get("Id"), &"chop")
 	assert_eq(
 		CHOP_TRANSFORMATION.get("FallbackMaterial").resource_path,
-		"res://resources/materials/chopped_green.tres",
+		"res://resources/materials/chopped_fracture.tres",
 	)
+	var chop_material := CHOP_TRANSFORMATION.get("FallbackMaterial") as ShaderMaterial
+	assert_true(chop_material != null)
+	if chop_material != null:
+		assert_eq(chop_material.get_shader_parameter("chop_progress"), 1.0)
+		assert_eq(chop_material.get_shader_parameter("chop_count"), 4)
 	var potato_overrides: Array = POTATO_DEFINITION.get("TransformationOverrides")
 	assert_eq(potato_overrides.size(), 1)
 	assert_eq(potato_overrides[0].get("TransformationId"), &"chop")
