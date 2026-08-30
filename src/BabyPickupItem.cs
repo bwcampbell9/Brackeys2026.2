@@ -1,19 +1,10 @@
-using System;
 using Godot;
-
-public enum BabyDeathCause
-{
-    Chopped,
-    Cooked,
-    Eaten,
-}
 
 public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
 {
     private static readonly StringName CrawlAnimation = "crawl";
-    private static readonly StringName ChopTransformation = "chop";
-    private static readonly StringName CookTransformation = "cook";
-    private static readonly StringName StoveCookTransformation = "stove_cook";
+    private static readonly StringName StabbedAnimation = "stabbed";
+    private static readonly StringName KnifeItemId = "knife";
 
     private AnimatedSprite2D _sprite = null!;
     private RandomNumberGenerator _random = null!;
@@ -21,10 +12,8 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     private float _stateTime;
     private bool _isCrawling;
     private bool _isThrown;
-    private bool _deathTriggered;
+    private bool _isDead;
     private float _pushSuppressionRemaining;
-
-    public event Action<BabyDeathCause>? Died;
 
     [Export(PropertyHint.Range, "10,300,1,or_greater")]
     public float MinimumSpeed { get; set; } = 35.0f;
@@ -50,17 +39,29 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     [Export(PropertyHint.Range, "0.05,1,0.05,or_greater")]
     public float PushSuppressionDuration { get; set; } = 0.2f;
 
+    [Export(PropertyHint.Range, "0.1,1000,0.1,or_greater")]
+    public float MinimumLethalKnifeSpeed { get; set; } = 30.0f;
+
+    public bool IsDead => _isDead;
+
     public override void _Ready()
     {
         base._Ready();
         _sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
         _random = new RandomNumberGenerator();
         _random.Randomize();
+        BodyEntered += OnBodyEntered;
         StartPause();
     }
 
     public override void _PhysicsProcess(double delta)
     {
+        if (_isDead)
+        {
+            StopDeadMotion();
+            return;
+        }
+
         if (!IsAvailable)
         {
             StopCrawling();
@@ -113,58 +114,75 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
         SetCrawlFacing(LinearVelocity);
     }
 
+    public override bool TryPickUp(Node2D holdPoint, float duration)
+    {
+        return !_isDead && base.TryPickUp(holdPoint, duration);
+    }
+
     protected override void OnPickedUp()
     {
         _isThrown = false;
+        if (_isDead)
+        {
+            StopDeadMotion();
+            return;
+        }
         StopCrawling();
     }
 
     protected override void OnThrown()
     {
+        if (_isDead)
+        {
+            StopDeadMotion();
+            return;
+        }
         _isThrown = true;
         StartPause();
     }
 
     public void OnBodyPushed()
     {
+        if (_isDead)
+        {
+            return;
+        }
         _pushSuppressionRemaining = PushSuppressionDuration;
         StopCrawling(false);
     }
 
-    public void TriggerDeath(BabyDeathCause cause)
+    private void OnBodyEntered(Node body)
     {
-        if (_deathTriggered)
-        {
-            return;
-        }
-
-        _deathTriggered = true;
-        _isThrown = false;
-        StopCrawling();
-        AngularVelocity = 0.0f;
-        Freeze = true;
-        Died?.Invoke(cause);
-    }
-
-    protected override void OnDefinitionApplied()
-    {
-        PickupItemDefinition? definition = Definition;
-        if (!IsNodeReady() || definition is null || _deathTriggered)
-        {
-            return;
-        }
-
-        if (definition.HasAppliedTransformation(ChopTransformation))
-        {
-            TriggerDeath(BabyDeathCause.Chopped);
-        }
-        else if (
-            definition.HasAppliedTransformation(CookTransformation)
-            || definition.HasAppliedTransformation(StoveCookTransformation)
+        if (
+            _isDead
+            || body is not PickupItem knife
+            || !knife.IsAvailable
+            || knife.IsQueuedForDeletion()
+            || knife.Definition?.Id != KnifeItemId
+            || knife.LinearVelocity.IsZeroApprox()
+            || knife.LinearVelocity.LengthSquared()
+                < MinimumLethalKnifeSpeed * MinimumLethalKnifeSpeed
         )
         {
-            TriggerDeath(BabyDeathCause.Cooked);
+            return;
         }
+
+        _isDead = true;
+        _isCrawling = false;
+        _isThrown = false;
+        _pushSuppressionRemaining = 0.0f;
+        _sprite.Animation = StabbedAnimation;
+        _sprite.Frame = 0;
+        _sprite.Stop();
+        StopDeadMotion();
+        knife.QueueFree();
+    }
+
+    private void StopDeadMotion()
+    {
+        LinearVelocity = Vector2.Zero;
+        AngularVelocity = 0.0f;
+        SetDeferred(PropertyName.Freeze, true);
     }
 
     private void StartBurst()

@@ -27,7 +27,6 @@ public partial class PauseMenu : CanvasLayer
 	private bool _isTransitioning;
 	private bool _resumePending;
 	private bool _blockingActionReleaseObserved;
-	private bool _gameOverLocked;
 	private StringName _resumeBlockingAction = "";
 
 	[Export]
@@ -118,15 +117,6 @@ public partial class PauseMenu : CanvasLayer
 	{
 		bool pausePressed = @event.IsActionPressed(PauseAction);
 		bool cancelPressed = _isOpen && @event.IsActionPressed(CancelAction);
-		if (_gameOverLocked)
-		{
-			if (pausePressed || cancelPressed)
-			{
-				GetViewport().SetInputAsHandled();
-			}
-			return;
-		}
-
 		if (_isTransitioning && (pausePressed || cancelPressed))
 		{
 			GetViewport().SetInputAsHandled();
@@ -155,18 +145,6 @@ public partial class PauseMenu : CanvasLayer
 		}
 
 		GetViewport().SetInputAsHandled();
-	}
-
-	public void LockForGameOver()
-	{
-		_gameOverLocked = true;
-		_resumePending = false;
-		_blockingActionReleaseObserved = false;
-		_resumeBlockingAction = "";
-		_scrollTween?.Kill();
-		_isOpen = false;
-		Visible = false;
-		ReleaseMenuFocus();
 	}
 
 	public override void _ExitTree()

@@ -521,6 +521,38 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 			assert_true(is_equal_approx(interaction_shape.radius, 32.01562))
 
 
+func test_baby_pickup_item_has_knife_death_contract() -> void:
+	var baby_scene := ResourceLoader.load(
+		"res://scenes/baby_pickup_item.tscn",
+		"PackedScene",
+		ResourceLoader.CACHE_MODE_REPLACE,
+	) as PackedScene
+
+	assert_true(baby_scene != null)
+	if baby_scene == null:
+		return
+
+	var baby := track(baby_scene.instantiate()) as RigidBody2D
+	assert_true(baby != null)
+	if baby == null:
+		return
+
+	assert_true(baby.contact_monitor)
+	assert_true(baby.max_contacts_reported > 0)
+	assert_true(float(baby.get("MinimumLethalKnifeSpeed")) > 0.0)
+	var sprite := baby.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	assert_true(sprite != null)
+	if sprite == null:
+		return
+
+	assert_eq(sprite.sprite_frames.get_frame_count("stabbed"), 1)
+	assert_false(sprite.sprite_frames.get_animation_loop("stabbed"))
+	assert_eq(
+		sprite.sprite_frames.get_frame_texture("stabbed", 0).resource_path,
+		"res://assets/sprites/baby/baby_stabbed.png",
+	)
+
+
 func test_knife_item_has_pickup_definition() -> void:
 	var knife := track(KNIFE_ITEM_SCENE.instantiate()) as RigidBody2D
 
@@ -680,7 +712,7 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 
 func test_customer_composes_wandering_chopped_potato_order() -> void:
 	var customer := track(CUSTOMER_SCENE.instantiate()) as CharacterBody2D
-	var sprite := customer.get_node_or_null("Sprite2D") as Sprite2D
+	var sprite := customer.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	var controller := customer.get_node_or_null("CustomerWanderController")
 	var publisher := customer.get_node_or_null("WorkstationTaskPublisher")
 	var indicator := customer.get_node_or_null("TaskRequestIndicator") as Node2D
@@ -714,7 +746,13 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 	):
 		return
 
-	assert_eq(sprite.texture.resource_path, "res://assets/sprites/Sprite2.png")
+	var idle_frame := sprite.sprite_frames.get_frame_texture("idle", 0) as AtlasTexture
+	assert_true(idle_frame != null)
+	if idle_frame != null:
+		assert_eq(
+			idle_frame.atlas.resource_path,
+			"res://assets/sprites/lord_shubungus/lord_shubungus-Sheet.png",
+		)
 	assert_eq(
 		controller.get_script().resource_path,
 		"res://src/CustomerWanderController.cs",
@@ -723,12 +761,12 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 		controller.get("UprightVisualPath"),
 		NodePath("../TaskRequestIndicator"),
 	)
-	assert_eq(controller.get("UprightVisualOffset"), Vector2(0, -52))
+	assert_eq(controller.get("UprightVisualOffset"), Vector2(0, -120))
 	assert_eq(int(publisher.get("RequestMode")), 0)
 	assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	assert_eq(publisher.get("RequestedItem"), CHOPPED_POTATOES_DEFINITION)
 	assert_true(bool(publisher.get("ConsumeDeliveredItem")))
-	assert_eq(publisher.get("ConsumerVisualPath"), NodePath("../Sprite2D"))
+	assert_eq(publisher.get("ConsumerVisualPath"), NodePath("../AnimatedSprite2D"))
 	assert_true(is_equal_approx(float(publisher.get("OrderDurationSeconds")), 30.0))
 	assert_true(is_equal_approx(float(publisher.get("OrderCooldownSeconds")), 5.0))
 	assert_eq(transfer.get("AcceptedItem"), null)
@@ -737,6 +775,7 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 		NodePath("../../WorkstationTaskPublisher"),
 	)
 	assert_eq(timer_bar.position, Vector2(0, -31))
+	assert_false(timer_bar.visible)
 	assert_eq(timer_bar.texture.resource_path, "res://assets/sprites/thought/timer_bar-Sheet.png")
 	assert_eq(timer_bar.hframes, 8)
 	assert_eq(timer_bar.vframes, 8)

@@ -77,7 +77,7 @@ public partial class Container : StaticBody2D
             ?? GetIdleFrameTexture(definition.SpriteFrames);
         _itemIndicator.Material = definition.VisualMaterial;
         _itemIndicator.Modulate = definition.Modulate;
-        _itemIndicator.Scale = definition.VisualScale;
+        _itemIndicator.Scale = definition.VisualScale * 0.5f;
         _itemIndicator.Visible = _itemIndicator.Texture is not null;
     }
 

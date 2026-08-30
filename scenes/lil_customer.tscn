@@ -18,7 +18,7 @@
 [ext_resource type="AudioStream" path="res://assets/sounds/hmm_2.wav" id="16_hmm_2"]
 [ext_resource type="AudioStream" path="res://assets/sounds/hmm_3.wav" id="17_hmm_3"]
 [ext_resource type="AudioStream" path="res://assets/sounds/hmm_4.wav" id="18_hmm_4"]
-[ext_resource type="Texture2D" path="res://assets/sprites/thought/timer_bar-Sheet.png" id="19_timer"]
+[ext_resource type="PackedScene" path="res://scenes/task_request_indicator.tscn" id="19_indicator"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lil_1"]
 atlas = ExtResource("1_sprite")
@@ -120,19 +120,8 @@ shape = SubResource("CircleShape2D_lil_interaction")
 [node name="TransferItemAction" type="Node" parent="InteractionTarget"]
 script = ExtResource("7_transfer")
 TaskPublisherPath = NodePath("../../WorkstationTaskPublisher")
-[node name="TaskRequestIndicator" type="Node2D" parent="."]
-visible = false
-z_index = 10
+[node name="TaskRequestIndicator" parent="." instance=ExtResource("19_indicator")]
 position = Vector2(0, -92)
-[node name="Background" type="Polygon2D" parent="TaskRequestIndicator"]
-polygon = PackedVector2Array(-23, -20, 23, -20, 23, 20, 6, 20, 0, 28, -6, 20, -23, 20)
-color = Color(0.08, 0.1, 0.12, 0.9)
-[node name="Icon" type="Sprite2D" parent="TaskRequestIndicator"]
-[node name="TimerBar" type="Sprite2D" parent="TaskRequestIndicator"]
-position = Vector2(0, -31)
-texture = ExtResource("19_timer")
-hframes = 8
-vframes = 8
 [node name="WorkstationTaskPublisher" type="Node2D" parent="."]
 script = ExtResource("8_publisher")
 FetchTask = ExtResource("9_fetch_task")
@@ -140,3 +129,4 @@ RequestedItem = ExtResource("10_carrot")
 ConsumeDeliveredItem = true
 ConsumerVisualPath = NodePath("../AnimatedSprite2D")
 ConsumptionDuration = 0.625
+RequestIndicatorOpenFramesPerSecond = 8.0
