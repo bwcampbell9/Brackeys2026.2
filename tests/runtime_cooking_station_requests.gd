@@ -31,6 +31,7 @@ func _run() -> void:
 			customer.get_node("TaskRequestIndicator"),
 			8.0,
 			customer_path,
+			true,
 		)
 	await _wait_process_frames(40)
 	for customer_path in customer_paths:
@@ -77,7 +78,7 @@ func _request_at_station(
 		indicator.visible and publisher.get("CurrentRequestedItem").get("Id") == &"potato",
 		"%s must show its requested item after the player tap." % station_name,
 	)
-	_check_request_animation(publisher, indicator, 24.0, station_name)
+	_check_request_animation(publisher, indicator, 24.0, station_name, false)
 	await _wait_process_frames(20)
 	_check_open_animation_finished(indicator, station_name)
 
@@ -95,9 +96,11 @@ func _check_request_animation(
 	indicator: Node2D,
 	indicator_fps: float,
 	label: String,
+	expect_timer: bool,
 ) -> void:
 	var bubble := indicator.get_node("Background") as AnimatedSprite2D
 	var icon := indicator.get_node("Icon") as Sprite2D
+	var timer_bar := indicator.get_node("TimerBar") as Sprite2D
 	_check(
 		bubble != null
 			and bubble.sprite_frames.has_animation(&"open")
@@ -118,6 +121,10 @@ func _check_request_animation(
 			and bubble.frame < 3
 			and icon.texture != null,
 		"%s must animate its bubble while retaining the requested-item icon." % label,
+	)
+	_check(
+		timer_bar.visible == expect_timer,
+		"%s timer visibility must match its customer-order role." % label,
 	)
 
 

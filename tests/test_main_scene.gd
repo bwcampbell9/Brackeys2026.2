@@ -255,6 +255,69 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 			"res://src/GameOverController.cs",
 		)
 		assert_eq(game_over_controller.process_mode, Node.PROCESS_MODE_ALWAYS)
+	var hud := level.get_node_or_null("Hud") as CanvasLayer
+	var score_label := level.get_node_or_null("Hud/Score") as Label
+	assert_true(hud != null)
+	assert_true(score_label != null)
+	if hud != null:
+		assert_eq(hud.get_script().resource_path, "res://src/GameScoreController.cs")
+		assert_eq(int(hud.get("StartingScore")), 50)
+		assert_eq(int(hud.get("MaximumScore")), 100)
+		assert_eq(int(hud.get("CorrectOrderPoints")), 5)
+		assert_eq(int(hud.get("WrongOrderPenalty")), 4)
+		assert_eq(int(hud.get("MissedOrderPenalty")), 8)
+		assert_eq(
+			hud.get("GameOverControllerPath"),
+			NodePath("../GameOverController"),
+		)
+	if score_label != null:
+		assert_eq(score_label.text, "Score: 50 / 100")
+		assert_true(score_label.has_theme_font_override("font"))
+		assert_eq(score_label.get_theme_color("font_outline_color"), Color.BLACK)
+		assert_eq(score_label.get_theme_constant("outline_size"), 6)
+
+
+func test_score_hud_uses_pixel_font_contract() -> void:
+	var main_scene := ResourceLoader.load(
+		"res://scenes/main.tscn",
+		"PackedScene",
+		ResourceLoader.CACHE_MODE_REPLACE,
+	) as PackedScene
+	assert_true(main_scene != null)
+	if main_scene == null:
+		return
+
+	var level := track(main_scene.instantiate())
+	var hud := level.get_node_or_null("Hud") as CanvasLayer
+	var score_label := level.get_node_or_null("Hud/Score") as Label
+	var score_up_audio := level.get_node_or_null("Hud/ScoreUpAudio") as AudioStreamPlayer
+	var score_down_audio := level.get_node_or_null("Hud/ScoreDownAudio") as AudioStreamPlayer
+
+	assert_true(hud != null)
+	assert_true(score_label != null)
+	assert_true(score_up_audio != null)
+	assert_true(score_down_audio != null)
+	if (
+		hud == null
+		or score_label == null
+		or score_up_audio == null
+		or score_down_audio == null
+	):
+		return
+
+	assert_eq(hud.get_script().resource_path, "res://src/GameScoreController.cs")
+	assert_eq(score_label.text, "Score: 50 / 100")
+	assert_true(score_label.has_theme_font_override("font"))
+	assert_eq(score_label.get_theme_color("font_outline_color"), Color.BLACK)
+	assert_eq(score_label.get_theme_constant("outline_size"), 6)
+	assert_eq(score_label.get_theme_font_size("font_size"), 48)
+	assert_true(score_up_audio.stream != null)
+	assert_true(score_down_audio.stream != null)
+	assert_eq(score_up_audio.max_polyphony, 4)
+	assert_eq(score_down_audio.max_polyphony, 4)
+	assert_true(
+		absf(db_to_linear(score_down_audio.volume_db) - 0.85) < 0.001,
+	)
 
 
 func test_player_has_composable_interaction_components() -> void:
@@ -505,8 +568,17 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 
 
 func test_baby_pickup_item_has_knife_death_contract() -> void:
-	var baby := track(BABY_PICKUP_ITEM_SCENE.instantiate()) as RigidBody2D
+	var baby_scene := ResourceLoader.load(
+		"res://scenes/baby_pickup_item.tscn",
+		"PackedScene",
+		ResourceLoader.CACHE_MODE_REPLACE,
+	) as PackedScene
 
+	assert_true(baby_scene != null)
+	if baby_scene == null:
+		return
+
+	var baby := track(baby_scene.instantiate()) as RigidBody2D
 	assert_true(baby != null)
 	if baby == null:
 		return
@@ -686,16 +758,18 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 
 func test_customer_composes_wandering_chopped_potato_order() -> void:
 	var customer := track(CUSTOMER_SCENE.instantiate()) as CharacterBody2D
-	var sprite := customer.get_node_or_null("Sprite2D") as Sprite2D
+	var sprite := customer.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	var controller := customer.get_node_or_null("CustomerWanderController")
 	var publisher := customer.get_node_or_null("WorkstationTaskPublisher")
 	var indicator := customer.get_node_or_null("TaskRequestIndicator") as Node2D
+	var timer_bar := customer.get_node_or_null("TaskRequestIndicator/TimerBar") as Sprite2D
 	var transfer := customer.get_node_or_null("InteractionTarget/TransferItemAction")
 
 	assert_true(sprite != null)
 	assert_true(controller != null)
 	assert_true(publisher != null)
 	assert_true(indicator != null)
+	assert_true(timer_bar != null)
 	assert_true(transfer != null)
 	assert_eq(customer.collision_layer, 4)
 	assert_eq(customer.collision_mask, 7)
@@ -713,11 +787,18 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 		or controller == null
 		or publisher == null
 		or indicator == null
+		or timer_bar == null
 		or transfer == null
 	):
 		return
 
-	assert_eq(sprite.texture.resource_path, "res://assets/sprites/Sprite2.png")
+	var idle_frame := sprite.sprite_frames.get_frame_texture("idle", 0) as AtlasTexture
+	assert_true(idle_frame != null)
+	if idle_frame != null:
+		assert_eq(
+			idle_frame.atlas.resource_path,
+			"res://assets/sprites/lord_shubungus/lord_shubungus-Sheet.png",
+		)
 	assert_eq(
 		controller.get_script().resource_path,
 		"res://src/CustomerWanderController.cs",
@@ -726,13 +807,24 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 		controller.get("UprightVisualPath"),
 		NodePath("../TaskRequestIndicator"),
 	)
-	assert_eq(controller.get("UprightVisualOffset"), Vector2(0, -52))
+	assert_eq(controller.get("UprightVisualOffset"), Vector2(0, -120))
 	assert_eq(int(publisher.get("RequestMode")), 0)
 	assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	assert_eq(publisher.get("RequestedItem"), CHOPPED_POTATOES_DEFINITION)
 	assert_true(bool(publisher.get("ConsumeDeliveredItem")))
-	assert_eq(publisher.get("ConsumerVisualPath"), NodePath("../Sprite2D"))
-	assert_eq(transfer.get("AcceptedItem"), CHOPPED_POTATOES_DEFINITION)
+	assert_eq(publisher.get("ConsumerVisualPath"), NodePath("../AnimatedSprite2D"))
+	assert_true(is_equal_approx(float(publisher.get("OrderDurationSeconds")), 30.0))
+	assert_true(is_equal_approx(float(publisher.get("OrderCooldownSeconds")), 5.0))
+	assert_eq(transfer.get("AcceptedItem"), null)
+	assert_eq(
+		transfer.get("TaskPublisherPath"),
+		NodePath("../../WorkstationTaskPublisher"),
+	)
+	assert_eq(timer_bar.position, Vector2(0, -31))
+	assert_false(timer_bar.visible)
+	assert_eq(timer_bar.texture.resource_path, "res://assets/sprites/thought/timer_bar-Sheet.png")
+	assert_eq(timer_bar.hframes, 8)
+	assert_eq(timer_bar.vframes, 8)
 
 
 func test_catalog_matches_transformed_output_by_item_id() -> void:

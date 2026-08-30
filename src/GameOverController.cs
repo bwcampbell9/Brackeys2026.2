@@ -65,10 +65,7 @@ public partial class GameOverController : CanvasLayer
 	{
 		if (!GetTree().Paused && Input.IsActionJustPressed(GameOverAction))
 		{
-			if (_phase == GameOverPhase.Playing)
-			{
-				BeginGameOver();
-			}
+			TriggerGameOver();
 		}
 
 		if (_phase == GameOverPhase.Playing || _phase == GameOverPhase.Complete)
@@ -110,6 +107,16 @@ public partial class GameOverController : CanvasLayer
 		{
 			UpdateExecutionerWalk((float)delta);
 		}
+	}
+
+	public void TriggerGameOver()
+	{
+		if (_phase != GameOverPhase.Playing)
+		{
+			return;
+		}
+
+		BeginGameOver();
 	}
 
 	private void BeginGameOver()

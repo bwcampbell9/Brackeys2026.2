@@ -9,6 +9,13 @@ public enum WorkstationTaskRequestMode
 	AutomaticAction,
 }
 
+public enum CustomerOrderOutcome
+{
+	Correct,
+	Wrong,
+	Missed,
+}
+
 public partial class WorkstationTaskPublisher : Node2D
 {
 	public static readonly StringName PublisherGroup = "workstation_task_publishers";
@@ -35,6 +42,11 @@ public partial class WorkstationTaskPublisher : Node2D
 	private PickupItemDefinition? _currentRequestedItem;
 	private PickupItemDefinition? _requestedItem;
 	private WorkstationTaskRequestMode _requestMode;
+	private Sprite2D? _orderTimerBar;
+	private float _orderTimeRemaining;
+	private float _orderCooldownRemaining;
+
+	public event Action<CustomerOrderOutcome>? CustomerOrderResolved;
 
 	[Export]
 	public NodePath SocketPath { get; set; } = new("../PickupSocket");
@@ -110,6 +122,16 @@ public partial class WorkstationTaskPublisher : Node2D
 	[Export(PropertyHint.Range, "0.1,3,0.05,or_greater")]
 	public float ConsumptionDuration { get; set; } = 0.6f;
 
+	[Export]
+	public NodePath OrderTimerBarPath { get; set; } =
+		new("../TaskRequestIndicator/TimerBar");
+
+	[Export(PropertyHint.Range, "1,300,1,or_greater")]
+	public float OrderDurationSeconds { get; set; } = 30.0f;
+
+	[Export(PropertyHint.Range, "0,60,0.5,or_greater")]
+	public float OrderCooldownSeconds { get; set; } = 5.0f;
+
 	public Vector2 ApproachPosition => GlobalPosition;
 
 	public long CurrentTaskId => _currentTaskId;
@@ -119,6 +141,12 @@ public partial class WorkstationTaskPublisher : Node2D
 	public bool IsConsuming => _isConsuming;
 
 	public bool IsConfiguring => _isConfiguring;
+
+	public bool IsAcceptingCustomerDelivery =>
+		ConsumeDeliveredItem
+		&& !_isConsuming
+		&& _currentTaskId != 0
+		&& _orderTimeRemaining > 0.0f;
 
 	public bool CanConfigure =>
 		!_isConsuming
@@ -186,6 +214,12 @@ public partial class WorkstationTaskPublisher : Node2D
 				);
 			_consumerRestPosition = _consumerVisual.Position;
 			_consumerRestScale = _consumerVisual.Scale;
+			_orderTimerBar =
+				GetNodeOrNull<Sprite2D>(OrderTimerBarPath)
+				?? throw new InvalidOperationException(
+                    "A consuming workstation requires an order timer bar."
+				);
+			_orderTimerBar.Visible = false;
 		}
 
 		_socket.ItemChanged += OnSocketItemChanged;
@@ -195,6 +229,50 @@ public partial class WorkstationTaskPublisher : Node2D
 		}
 		AddToGroup(PublisherGroup);
 		ClearRequestIndicator();
+	}
+
+	public override void _Process(double delta)
+	{
+		if (!ConsumeDeliveredItem)
+		{
+			return;
+		}
+
+		if (_orderCooldownRemaining > 0.0f)
+		{
+			_orderCooldownRemaining = Mathf.Max(
+				0.0f,
+				_orderCooldownRemaining - (float)delta
+			);
+			if (
+				Mathf.IsZeroApprox(_orderCooldownRemaining)
+				&& !_isConsuming
+			)
+			{
+				ReconcileTask();
+			}
+			return;
+		}
+
+		if (_isConsuming)
+		{
+			return;
+		}
+
+		if (_currentTaskId == 0 || _orderTimeRemaining <= 0.0f)
+		{
+			return;
+		}
+
+		_orderTimeRemaining = Mathf.Max(
+			0.0f,
+			_orderTimeRemaining - (float)delta
+		);
+		UpdateOrderTimerBar();
+		if (Mathf.IsZeroApprox(_orderTimeRemaining))
+		{
+			ResolveMissedOrder();
+		}
 	}
 
 	public override void _ExitTree()
@@ -435,6 +513,7 @@ public partial class WorkstationTaskPublisher : Node2D
 		if (
 			_broker is null
 			|| _currentTaskId != 0
+			|| _orderCooldownRemaining > 0.0f
 			|| !TryGetPendingTask(
 				out NpcTaskDefinition? task,
 				out PickupItemDefinition? requestedItem,
@@ -460,6 +539,15 @@ public partial class WorkstationTaskPublisher : Node2D
 			requiredTool
 		);
 		ShowRequestIndicator(currentRequest);
+		if (ConsumeDeliveredItem)
+		{
+			_orderTimeRemaining = Mathf.Max(0.01f, OrderDurationSeconds);
+			UpdateOrderTimerBar();
+			if (_orderTimerBar is not null)
+			{
+				_orderTimerBar.Visible = true;
+			}
+		}
 		return true;
 	}
 
@@ -528,6 +616,13 @@ public partial class WorkstationTaskPublisher : Node2D
 		{
 			_requestIndicatorIcon.Texture = null;
 		}
+		if (
+			_orderTimerBar is not null
+			&& GodotObject.IsInstanceValid(_orderTimerBar)
+		)
+		{
+			_orderTimerBar.Visible = false;
+		}
 		if (GodotObject.IsInstanceValid(_requestIndicatorAnimation))
 		{
 			_requestIndicatorAnimation.Stop();
@@ -541,9 +636,9 @@ public partial class WorkstationTaskPublisher : Node2D
 		if (
 			!ConsumeDeliveredItem
 			|| _isConsuming
+			|| !IsAcceptingCustomerDelivery
 			|| item?.Definition is null
 			|| RequestedItem is null
-			|| item.Definition.Id != RequestedItem.Id
 			|| !_socket.TryLock(item)
 		)
 		{
@@ -562,7 +657,14 @@ public partial class WorkstationTaskPublisher : Node2D
 			_broker.Cancel(previousTaskId);
 		}
 
+		CustomerOrderOutcome outcome =
+			item.Definition.Id == RequestedItem.Id
+				? CustomerOrderOutcome.Correct
+				: CustomerOrderOutcome.Wrong;
+		_orderTimeRemaining = 0.0f;
 		_isConsuming = true;
+		StartOrderCooldown();
+		CustomerOrderResolved?.Invoke(outcome);
 		PlayConsumption(item);
 		return true;
 	}
@@ -661,6 +763,46 @@ public partial class WorkstationTaskPublisher : Node2D
 
 		_isConsuming = false;
 		_consumptionTween = null;
-		ReconcileTask();
+		if (Mathf.IsZeroApprox(_orderCooldownRemaining))
+		{
+			ReconcileTask();
+		}
+	}
+
+	private void ResolveMissedOrder()
+	{
+		_generation++;
+		CancelCurrentTask();
+		CustomerOrderResolved?.Invoke(CustomerOrderOutcome.Missed);
+		StartOrderCooldown();
+	}
+
+	private void StartOrderCooldown()
+	{
+		_orderCooldownRemaining = Mathf.Max(0.0f, OrderCooldownSeconds);
+		if (
+			Mathf.IsZeroApprox(_orderCooldownRemaining)
+			&& !_isConsuming
+		)
+		{
+			ReconcileTask();
+		}
+	}
+
+	private void UpdateOrderTimerBar()
+	{
+		if (_orderTimerBar is null)
+		{
+			return;
+		}
+
+		int frameCount = _orderTimerBar.Hframes * _orderTimerBar.Vframes;
+		float duration = Mathf.Max(0.01f, OrderDurationSeconds);
+		float elapsedRatio = 1.0f - (_orderTimeRemaining / duration);
+		_orderTimerBar.Frame = Mathf.Clamp(
+			Mathf.FloorToInt(elapsedRatio * frameCount),
+			0,
+			frameCount - 1
+		);
 	}
 }
