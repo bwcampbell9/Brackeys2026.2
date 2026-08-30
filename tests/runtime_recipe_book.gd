@@ -22,6 +22,28 @@ func _run() -> void:
 	await process_frame
 	await physics_frame
 
+	var previous_page_events := InputMap.action_get_events(&"cookbook_previous_page")
+	var next_page_events := InputMap.action_get_events(&"cookbook_next_page")
+	_check(
+		previous_page_events.size() == 1,
+		"Cookbook previous page must have exactly one input binding.",
+	)
+	_check(
+		next_page_events.size() == 1,
+		"Cookbook next page must have exactly one input binding.",
+	)
+	if previous_page_events.size() == 1 and next_page_events.size() == 1:
+		_check(
+			previous_page_events[0] is InputEventJoypadButton
+			and previous_page_events[0].button_index == JOY_BUTTON_DPAD_LEFT,
+			"Cookbook previous page must be bound to D-pad left.",
+		)
+		_check(
+			next_page_events[0] is InputEventJoypadButton
+			and next_page_events[0].button_index == JOY_BUTTON_DPAD_RIGHT,
+			"Cookbook next page must be bound to D-pad right.",
+		)
+
 	var carrier := player.get_node("PickupCarrier")
 	var hold_point := player.get_node("PickupCarrier/HoldPoint") as Node2D
 	var sprite := book.get_node("AnimatedSprite2D") as AnimatedSprite2D
@@ -43,6 +65,11 @@ func _run() -> void:
 	_check(
 		not overlay_root.visible,
 		"Holding a closed recipe book must not show the recipe overlay.",
+	)
+	await _send_joypad_button(JOY_BUTTON_DPAD_RIGHT)
+	_check(
+		overlay_image.visible and not second_page_image.visible,
+		"D-pad input must not turn pages while the cookbook is closed.",
 	)
 
 	var transformed_definition = CHOP_TRANSFORMATION.Resolve(book.get("Definition"))
@@ -110,38 +137,54 @@ func _run() -> void:
 		and not next_page_button.disabled,
 		"Opening the recipe book must display its first page with only Next available.",
 	)
-	next_page_button.emit_signal("pressed")
+	await _send_joypad_button(JOY_BUTTON_DPAD_RIGHT)
 	_check(
 		forward_page_audio.playing and not backward_page_audio.playing,
-		"Next must play page turn 1 without playing page turn 2.",
+		"D-pad right must play page turn 1 without playing page turn 2.",
 	)
 	_check(
 		not overlay_image.visible
 		and second_page_image.visible
 		and not previous_page_button.disabled
 		and next_page_button.disabled,
-		"Next must display the second page and disable at the last page.",
+		"D-pad right must display the second page and disable at the last page.",
 	)
-	previous_page_button.emit_signal("pressed")
+	await _send_joypad_button(JOY_BUTTON_DPAD_LEFT)
 	_check(
 		backward_page_audio.playing,
-		"Back must play page turn 2.",
+		"D-pad left must play page turn 2.",
 	)
 	_check(
 		overlay_image.visible
 		and not second_page_image.visible
 		and previous_page_button.disabled
 		and not next_page_button.disabled,
-		"Back must return to the first page and disable at the first page.",
+		"D-pad left must return to the first page and disable at the first page.",
+	)
+	forward_page_audio.stop()
+	backward_page_audio.stop()
+	next_page_button.emit_signal("pressed")
+	_check(
+		forward_page_audio.playing
+		and not overlay_image.visible
+		and second_page_image.visible,
+		"The Next button must continue to turn to the second page.",
+	)
+	previous_page_button.emit_signal("pressed")
+	_check(
+		backward_page_audio.playing
+		and overlay_image.visible
+		and not second_page_image.visible,
+		"The Back button must continue to return to the first page.",
 	)
 
-	var open_audio_position := open_audio.get_playback_position()
+	open_audio.stop()
 	Input.action_press("secondary_interact")
 	await _wait_physics_frames(2)
 	Input.action_release("secondary_interact")
 	_check(sprite.is_playing(), "Secondary interaction must start closing an open book.")
 	_check(
-		open_audio.get_playback_position() > open_audio_position,
+		not open_audio.playing,
 		"Closing the recipe book must not restart the cookbook sound.",
 	)
 	_check(
@@ -230,6 +273,19 @@ func _run() -> void:
 func _wait_physics_frames(count: int) -> void:
 	for _frame in count:
 		await physics_frame
+
+
+func _send_joypad_button(button_index: JoyButton) -> void:
+	var press_event := InputEventJoypadButton.new()
+	press_event.button_index = button_index
+	press_event.pressed = true
+	Input.parse_input_event(press_event)
+	await process_frame
+	var release_event := InputEventJoypadButton.new()
+	release_event.button_index = button_index
+	release_event.pressed = false
+	Input.parse_input_event(release_event)
+	await process_frame
 
 
 func _check(condition: bool, message: String) -> void:
