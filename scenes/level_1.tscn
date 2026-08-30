@@ -143,23 +143,3 @@ max_polyphony = 4
 stream = ExtResource("22_score_down")
 volume_db = -1.4116215
 max_polyphony = 4
-
-[node name="Title" type="Label" parent="Hud" unique_id=510205867]
-offset_left = 56.0
-offset_top = 48.0
-offset_right = 57.0
-offset_bottom = 71.0
-theme_override_colors/font_color = Color(0.96, 0.96, 0.91, 1)
-theme_override_font_sizes/font_size = 24
-text = "Kitchen Training Room"
-
-[node name="Instructions" type="Label" parent="Hud" unique_id=1497495389]
-offset_left = 59.0
-offset_top = 82.0
-offset_right = 673.0
-offset_bottom = 157.0
-theme_override_colors/font_color = Color(0.74, 0.83, 0.83, 1)
-theme_override_font_sizes/font_size = 16
-text = "Move: WASD / Arrows / Left Stick    E / South: transfer or process
-F or East while holding item: use item    Hold Q or East at workstation: configure
-Mouse / Left Stick: select recipe    Wheel / LB-RB: pages    Esc / Menu: pause"
