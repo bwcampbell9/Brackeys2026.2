@@ -3,6 +3,7 @@ extends SceneTree
 const POTATO_SCENE := preload("res://scenes/pickup_item.tscn")
 const CARROT_SCENE := preload("res://scenes/carrot_item.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
+const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 
 var _failed := false
 
@@ -17,16 +18,19 @@ func _run() -> void:
 	var potato := POTATO_SCENE.instantiate() as RigidBody2D
 	var carrot := CARROT_SCENE.instantiate() as RigidBody2D
 	var carrot_container := CARROT_CONTAINER_SCENE.instantiate() as StaticBody2D
+	var potato_container := POTATO_CONTAINER_SCENE.instantiate() as StaticBody2D
 	world.add_child(hold_point)
 	world.add_child(potato)
 	world.add_child(carrot)
 	world.add_child(carrot_container)
+	world.add_child(potato_container)
 	root.add_child(world)
 	await process_frame
 
 	await _check_processing_visual(potato, hold_point, "potato/potato-Sheet.png")
 	await _check_processing_visual(carrot, hold_point, "carrot/carrot-Sheet.png")
-	_check_carrot_container(carrot_container)
+	_check_container_icon(carrot_container, "carrot/carrot-Sheet.png", "carrot")
+	_check_container_icon(potato_container, "potato/potato-Sheet.png", "potato")
 	world.queue_free()
 	await process_frame
 	print("food_processing_sprites_runtime=", "passed" if not _failed else "failed")
@@ -73,15 +77,23 @@ func _check_processing_visual(
 	_check(static_sprite.visible and not animated_sprite.visible, "Canceling processing must restore the static raw sprite.")
 
 
-func _check_carrot_container(container: StaticBody2D) -> void:
+func _check_container_icon(
+	container: StaticBody2D,
+	expected_sheet_suffix: String,
+	label: String,
+) -> void:
 	var indicator := container.get_node("ItemIndicator") as Sprite2D
 	var texture := indicator.texture as AtlasTexture
-	_check(texture != null, "The carrot box must display an atlas frame.")
+	_check(texture != null, "The %s box must display an atlas frame." % label)
 	_check(
 		texture != null
-		and texture.atlas.resource_path.ends_with("carrot/carrot-Sheet.png")
+		and texture.atlas.resource_path.ends_with(expected_sheet_suffix)
 		and texture.region == Rect2(0, 0, 64, 64),
-		"The carrot box must display the first frame of the new carrot sheet.",
+		"The %s box must display the first frame of its new sheet." % label,
+	)
+	_check(
+		indicator.scale == Vector2.ONE,
+		"The %s box icon must fill its label square." % label,
 	)
 
 

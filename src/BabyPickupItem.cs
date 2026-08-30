@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 
 public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
 {
@@ -7,6 +8,7 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     private static readonly StringName KnifeItemId = "knife";
 
     private AnimatedSprite2D _sprite = null!;
+    private AudioStreamPlayer2D _cryAudio = null!;
     private RandomNumberGenerator _random = null!;
     private Vector2 _targetPosition;
     private float _stateTime;
@@ -14,6 +16,12 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     private bool _isThrown;
     private bool _isDead;
     private float _pushSuppressionRemaining;
+
+    [Export]
+    public NodePath CryAudioPath { get; set; } = new("CryAudio");
+
+    [Export]
+    public Array<AudioStream> CrySounds { get; set; } = new();
 
     [Export(PropertyHint.Range, "10,300,1,or_greater")]
     public float MinimumSpeed { get; set; } = 35.0f;
@@ -48,6 +56,7 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
     {
         base._Ready();
         _sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+        _cryAudio = GetNode<AudioStreamPlayer2D>(CryAudioPath);
         _random = new RandomNumberGenerator();
         _random.Randomize();
         BodyEntered += OnBodyEntered;
@@ -128,6 +137,18 @@ public partial class BabyPickupItem : PickupItem, IBodyPushReceiver
             return;
         }
         StopCrawling();
+        PlayRandomCry();
+    }
+
+    private void PlayRandomCry()
+    {
+        if (CrySounds.Count == 0)
+        {
+            return;
+        }
+
+        _cryAudio.Stream = CrySounds[_random.RandiRange(0, CrySounds.Count - 1)];
+        _cryAudio.Play();
     }
 
     protected override void OnThrown()

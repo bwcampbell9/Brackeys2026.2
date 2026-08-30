@@ -145,6 +145,8 @@ public partial class OvenCookingController : Node
             return;
         }
 
+        PickupItem? cookedBaby =
+            _cookingItems.Count == 1 ? _cookingItems[0] : null;
         if (!ApplyActiveRecipe())
         {
             StopCooking();
@@ -153,6 +155,15 @@ public partial class OvenCookingController : Node
 
         StopCooking();
         EmitSignal(SignalName.CookingStateChanged);
+
+        if (cookedBaby is BabyPickupItem)
+        {
+            GetTree().CallGroup(
+                GameOverController.GameOverGroup,
+                nameof(GameOverController.TriggerGameOverAt),
+                cookedBaby.GlobalPosition
+            );
+        }
     }
 
     public bool CanAccept(PickupItem item)
@@ -163,6 +174,16 @@ public partial class OvenCookingController : Node
         }
 
         List<PickupItem> storedItems = GetStoredItems();
+        if (
+            storedItems.Count == 0
+            && item is BabyPickupItem
+            && Recipe is not null
+            && Recipe.Matches(item, null)
+        )
+        {
+            return true;
+        }
+
         if (UsesAuthoredRecipes)
         {
             return _selectedCookingRecipe is not null
@@ -262,15 +283,20 @@ public partial class OvenCookingController : Node
     private bool CanCookStoredItems()
     {
         List<PickupItem> items = GetStoredItems();
+        if (UsesLegacyRecipeFor(items))
+        {
+            return items.Count == 1
+                && Recipe is { Duration: > 0.0f } legacyRecipe
+                && legacyRecipe.Matches(items[0], null);
+        }
+
         if (UsesAuthoredRecipes)
         {
             return _selectedCookingRecipe is { Duration: > 0.0f } recipe
                 && recipe.Matches(items);
         }
 
-        return items.Count == 1
-            && Recipe is { Duration: > 0.0f } legacyRecipe
-            && legacyRecipe.Matches(items[0], null);
+        return false;
     }
 
     private bool CookingItemsAreUnchanged()
@@ -293,21 +319,32 @@ public partial class OvenCookingController : Node
 
     private float GetActiveDuration()
     {
-        return UsesAuthoredRecipes
-            ? _selectedCookingRecipe?.Duration ?? 0.0f
-            : Recipe?.Duration ?? 0.0f;
+        return UsesLegacyRecipeFor(_cookingItems)
+            ? Recipe?.Duration ?? 0.0f
+            : _selectedCookingRecipe?.Duration ?? 0.0f;
     }
 
     private bool ApplyActiveRecipe()
     {
+        if (UsesLegacyRecipeFor(_cookingItems))
+        {
+            return _cookingItems.Count == 1
+                && Recipe is not null
+                && Recipe.Apply(_cookingItems[0]);
+        }
+
         if (UsesAuthoredRecipes)
         {
             return ApplyAuthoredRecipe();
         }
 
-        return _cookingItems.Count == 1
-            && Recipe is not null
-            && Recipe.Apply(_cookingItems[0]);
+        return false;
+    }
+
+    private bool UsesLegacyRecipeFor(IReadOnlyList<PickupItem> items)
+    {
+        return !UsesAuthoredRecipes
+            || (items.Count == 1 && items[0] is BabyPickupItem);
     }
 
     private bool ApplyAuthoredRecipe()

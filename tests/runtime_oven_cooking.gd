@@ -3,10 +3,20 @@ extends SceneTree
 const OVEN_SCENE := preload("res://scenes/oven.tscn")
 const POTATO_SCENE := preload("res://scenes/pickup_item.tscn")
 const CARROT_SCENE := preload("res://scenes/carrot_item.tscn")
+const BABY_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const CHOPPED_POTATOES := preload("res://resources/items/chopped_potatoes.tres")
 const CHOPPED_CARROTS := preload("res://resources/items/chopped_carrots.tres")
 
 var _failed := false
+
+
+class GameOverSpy:
+	extends Node
+
+	var triggered := false
+
+	func TriggerGameOverAt(_global_position: Vector2) -> void:
+		triggered = true
 
 
 func _initialize() -> void:
@@ -18,6 +28,7 @@ func _run() -> void:
 	root.add_child(world)
 	await _test_single_baked_potato(world)
 	await _test_combined_recipe_waits_and_consumes(world)
+	await _test_baby_uses_legacy_game_over_recipe(world)
 	await _test_legacy_fallback(world)
 	world.queue_free()
 	await process_frame
@@ -130,6 +141,39 @@ func _test_combined_recipe_waits_and_consumes(world: Node2D) -> void:
 	oven.queue_free()
 	potatoes.queue_free()
 	extra_carrots.queue_free()
+	await process_frame
+
+
+func _test_baby_uses_legacy_game_over_recipe(world: Node2D) -> void:
+	var oven := OVEN_SCENE.instantiate() as StaticBody2D
+	var baby := BABY_SCENE.instantiate() as RigidBody2D
+	var game_over_spy := GameOverSpy.new()
+	game_over_spy.add_to_group(&"game_over_controllers")
+	world.add_child(game_over_spy)
+	world.add_child(oven)
+	world.add_child(baby)
+	await process_frame
+
+	var socket := oven.get_node("PickupSocket") as Node2D
+	var controller := oven.get_node("OvenCookingController") as Node
+	var fast_recipe := (controller.get("Recipe") as Resource).duplicate()
+	fast_recipe.set("Duration", 0.1)
+	controller.set("Recipe", fast_recipe)
+	_check(
+		bool(controller.call("CanAccept", baby)),
+		"The authored oven must preserve the baby game-over cooking path.",
+	)
+	_check(bool(socket.TryStore(baby, 0.0)), "The baby must fit in the oven.")
+	await create_timer(0.2).timeout
+	_check(game_over_spy.triggered, "Cooking the baby must trigger game over.")
+	_check(
+		baby.get("Definition").get("Id") == &"cooked_baby",
+		"The baby must still complete the legacy cooking transformation.",
+	)
+
+	oven.queue_free()
+	baby.queue_free()
+	game_over_spy.queue_free()
 	await process_frame
 
 

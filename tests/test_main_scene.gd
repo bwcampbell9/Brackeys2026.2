@@ -1397,6 +1397,7 @@ func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
 		container.get("ItemDefinition").get("Id"),
 		&"potato",
 	)
+	assert_eq(float(container.get("ItemIndicatorScaleMultiplier")), 1.0)
 
 
 func test_carrot_container_uses_new_carrot_sprite() -> void:
@@ -1405,6 +1406,7 @@ func test_carrot_container_uses_new_carrot_sprite() -> void:
 
 	var item_indicator := container.get_node("ItemIndicator") as Sprite2D
 	var texture := item_indicator.texture as AtlasTexture
+	assert_eq(item_indicator.scale, Vector2.ONE)
 	assert_true(texture != null)
 	if texture != null:
 		assert_eq(

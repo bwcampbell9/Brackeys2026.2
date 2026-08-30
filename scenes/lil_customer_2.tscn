@@ -106,6 +106,7 @@ script = ExtResource("3_motor")
 script = ExtResource("4_controller")
 UprightVisualPath = NodePath("../TaskRequestIndicator")
 UprightVisualOffset = Vector2(0, -120)
+WanderBounds = Rect2(-40, 610, 990, 360)
 [node name="PickupSocket" type="Node2D" parent="."]
 position = Vector2(0, -48)
 script = ExtResource("5_socket")
