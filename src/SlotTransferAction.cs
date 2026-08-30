@@ -4,6 +4,7 @@ using Godot;
 public partial class SlotTransferAction : InteractionAction
 {
     private PickupSocket _socket = null!;
+    private WorkstationTaskPublisher? _taskPublisher;
 
     public SlotTransferAction()
     {
@@ -17,6 +18,9 @@ public partial class SlotTransferAction : InteractionAction
     [Export]
     public PickupItemDefinition? AcceptedItem { get; set; }
 
+    [Export]
+    public NodePath TaskPublisherPath { get; set; } = new();
+
     public override void _Ready()
     {
         _socket =
@@ -24,10 +28,26 @@ public partial class SlotTransferAction : InteractionAction
             ?? throw new InvalidOperationException(
                 "SlotTransferAction requires a valid pickup socket path."
             );
+        if (!TaskPublisherPath.IsEmpty)
+        {
+            _taskPublisher =
+                GetNodeOrNull<WorkstationTaskPublisher>(TaskPublisherPath)
+                ?? throw new InvalidOperationException(
+                    "SlotTransferAction requires a valid task publisher path."
+                );
+        }
     }
 
     public override bool IsAvailable(InteractionContext context)
     {
+        if (
+            _taskPublisher is not null
+            && !_taskPublisher.IsAcceptingCustomerDelivery
+        )
+        {
+            return false;
+        }
+
         PickupItem? heldItem = context.Carrier.HeldItem;
         return (
                 _socket.Item is null

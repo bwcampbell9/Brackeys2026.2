@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/recipe_book_item.tscn" id="14_recipe_book"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="15_pause_menu"]
 [ext_resource type="AudioStream" uid="uid://cynt36n0m0jxu" path="res://assets/sounds/game_music.mp3" id="16_gamemusic"]
+[ext_resource type="Script" path="res://src/GameScoreController.cs" id="17_score"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_kitchen"]
 vertices = PackedVector2Array(628, 346, 716, 346, 884, 464, 140, 464, 140, 386, 884, 76, 716, 258, 460, 76, 628, 258, 460, 154, 76, 386, 76, 346, 140, 346, 372, 154, 140, 258, 372, 76, 76, 258, 76, 76)
@@ -96,6 +97,17 @@ volume_db = -25.0
 autoplay = true
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
+script = ExtResource("17_score")
+
+[node name="Score" type="Label" parent="Hud"]
+offset_left = 760.0
+offset_top = 48.0
+offset_right = 904.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.96, 0.96, 0.91, 1)
+theme_override_font_sizes/font_size = 24
+text = "Score: 50 / 100"
+horizontal_alignment = 2
 
 [node name="Title" type="Label" parent="Hud" unique_id=510205867]
 offset_left = 56.0
