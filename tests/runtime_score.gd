@@ -23,9 +23,9 @@ func _run() -> void:
 	var overlay := game_over_controller.get_child(0) as ColorRect
 	runner.process_mode = Node.PROCESS_MODE_DISABLED
 
-	_check(int(hud.GetScore()) == 50, "Score must start at 50.")
-	hud.ApplyCustomerOrderOutcome(0)
-	_check(int(hud.GetScore()) == 55, "A correct order must add 5 score.")
+	_check(int(hud.get_score()) == 50, "Score must start at 50.")
+	hud.apply_customer_order_outcome(0)
+	_check(int(hud.get_score()) == 55, "A correct order must add 5 score.")
 	var popup := hud.get_node_or_null("ScoreChange") as Label
 	_check(popup != null and popup.text == "+5", "A score gain must show its delta.")
 	if popup != null:
@@ -68,8 +68,8 @@ func _run() -> void:
 	)
 	score_up_audio.stop()
 	score_down_audio.stop()
-	hud.ApplyCustomerOrderOutcome(1)
-	_check(int(hud.GetScore()) == 51, "A wrong order must remove 4 score.")
+	hud.apply_customer_order_outcome(1)
+	_check(int(hud.get_score()) == 51, "A wrong order must remove 4 score.")
 	var penalty_popup := hud.get_node_or_null("ScoreChange") as Label
 	_check(
 		penalty_popup != null and penalty_popup.self_modulate == Color.RED,
@@ -83,25 +83,25 @@ func _run() -> void:
 			and score_down_audio.pitch_scale <= 1.2,
 		"Score-down audio pitch must stay within its random modulation range.",
 	)
-	hud.ApplyCustomerOrderOutcome(2)
-	_check(int(hud.GetScore()) == 43, "A missed order must remove 8 score.")
+	hud.apply_customer_order_outcome(2)
+	_check(int(hud.get_score()) == 43, "A missed order must remove 8 score.")
 
 	for _index in range(20):
-		hud.ApplyCustomerOrderOutcome(0)
-	_check(int(hud.GetScore()) == 100, "Score must remain capped at 100.")
+		hud.apply_customer_order_outcome(0)
+	_check(int(hud.get_score()) == 100, "Score must remain capped at 100.")
 
 	for _index in range(23):
-		hud.ApplyCustomerOrderOutcome(1)
-	_check(int(hud.GetScore()) == 8, "Wrong orders must each remove 4 score.")
+		hud.apply_customer_order_outcome(1)
+	_check(int(hud.get_score()) == 8, "Wrong orders must each remove 4 score.")
 	_check(not paused, "Game over must not start above zero score.")
 
-	hud.ApplyCustomerOrderOutcome(2)
-	_check(int(hud.GetScore()) == 0, "A missed order must clamp score to zero.")
+	hud.apply_customer_order_outcome(2)
+	_check(int(hud.get_score()) == 0, "A missed order must clamp score to zero.")
 	_check(paused, "Reaching zero score must pause for game over.")
 	_check(overlay.visible, "Reaching zero score must show the game-over overlay.")
 
-	hud.ApplyCustomerOrderOutcome(1)
-	_check(int(hud.GetScore()) == 0, "Score must remain clamped at zero.")
+	hud.apply_customer_order_outcome(1)
+	_check(int(hud.get_score()) == 0, "Score must remain clamped at zero.")
 	await create_timer(0.9, true, false, true).timeout
 	_check(
 		score_label.text == "Score: 0 / 100",

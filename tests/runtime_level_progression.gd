@@ -23,7 +23,7 @@ func _run() -> void:
 
 	var hud := current_scene.get_node("Hud")
 	for _index in range(10):
-		hud.ApplyCustomerOrderOutcome(0)
+		hud.apply_customer_order_outcome(0)
 	await process_frame
 	_check(
 		_is_win_audio_playing(),
@@ -148,7 +148,7 @@ func _run() -> void:
 func _has_circle_transition() -> bool:
 	for child in root.get_children():
 		var script := child.get_script() as Script
-		if script != null and script.resource_path == "res://src/CircleTransition.cs":
+		if script != null and script.resource_path == "res://src/circle_transition.gd":
 			return true
 	return false
 

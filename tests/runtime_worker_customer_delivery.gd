@@ -70,9 +70,9 @@ func _check_customer_delivery_in_range() -> void:
 	var has_item_for_customer := await _wait_until(
 		func() -> bool:
 			return (
-				int(runner.get("State")) == 3
-				and carrier.get("HeldItem") != null
-				and int(publisher.get("CurrentTaskId")) != 0
+				int(runner.get("state")) == 3
+				and carrier.get("held_item") != null
+				and int(publisher.get("current_task_id")) != 0
 			),
 		1200,
 	)
@@ -82,9 +82,9 @@ func _check_customer_delivery_in_range() -> void:
 	)
 	if has_item_for_customer:
 		worker.global_position = customer.global_position + Vector2(30, 0)
-		motor.SetTarget(customer.global_position)
+		motor.set_target(customer.global_position)
 		_check(
-			not bool(motor.get("IsAtTarget")),
+			not bool(motor.get("is_at_target")),
 			"Worker must still be navigating when proximity delivery begins.",
 		)
 		_check(
@@ -94,10 +94,10 @@ func _check_customer_delivery_in_range() -> void:
 		var delivered := await _wait_until(
 			func() -> bool:
 				return (
-					carrier.get("HeldItem") == null
+					carrier.get("held_item") == null
 					and (
-						bool(publisher.get("IsConsuming"))
-						or int(publisher.get("CurrentTaskId")) == 0
+						bool(publisher.get("is_consuming"))
+						or int(publisher.get("current_task_id")) == 0
 					)
 				),
 			30,

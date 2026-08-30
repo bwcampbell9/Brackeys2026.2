@@ -31,7 +31,7 @@ func test_customers_expose_request_difficulty_on_their_roots() -> void:
 		var customer := track((contract.scene as PackedScene).instantiate()) as CharacterBody2D
 		assert_eq(
 			customer.get_script().resource_path,
-			"res://src/CustomerOrderConfiguration.cs",
+			"res://src/customer_order_configuration.gd",
 		)
 		assert_eq(int(customer.get("PossibleRequests")), int(contract.request))
 		assert_true(

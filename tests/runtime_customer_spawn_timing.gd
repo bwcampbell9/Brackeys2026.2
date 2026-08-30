@@ -21,10 +21,10 @@ func _run() -> void:
 		var publisher := customer.get_node_or_null("WorkstationTaskPublisher")
 		if publisher == null:
 			continue
-		var cooldown := float(publisher.get("OrderCooldownRemaining"))
+		var cooldown := float(publisher.get("order_cooldown_remaining"))
 		cooldowns.append(cooldown)
 		_check(
-			int(publisher.get("CurrentTaskId")) == 0,
+			int(publisher.get("current_task_id")) == 0,
 			"Customers must not publish an order immediately after spawning.",
 		)
 		_check(

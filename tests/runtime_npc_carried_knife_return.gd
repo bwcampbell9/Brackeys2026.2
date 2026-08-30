@@ -28,7 +28,7 @@ func _run() -> void:
 	level.add_child(carried_knife)
 	carried_knife.global_position = player.global_position
 	_check(
-		bool(player_carrier.TryHold(carried_knife)),
+		bool(player_carrier.try_hold(carried_knife)),
 		"The fixture must give the player a knife.",
 	)
 	player.global_position = Vector2(850, 500)
@@ -38,7 +38,7 @@ func _run() -> void:
 	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
 	publisher.set("RequestMode", 1)
 	_check(
-		bool(publisher.call("TryPublishNextTask")),
+		bool(publisher.call("try_publish_next_task")),
 		"The fixture must publish the potato fetch stage.",
 	)
 	runner.process_mode = Node.PROCESS_MODE_INHERIT
@@ -52,15 +52,15 @@ func _run() -> void:
 	publisher.set("RequestMode", 2)
 	await _wait_physics_frames(2)
 	_check(
-		int(publisher.get("CurrentTaskId")) != 0,
+		int(publisher.get("current_task_id")) != 0,
 		"Delivering the potato must automatically publish the chopping stage.",
 	)
 
 	var selected_carried_knife := await _wait_until(
 		func() -> bool:
 			return (
-				int(runner.get("State")) == 1
-				and runner.get("SelectedItemId") == &"knife"
+				int(runner.get("state")) == 1
+				and runner.get("selected_item_id") == &"knife"
 			),
 		300,
 	)
@@ -75,8 +75,8 @@ func _run() -> void:
 	var acquired_carried_knife := await _wait_until(
 		func() -> bool:
 			return (
-				worker.get_node("PickupCarrier").get("HeldItem") == carried_knife
-				and player_carrier.get("HeldItem") == null
+				worker.get_node("PickupCarrier").get("held_item") == carried_knife
+				and player_carrier.get("held_item") == null
 			),
 		1200,
 	)

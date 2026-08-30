@@ -53,7 +53,7 @@ func _run() -> void:
 	var carrier := worker.get_node("PickupCarrier") as Node2D
 	var hold_point := carrier.get_node("HoldPoint") as Node2D
 	var start_position := worker.global_position
-	worker.get_node("NpcMotor").SetTarget(start_position + Vector2(120, -80))
+	worker.get_node("NpcMotor").set_target(start_position + Vector2(120, -80))
 	var turned := await _wait_until(
 		func() -> bool:
 			return (

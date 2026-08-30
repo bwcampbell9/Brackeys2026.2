@@ -48,9 +48,9 @@ func _test_single_baked_potato(world: Node2D) -> void:
 	var controller := oven.get_node("OvenCookingController") as Node
 	var sprite := oven.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	_select_fast_recipe(controller, &"cooked_potato")
-	_check(bool(socket.TryStore(potato, 0.0)), "The oven must accept its selected ingredient.")
+	_check(bool(socket.try_store(potato, 0.0)), "The oven must accept its selected ingredient.")
 	await process_frame
-	_check(bool(controller.get("IsCooking")), "A complete single-input recipe must start.")
+	_check(bool(controller.get("is_cooking")), "A complete single-input recipe must start.")
 	_check(sprite.animation == &"cooking", "The oven must animate while cooking.")
 	await create_timer(0.45).timeout
 
@@ -63,7 +63,7 @@ func _test_single_baked_potato(world: Node2D) -> void:
 	)
 	_check(sprite.animation == &"idle", "The oven must return to idle after cooking.")
 	_check(
-		bool(socket.get("IsSourceAvailable")),
+		bool(socket.get("is_source_available")),
 		"A finished oven dish must become available for an NPC to collect.",
 	)
 	oven.queue_free()
@@ -86,9 +86,9 @@ func _test_combined_recipe_waits_and_consumes(world: Node2D) -> void:
 	var secondary := oven.get_node("SecondaryPickupSocket") as Node2D
 	var controller := oven.get_node("OvenCookingController") as Node
 	_select_fast_recipe(controller, &"baked_chopped_vegetables")
-	_check(bool(primary.TryStore(potatoes, 0.0)), "The oven must accept either missing combined ingredient first.")
+	_check(bool(primary.try_store(potatoes, 0.0)), "The oven must accept either missing combined ingredient first.")
 	await create_timer(0.15).timeout
-	_check(not bool(controller.get("IsCooking")), "A two-input recipe must wait for every ingredient.")
+	_check(not bool(controller.get("is_cooking")), "A two-input recipe must wait for every ingredient.")
 	var oven_sprite := oven.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	_check(
 		oven_sprite.animation == &"idle",
@@ -98,11 +98,11 @@ func _test_combined_recipe_waits_and_consumes(world: Node2D) -> void:
 		potatoes.get("Definition").get("Id") == &"chopped_potatoes",
 		"Waiting for the second ingredient must not transform the first.",
 	)
-	_check(bool(controller.call("CanAccept", carrots)), "The other missing ingredient must remain accepted.")
-	_check(not bool(controller.call("CanAccept", potatoes)), "A duplicate ingredient must be rejected.")
-	_check(bool(secondary.TryStore(carrots, 0.0)), "The second recipe ingredient must fit the second socket.")
+	_check(bool(controller.call("can_accept", carrots)), "The other missing ingredient must remain accepted.")
+	_check(not bool(controller.call("can_accept", potatoes)), "A duplicate ingredient must be rejected.")
+	_check(bool(secondary.try_store(carrots, 0.0)), "The second recipe ingredient must fit the second socket.")
 	await process_frame
-	_check(bool(controller.get("IsCooking")), "Cooking must start when the full ingredient multiset is present.")
+	_check(bool(controller.get("is_cooking")), "Cooking must start when the full ingredient multiset is present.")
 	_check(
 		oven_sprite.animation == &"cooking",
 		"The oven animation must start with the complete recipe.",
@@ -112,11 +112,11 @@ func _test_combined_recipe_waits_and_consumes(world: Node2D) -> void:
 		"Both cooking ingredients must remain visible side by side.",
 	)
 
-	var removed := secondary.Take(world, 0.0) as RigidBody2D
+	var removed := secondary.take(world, 0.0) as RigidBody2D
 	await process_frame
-	_check(not bool(controller.get("IsCooking")), "Removing an ingredient must cancel and reset cooking.")
-	_check(is_zero_approx(float(controller.get("Progress"))), "Canceled cooking must reset progress.")
-	_check(bool(secondary.TryStore(removed, 0.0)), "A removed ingredient must be replaceable.")
+	_check(not bool(controller.get("is_cooking")), "Removing an ingredient must cancel and reset cooking.")
+	_check(is_zero_approx(float(controller.get("progress"))), "Canceled cooking must reset progress.")
+	_check(bool(secondary.try_store(removed, 0.0)), "A removed ingredient must be replaceable.")
 	await create_timer(0.45).timeout
 
 	var combined_definition := potatoes.get("Definition") as Resource
@@ -124,16 +124,16 @@ func _test_combined_recipe_waits_and_consumes(world: Node2D) -> void:
 		combined_definition.get("Id") == &"baked_chopped_vegetables",
 		"The two ingredients must become the combined baked dish.",
 	)
-	_check(secondary.get("Item") == null, "The additional ingredient must be consumed.")
+	_check(secondary.get("item") == null, "The additional ingredient must be consumed.")
 	_check(
-		controller.call("GetFirstMissingIngredient") == null,
+		controller.call("get_first_missing_ingredient") == null,
 		"A completed output must not trigger another ingredient request.",
 	)
 	var extra_carrots := CARROT_SCENE.instantiate() as RigidBody2D
 	extra_carrots.set("Definition", CHOPPED_CARROTS)
 	world.add_child(extra_carrots)
 	_check(
-		not bool(controller.call("CanAccept", extra_carrots)),
+		not bool(controller.call("can_accept", extra_carrots)),
 		"A completed output must block extra recipe ingredients until collected.",
 	)
 	var frames := combined_definition.get("SpriteFrames") as SpriteFrames
@@ -166,11 +166,11 @@ func _test_invalid_recipe_does_not_expose_ingredient(world: Node2D) -> void:
 		controller.set("SelectedCookingRecipe", invalid_recipe)
 		break
 
-	_check(bool(socket.TryStore(potato, 0.0)), "The oven fixture must accept the ingredient.")
+	_check(bool(socket.try_store(potato, 0.0)), "The oven fixture must accept the ingredient.")
 	await process_frame
-	_check(not bool(controller.get("IsCooking")), "A zero-duration recipe must not start cooking.")
+	_check(not bool(controller.get("is_cooking")), "A zero-duration recipe must not start cooking.")
 	_check(
-		not bool(socket.get("IsSourceAvailable")),
+		not bool(socket.get("is_source_available")),
 		"An ingredient must not become an NPC source unless cooking succeeds.",
 	)
 
@@ -195,10 +195,10 @@ func _test_baby_uses_legacy_game_over_recipe(world: Node2D) -> void:
 	fast_recipe.set("Duration", 0.1)
 	controller.set("Recipe", fast_recipe)
 	_check(
-		bool(controller.call("CanAccept", baby)),
+		bool(controller.call("can_accept", baby)),
 		"The authored oven must preserve the baby game-over cooking path.",
 	)
-	_check(bool(socket.TryStore(baby, 0.0)), "The baby must fit in the oven.")
+	_check(bool(socket.try_store(baby, 0.0)), "The baby must fit in the oven.")
 	await create_timer(0.2).timeout
 	_check(game_over_spy.triggered, "Cooking the baby must trigger game over.")
 	_check(
@@ -225,7 +225,7 @@ func _test_legacy_fallback(world: Node2D) -> void:
 	var fallback_recipe := (controller.get("Recipe") as Resource).duplicate()
 	fallback_recipe.set("Duration", 0.1)
 	controller.set("Recipe", fallback_recipe)
-	_check(bool(socket.TryStore(carrot, 0.0)), "Legacy cooking must remain available without authored recipes.")
+	_check(bool(socket.try_store(carrot, 0.0)), "Legacy cooking must remain available without authored recipes.")
 	await create_timer(0.2).timeout
 	var cooked_carrot := carrot.get("Definition") as Resource
 	var fallback_material := cooked_carrot.get("VisualMaterial") as Material

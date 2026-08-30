@@ -67,19 +67,19 @@ func _request_at_station(
 	var publisher := station.get_node("WorkstationTaskPublisher") as Node
 	var indicator := station.get_node("TaskRequestIndicator") as Node2D
 	_check(
-		int(publisher.get("CurrentTaskId")) == 0 and not indicator.visible,
+		int(publisher.get("current_task_id")) == 0 and not indicator.visible,
 		"%s must start with no published task." % station_name,
 	)
 	player.global_position = station.global_position + Vector2(0, -48)
 	await _wait_physics_frames(2)
 	await _tap_interact()
 	_check(
-		int(publisher.get("CurrentTaskId")) != 0,
+		int(publisher.get("current_task_id")) != 0,
 		"Tapping an empty %s must publish its item request." % station_name,
 	)
 	_check(
 		indicator.visible
-		and publisher.get("CurrentRequestedItem").get("Id") == expected_item_id,
+		and publisher.get("current_requested_item").get("Id") == expected_item_id,
 		"%s must show its requested ingredient after the player tap." % station_name,
 	)
 	_check_request_animation(publisher, indicator, 24.0, station_name, false)

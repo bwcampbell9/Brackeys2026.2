@@ -94,7 +94,7 @@ func _check_upright_foot_hitbox() -> void:
 	customer.global_position = Vector2.ZERO
 	for _frame in range(3):
 		await physics_frame
-	customer.get_node("NpcMotor").call("SetTarget", Vector2(100, 0))
+	customer.get_node("NpcMotor").call("set_target", Vector2(100, 0))
 	for _frame in range(3):
 		await physics_frame
 	var collision := customer.get_node("CollisionShape2D") as CollisionShape2D

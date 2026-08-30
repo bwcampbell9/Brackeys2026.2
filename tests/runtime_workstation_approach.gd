@@ -29,10 +29,10 @@ func _run() -> void:
 	var socket := cutting_board.get_node("PickupSocket")
 	runner.process_mode = Node.PROCESS_MODE_DISABLED
 	_check(
-		bool(motor.TrySetNavigableTarget(Vector2(-10000, -10000))),
+		bool(motor.try_set_navigable_target(Vector2(-10000, -10000))),
 		"A wander target outside the level must resolve onto navigation.",
 	)
-	var projected_wander_target: Vector2 = motor.get("TargetPosition")
+	var projected_wander_target: Vector2 = motor.get("target_position")
 	_check(
 		projected_wander_target.distance_to(
 			NavigationServer2D.map_get_closest_point(
@@ -49,15 +49,15 @@ func _run() -> void:
 		cutting_board,
 		publisher,
 	)
-	motor.Stop()
+	motor.stop()
 	runner.process_mode = Node.PROCESS_MODE_INHERIT
 	_check(
-		bool(publisher.call("TryPublishNextTask")),
+		bool(publisher.call("try_publish_next_task")),
 		"The cutting board must publish a fetch task for the fixture.",
 	)
 
 	var navigating_to_board := await _wait_until(
-		func() -> bool: return int(runner.get("State")) == 3,
+		func() -> bool: return int(runner.get("state")) == 3,
 		1200,
 	)
 	_check(
@@ -65,7 +65,7 @@ func _run() -> void:
 		"The worker must acquire the requested item and navigate to the cutting board.",
 	)
 	if navigating_to_board:
-		var target: Vector2 = motor.get("TargetPosition")
+		var target: Vector2 = motor.get("target_position")
 		var navigation_map := navigation_agent.get_navigation_map()
 		var closest := NavigationServer2D.map_get_closest_point(
 			navigation_map,
@@ -124,14 +124,14 @@ func _check_approach_side_selection(
 		await physics_frame
 		_check(
 			bool(
-				motor.TrySetApproachTarget(
+				motor.try_set_approach_target(
 					publisher,
-					publisher.get("ApproachPosition"),
+					publisher.get("approach_position"),
 				)
 			),
 			"Each worker origin must resolve a reachable workstation side.",
 		)
-		var target: Vector2 = motor.get("TargetPosition")
+		var target: Vector2 = motor.get("target_position")
 		var closest := NavigationServer2D.map_get_closest_point(
 			navigation_map,
 			target,
@@ -150,7 +150,7 @@ func _check_approach_side_selection(
 
 
 func _socket_item_id(socket: Node) -> StringName:
-	var item: Node = socket.get("Item")
+	var item: Node = socket.get("item")
 	if item == null:
 		return &""
 	var definition: Resource = item.get("Definition")

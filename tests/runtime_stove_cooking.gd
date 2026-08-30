@@ -49,9 +49,9 @@ func _test_single_soup(world: Node2D) -> void:
 	var back_sprite := stove.get_node("BackSprite") as AnimatedSprite2D
 	var front_sprite := stove.get_node("FrontSprite") as AnimatedSprite2D
 	_select_fast_recipe(controller, &"potato_soup")
-	_check(bool(socket.TryStore(potatoes, 0.0)), "The stove must accept its selected ingredient.")
+	_check(bool(socket.try_store(potatoes, 0.0)), "The stove must accept its selected ingredient.")
 	await process_frame
-	_check(bool(controller.get("IsCooking")), "A complete soup recipe must start.")
+	_check(bool(controller.get("is_cooking")), "A complete soup recipe must start.")
 	_check(back_sprite.animation == &"cooking", "The stove back must animate while cooking.")
 	_check(front_sprite.animation == &"cooking", "The stove front must animate while cooking.")
 	await create_timer(0.45).timeout
@@ -64,7 +64,7 @@ func _test_single_soup(world: Node2D) -> void:
 	_check(back_sprite.animation == &"idle", "The stove back must return to idle.")
 	_check(front_sprite.animation == &"idle", "The stove front must return to idle.")
 	_check(
-		bool(socket.get("IsSourceAvailable")),
+		bool(socket.get("is_source_available")),
 		"A finished stove dish must become available for an NPC to collect.",
 	)
 	stove.queue_free()
@@ -89,17 +89,17 @@ func _test_combined_soup(world: Node2D) -> void:
 	var back_sprite := stove.get_node("BackSprite") as AnimatedSprite2D
 	var front_sprite := stove.get_node("FrontSprite") as AnimatedSprite2D
 	_select_fast_recipe(controller, &"carrot_potato_soup")
-	_check(bool(primary.TryStore(carrots, 0.0)), "Combined soup must accept carrots first.")
+	_check(bool(primary.try_store(carrots, 0.0)), "Combined soup must accept carrots first.")
 	await create_timer(0.15).timeout
-	_check(not bool(controller.get("IsCooking")), "Combined soup must wait for potatoes.")
+	_check(not bool(controller.get("is_cooking")), "Combined soup must wait for potatoes.")
 	_check(
 		back_sprite.animation == &"idle" and front_sprite.animation == &"idle",
 		"The stove animation must remain idle until every ingredient is present.",
 	)
-	_check(bool(secondary.TryStore(potatoes, 0.0)), "Combined soup must accept potatoes second.")
+	_check(bool(secondary.try_store(potatoes, 0.0)), "Combined soup must accept potatoes second.")
 	await process_frame
 	await process_frame
-	_check(bool(controller.get("IsCooking")), "Combined soup must start with both ingredients.")
+	_check(bool(controller.get("is_cooking")), "Combined soup must start with both ingredients.")
 	_check(
 		back_sprite.animation == &"cooking" and front_sprite.animation == &"cooking",
 		"Both stove layers must animate once the recipe is complete.",
@@ -115,7 +115,7 @@ func _test_combined_soup(world: Node2D) -> void:
 
 	var definition := carrots.get("Definition") as Resource
 	_check(definition.get("Id") == &"carrot_potato_soup", "Both ingredients must become combined soup.")
-	_check(secondary.get("Item") == null, "The second soup ingredient must be consumed.")
+	_check(secondary.get("item") == null, "The second soup ingredient must be consumed.")
 	var frames := definition.get("SpriteFrames") as SpriteFrames
 	var frame := frames.get_frame_texture(&"idle", 0) as AtlasTexture
 	_check(

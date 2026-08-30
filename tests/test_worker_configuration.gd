@@ -16,7 +16,7 @@ func test_worker_exposes_an_isolated_error_rate_on_its_root() -> void:
 	var error_prone_worker := track(WORKER_SCENE.instantiate()) as CharacterBody2D
 	assert_eq(
 		reliable_worker.get_script().resource_path,
-		"res://src/WorkerConfiguration.cs",
+		"res://src/worker_configuration.gd",
 	)
 	assert_true(is_equal_approx(float(reliable_worker.get("ErrorRate")), 0.6))
 

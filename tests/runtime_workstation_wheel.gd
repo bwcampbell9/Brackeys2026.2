@@ -26,7 +26,7 @@ func _run() -> void:
 	var publisher: Node = board.get_node("WorkstationTaskPublisher")
 	var wheel: Control = board.get_node("RequestWheelLayer/RequestWheel")
 	var broker: Node = level.get_node("TaskSystem/TaskBroker")
-	var initial_open_tasks := int(broker.get("OpenTaskCount"))
+	var initial_open_tasks := int(broker.get("open_task_count"))
 
 	_check(
 		board.get_node_or_null("ConfiguredItemIndicator") == null,
@@ -55,47 +55,47 @@ func _run() -> void:
 	)
 
 	_check(
-		int(publisher.get("CurrentTaskId")) == 0,
+		int(publisher.get("current_task_id")) == 0,
 		"The configurable workstation must start without a request.",
 	)
-	_check(bool(publisher.call("BeginConfiguration")), "The request wheel must open.")
+	_check(bool(publisher.call("begin_configuration")), "The request wheel must open.")
 	_check(
-		bool(publisher.get("CanConfigure")),
+		bool(publisher.get("can_configure")),
 		"An active wheel must remain available to its running hold interaction.",
 	)
 	_check(
-		not bool(publisher.call("BeginConfiguration")),
+		not bool(publisher.call("begin_configuration")),
 		"A second actor must not take over an active request wheel.",
 	)
 	_check(wheel.visible, "The request wheel must be visible while configuring.")
 	Input.action_press(&"move_right", 1.0)
 	await process_frame
 	Input.action_release(&"move_right")
-	publisher.call("CompleteConfiguration")
+	publisher.call("complete_configuration")
 	_check(
 		publisher.get("RequestedItem") == CARROT_DEFINITION,
 		"Left-stick direction must select the carrot segment.",
 	)
 	_check(
-		int(broker.get("OpenTaskCount")) == initial_open_tasks + 1,
+		int(broker.get("open_task_count")) == initial_open_tasks + 1,
 		"Completing selection must immediately publish one request.",
 	)
 	_check(not wheel.visible, "The request wheel must close after selection.")
 
 	publisher.set("RequestMode", 0)
-	var previous_task_id := int(publisher.get("CurrentTaskId"))
-	_check(bool(publisher.call("BeginConfiguration")), "The automatic request wheel must open.")
+	var previous_task_id := int(publisher.get("current_task_id"))
+	_check(bool(publisher.call("begin_configuration")), "The automatic request wheel must open.")
 	Input.action_press(&"move_left", 1.0)
 	await process_frame
 	Input.action_release(&"move_left")
-	publisher.call("CompleteConfiguration")
+	publisher.call("complete_configuration")
 	_check(
 		publisher.get("RequestedItem") == POTATO_DEFINITION,
 		"Left-stick direction must select the potato segment.",
 	)
 	_check(
-		int(publisher.get("CurrentTaskId")) != previous_task_id
-		and int(publisher.get("CurrentTaskId")) > 0,
+		int(publisher.get("current_task_id")) != previous_task_id
+		and int(publisher.get("current_task_id")) > 0,
 		"Changing an automatic request must replace its task immediately.",
 	)
 
@@ -119,43 +119,43 @@ func _run() -> void:
 		"The wheel must render a larger workstation recipe set.",
 	)
 	_check(
-		int(wheel.get("PageCount")) == 2,
+		int(wheel.get("page_count")) == 2,
 		"A larger recipe set must be split into readable pages.",
 	)
 	Input.action_press(&"recipe_wheel_next_page")
 	await process_frame
 	Input.action_release(&"recipe_wheel_next_page")
 	_check(
-		int(wheel.get("CurrentPageIndex")) == 1,
+		int(wheel.get("current_page_index")) == 1,
 		"Right shoulder must advance to the next recipe page.",
 	)
-	wheel.call("Close")
+	wheel.call("close")
 
 	var stove := level.get_node("Stove") as StaticBody2D
 	var stove_publisher := stove.get_node("WorkstationTaskPublisher") as Node
 	var stove_wheel := stove.get_node("RequestWheelLayer/RequestWheel") as Control
 	var stove_indicator := stove.get_node("TaskRequestIndicator") as Node2D
 	_check(
-		bool(stove_publisher.call("BeginConfiguration")),
+		bool(stove_publisher.call("begin_configuration")),
 		"The stove recipe wheel must open.",
 	)
 	Input.action_press(&"move_left", 1.0)
 	await process_frame
 	Input.action_release(&"move_left")
 	_check(
-		int(stove_wheel.get("EntryCount")) == 3,
+		int(stove_wheel.get("entry_count")) == 3,
 		"The stove wheel must expose one segment per recipe.",
 	)
 	_check(
-		int(stove_wheel.call("GetSelectedIngredientCount")) == 2,
+		int(stove_wheel.call("get_selected_ingredient_count")) == 2,
 		"The combined soup segment must show both ingredients.",
 	)
 	_check(
-		stove_wheel.call("GetSelectedIngredient", 0) == CHOPPED_POTATOES_DEFINITION
-		and stove_wheel.call("GetSelectedIngredient", 1) == CHOPPED_CARROTS_DEFINITION,
+		stove_wheel.call("get_selected_ingredient", 0) == CHOPPED_POTATOES_DEFINITION
+		and stove_wheel.call("get_selected_ingredient", 1) == CHOPPED_CARROTS_DEFINITION,
 		"The combined soup segment must show chopped potatoes and carrots side by side.",
 	)
-	stove_publisher.call("CompleteConfiguration")
+	stove_publisher.call("complete_configuration")
 	var primary_icon := stove_indicator.get_node("Icon") as Sprite2D
 	var secondary_icon := stove_indicator.get_node("SecondaryIcon") as Sprite2D
 	_check(
@@ -169,20 +169,20 @@ func _run() -> void:
 		and primary_icon.position.x < secondary_icon.position.x,
 		"The combined recipe thought bubble must show both ingredients side by side.",
 	)
-	var first_task_id := int(stove_publisher.get("CurrentTaskId"))
+	var first_task_id := int(stove_publisher.get("current_task_id"))
 	var potatoes := PICKUP_ITEM_SCENE.instantiate() as RigidBody2D
 	potatoes.set("Definition", CHOPPED_POTATOES_DEFINITION)
 	level.add_child(potatoes)
 	var stove_socket := stove.get_node("ItemSpawnPoint/PickupSocket") as Node2D
 	_check(
-		bool(stove_socket.TryStore(potatoes, 0.0)),
+		bool(stove_socket.try_store(potatoes, 0.0)),
 		"The first combined ingredient must fit the stove.",
 	)
 	await process_frame
 	await process_frame
 	_check(
-		int(stove_publisher.get("CurrentTaskId")) != first_task_id
-		and stove_publisher.get("CurrentRequestedItem") == CHOPPED_CARROTS_DEFINITION,
+		int(stove_publisher.get("current_task_id")) != first_task_id
+		and stove_publisher.get("current_requested_item") == CHOPPED_CARROTS_DEFINITION,
 		"Depositing the first ingredient must automatically request the second.",
 	)
 	_check(

@@ -80,9 +80,9 @@ func _run() -> void:
 		== "res://fonts/Pixel Game.otf",
 		"The cookbook page buttons must use the pixel game font.",
 	)
-	_check(bool(carrier.TryHold(book)), "The recipe book must be pickable.")
+	_check(bool(carrier.try_hold(book)), "The recipe book must be pickable.")
 	_check(
-		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		carrier.get("held_item") == book and book.get_parent() == hold_point,
 		"The held recipe book must attach to the player's hold point.",
 	)
 	_check(
@@ -95,8 +95,8 @@ func _run() -> void:
 		"D-pad input must not turn pages while the cookbook is closed.",
 	)
 
-	var transformed_definition = CHOP_TRANSFORMATION.Resolve(book.get("Definition"))
-	book.SetDefinition(transformed_definition)
+	var transformed_definition = CHOP_TRANSFORMATION.resolve(book.get("Definition"))
+	book.set_definition(transformed_definition)
 	_check(
 		sprite.material != null and overlay_image.material == sprite.material,
 		"The recipe overlay must share the held item's transformation material.",
@@ -121,21 +121,21 @@ func _run() -> void:
 		"Secondary interaction must start the opening animation while held.",
 	)
 	_check(
-		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		carrier.get("held_item") == book and book.get_parent() == hold_point,
 		"Opening the cookbook with controller B must not throw it.",
 	)
 	_check(
 		open_audio.playing,
 		"Opening the recipe book must play the cookbook sound.",
 	)
-	_check(bool(book.get("IsOpening")), "The book must report that it is opening.")
+	_check(bool(book.get("is_opening")), "The book must report that it is opening.")
 	_check(
-		not bool(book.TrySecondaryInteract()),
+		not bool(book.try_secondary_interact()),
 		"The book must ignore secondary interaction while opening.",
 	)
 	await _send_joypad_button(JOY_BUTTON_B)
 	_check(
-		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		carrier.get("held_item") == book and book.get_parent() == hold_point,
 		"Repeated controller B input while opening must not throw the cookbook.",
 	)
 	_check(
@@ -146,7 +146,7 @@ func _run() -> void:
 	await create_timer(0.65).timeout
 	_check(sprite.frame == 5, "The opening animation must finish on the open frame.")
 	_check(not sprite.is_playing(), "The opening animation must not loop.")
-	_check(bool(book.get("IsOpen")), "The book must remain in its open state.")
+	_check(bool(book.get("is_open")), "The book must remain in its open state.")
 	_check(
 		book.get_parent() == hold_point,
 		"The open recipe book must remain in the player's hands.",
@@ -212,7 +212,7 @@ func _run() -> void:
 	await _send_joypad_button(JOY_BUTTON_B)
 	_check(sprite.is_playing(), "Secondary interaction must start closing an open book.")
 	_check(
-		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		carrier.get("held_item") == book and book.get_parent() == hold_point,
 		"Closing the cookbook with controller B must not throw it.",
 	)
 	_check(
@@ -223,9 +223,9 @@ func _run() -> void:
 		close_audio.playing,
 		"Closing the recipe book must play the close cookbook sound.",
 	)
-	_check(bool(book.get("IsClosing")), "The book must report that it is closing.")
+	_check(bool(book.get("is_closing")), "The book must report that it is closing.")
 	_check(
-		not bool(book.TrySecondaryInteract()),
+		not bool(book.try_secondary_interact()),
 		"The book must ignore secondary interaction while closing.",
 	)
 	_check(
@@ -236,7 +236,7 @@ func _run() -> void:
 	await create_timer(0.65).timeout
 	_check(sprite.frame == 0, "The closing animation must finish on the closed frame.")
 	_check(not sprite.is_playing(), "The closing animation must not loop.")
-	_check(not bool(book.get("IsOpen")), "The book must remain in its closed state.")
+	_check(not bool(book.get("is_open")), "The book must remain in its closed state.")
 	_check(
 		book.get_parent() == hold_point,
 		"The closed recipe book must remain in the player's hands.",
@@ -251,9 +251,9 @@ func _run() -> void:
 	await _send_joypad_button(JOY_BUTTON_B)
 	await create_timer(0.65).timeout
 	_check(sprite.frame == 5, "The closed recipe book must be openable again.")
-	_check(bool(book.get("IsOpen")), "Repeated secondary interaction must toggle the book.")
+	_check(bool(book.get("is_open")), "Repeated secondary interaction must toggle the book.")
 	_check(
-		carrier.get("HeldItem") == book and book.get_parent() == hold_point,
+		carrier.get("held_item") == book and book.get_parent() == hold_point,
 		"Reopening the cookbook with controller B must keep it held.",
 	)
 	await create_timer(0.4).timeout
@@ -271,7 +271,7 @@ func _run() -> void:
 
 	await _send_joypad_button(JOY_BUTTON_A)
 	_check(
-		carrier.get("HeldItem") == null,
+		carrier.get("held_item") == null,
 		"Controller A must still throw the open cookbook.",
 	)
 	_check(
@@ -280,7 +280,7 @@ func _run() -> void:
 	)
 	await _wait_physics_frames(2)
 	_check(book.linear_velocity.length() > 0.0, "Throwing must impart velocity.")
-	_check(bool(book.get("IsOpen")), "Throwing must preserve the open state.")
+	_check(bool(book.get("is_open")), "Throwing must preserve the open state.")
 	await create_timer(0.3).timeout
 	_check(not overlay_root.visible, "Throwing must hide the recipe overlay.")
 	_check(
@@ -288,7 +288,7 @@ func _run() -> void:
 		"The recipe overlay must leave through the top of the screen.",
 	)
 
-	_check(bool(carrier.TryHold(book)), "The open recipe book must be pickable again.")
+	_check(bool(carrier.try_hold(book)), "The open recipe book must be pickable again.")
 	_check(
 		overlay_root.visible and overlay_root.position.y < 0.0,
 		"Picking up an already-open book must immediately show its entering overlay.",
@@ -298,7 +298,7 @@ func _run() -> void:
 		overlay_root.position.is_zero_approx(),
 		"An already-open book's overlay must settle in its visible position.",
 	)
-	_check(bool(carrier.Throw()), "The re-picked open recipe book must remain throwable.")
+	_check(bool(carrier.throw()), "The re-picked open recipe book must remain throwable.")
 	await create_timer(0.3).timeout
 	_check(not overlay_root.visible, "The re-thrown book must hide its recipe overlay.")
 

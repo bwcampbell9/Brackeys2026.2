@@ -40,8 +40,8 @@ func _run_correct_fetch_scenario() -> void:
 	var broker := level.get_node("TaskSystem/TaskBroker")
 	publisher.set("RequestMode", 1)
 	_check(
-		int(broker.get("OpenTaskCount")) == 0
-		and int(broker.get("ClaimedTaskCount")) == 0
+		int(broker.get("open_task_count")) == 0
+		and int(broker.get("claimed_task_count")) == 0
 		and not indicator.visible,
 		"A player-started workstation must begin without publishing or showing a request.",
 	)
@@ -49,9 +49,9 @@ func _run_correct_fetch_scenario() -> void:
 	await _wait_physics_frames(2)
 	await _tap_interact()
 	_check(
-		int(publisher.get("CurrentTaskId")) != 0
+		int(publisher.get("current_task_id")) != 0
 		and indicator.visible
-		and publisher.get("CurrentRequestedItem").get("Id") == &"potato",
+		and publisher.get("current_requested_item").get("Id") == &"potato",
 		"Interacting with an empty board must publish and show its potato request.",
 	)
 	player.global_position = Vector2(450, 500)
@@ -86,9 +86,9 @@ func _run_correct_fetch_scenario() -> void:
 	publisher.set("RequestMode", 2)
 	await _wait_physics_frames(2)
 	_check(
-		int(publisher.get("CurrentTaskId")) != 0
+		int(publisher.get("current_task_id")) != 0
 		and indicator.visible
-		and publisher.get("CurrentRequestedItem").get("Id") == &"knife",
+		and publisher.get("current_requested_item").get("Id") == &"knife",
 		"Delivering a chop-able item must automatically publish and show the knife request.",
 	)
 	player.global_position = Vector2(450, 500)
@@ -115,23 +115,23 @@ func _run_correct_fetch_scenario() -> void:
 		"The worker must return its processing tool after completing the action.",
 	)
 	_check(
-		int(broker.get("OpenTaskCount")) == 0
-		and int(broker.get("ClaimedTaskCount")) == 0
+		int(broker.get("open_task_count")) == 0
+		and int(broker.get("claimed_task_count")) == 0
 		and not indicator.visible,
 		"The completed workstation must leave no tasks or request indicator.",
 	)
 	var parked_item := Node2D.new()
 	level.add_child(parked_item)
-	var chopped_item = board_socket.Take(parked_item, 0.0)
+	var chopped_item = board_socket.take(parked_item, 0.0)
 	_check(chopped_item != null, "The completed item must be removable for task reconciliation.")
 	if chopped_item != null:
 		_check(
-			bool(board_socket.TryStore(chopped_item, 0.0)),
+			bool(board_socket.try_store(chopped_item, 0.0)),
 			"The completed item must be replaceable on the cutting board.",
 		)
 	await _wait_physics_frames(2)
 	_check(
-		int(broker.get("OpenTaskCount")) == 0 and int(broker.get("ClaimedTaskCount")) == 0,
+		int(broker.get("open_task_count")) == 0 and int(broker.get("claimed_task_count")) == 0,
 		"An already chopped item must not publish another cutting action task.",
 	)
 
@@ -150,7 +150,7 @@ func _run_stolen_return_item_scenario() -> void:
 	await process_frame
 	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
 	publisher.set("RequestMode", 1)
-	_check(bool(publisher.call("TryPublishNextTask")), "The fixture must publish the initial fetch stage.")
+	_check(bool(publisher.call("try_publish_next_task")), "The fixture must publish the initial fetch stage.")
 	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
 	var delivered := await _wait_until(
 		func() -> bool: return _socket_item_id(board_socket) == &"potato",
@@ -164,8 +164,8 @@ func _run_stolen_return_item_scenario() -> void:
 	var returning_tool := await _wait_until(
 		func() -> bool:
 			return (
-				int(runner.get("State")) == 5
-				and npc_carrier.get("HeldItem") != null
+				int(runner.get("state")) == 5
+				and npc_carrier.get("held_item") != null
 			),
 		1800,
 	)
@@ -176,26 +176,26 @@ func _run_stolen_return_item_scenario() -> void:
 		return
 
 	var player_carrier := level.get_node("Player/PickupCarrier")
-	var tool: Node = npc_carrier.get("HeldItem")
+	var tool: Node = npc_carrier.get("held_item")
 	_check(
-		bool(npc_carrier.TryTransferHeldItemTo(tool, player_carrier)),
+		bool(npc_carrier.try_transfer_held_item_to(tool, player_carrier)),
 		"The player fixture must be able to take the returning tool.",
 	)
 	await _wait_physics_frames(2)
 	_check(
-		int(runner.get("State")) != 5 and worker.velocity.is_zero_approx(),
+		int(runner.get("state")) != 5 and worker.velocity.is_zero_approx(),
 		"Taking a returning tool must stop the return and release the worker.",
 	)
 
 	var external_hold := Node2D.new()
 	level.add_child(external_hold)
-	var completed_item: Node = board_socket.Take(external_hold, 0.0)
+	var completed_item: Node = board_socket.take(external_hold, 0.0)
 	_check(
 		completed_item != null,
 		"The completed item must be removable to publish follow-up work.",
 	)
 	var accepted_follow_up := await _wait_until(
-		func() -> bool: return int(runner.get("CurrentTaskId")) != 0,
+		func() -> bool: return int(runner.get("current_task_id")) != 0,
 		300,
 	)
 	_check(
@@ -220,7 +220,7 @@ func _run_toolless_action_scenario() -> void:
 	await process_frame
 	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
 	publisher.set("RequestMode", 1)
-	_check(bool(publisher.call("TryPublishNextTask")), "The fixture must publish the initial fetch stage.")
+	_check(bool(publisher.call("try_publish_next_task")), "The fixture must publish the initial fetch stage.")
 
 	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
 	var delivered := await _wait_until(
@@ -262,7 +262,7 @@ func _run_impossible_fetch_readiness_scenario() -> void:
 	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
 	publisher.set("RequestMode", 1)
 	_check(
-		bool(publisher.call("TryPublishNextTask")),
+		bool(publisher.call("try_publish_next_task")),
 		"The scenario must start the player-requested fetch stage.",
 	)
 
@@ -273,9 +273,9 @@ func _run_impossible_fetch_readiness_scenario() -> void:
 
 	var broker := level.get_node("TaskSystem/TaskBroker")
 	_check(
-		int(runner.get("CurrentTaskId")) == 0
-		and int(broker.get("OpenTaskCount")) == 1
-		and int(broker.get("ClaimedTaskCount")) == 0,
+		int(runner.get("current_task_id")) == 0
+		and int(broker.get("open_task_count")) == 1
+		and int(broker.get("claimed_task_count")) == 0,
 		(
 			"A fetch with no correct source must remain published but unclaimed, "
 			+ "even when wrong items are available."
@@ -284,7 +284,7 @@ func _run_impossible_fetch_readiness_scenario() -> void:
 
 	potato_source.set("ItemDefinition", preload("res://resources/items/potato.tres"))
 	var became_claimable := await _wait_until(
-		func() -> bool: return int(runner.get("CurrentTaskId")) != 0,
+		func() -> bool: return int(runner.get("current_task_id")) != 0,
 		300,
 	)
 	_check(
@@ -292,8 +292,8 @@ func _run_impossible_fetch_readiness_scenario() -> void:
 		"The existing fetch demand must become claimable when its correct source appears.",
 	)
 	_check(
-		int(runner.get("SelectedFailureMode")) == 0
-		and runner.get("SelectedItemId") != &"potato",
+		int(runner.get("selected_failure_mode")) == 0
+		and runner.get("selected_item_id") != &"potato",
 		"A personality mistake may be selected only after the success path is feasible.",
 	)
 
@@ -317,7 +317,7 @@ func _run_stolen_wrong_item_scenario() -> void:
 	var publisher := level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
 	publisher.set("RequestMode", 1)
 	_check(
-		bool(publisher.call("TryPublishNextTask")),
+		bool(publisher.call("try_publish_next_task")),
 		"The scenario must start the player-requested fetch stage.",
 	)
 	var knife_source := level.get_node("Workstations/KnifeContainer/NpcItemSource")
@@ -327,8 +327,8 @@ func _run_stolen_wrong_item_scenario() -> void:
 	var selected_baby := await _wait_until(
 		func() -> bool:
 			return (
-				runner.get("SelectedItemId") == &"baby"
-				and int(runner.get("State")) == 1
+				runner.get("selected_item_id") == &"baby"
+				and int(runner.get("state")) == 1
 			),
 		300,
 	)
@@ -343,19 +343,19 @@ func _run_stolen_wrong_item_scenario() -> void:
 	level.add_child(external_hold)
 	external_hold.global_position = baby.global_position
 	_check(
-		bool(baby.TryPickUp(external_hold, 0.0)),
+		bool(baby.try_pick_up(external_hold, 0.0)),
 		"The test actor must be able to steal the selected ground item.",
 	)
 	await _wait_physics_frames(2)
 	_check(
-		int(runner.get("State")) == 2,
+		int(runner.get("state")) == 2,
 		"A stolen target must move the worker into its retry delay.",
 	)
 	var broker := level.get_node("TaskSystem/TaskBroker")
 	_check(
-		int(runner.get("CurrentTaskId")) == 0
-			and int(broker.get("OpenTaskCount")) == 1
-			and int(broker.get("ClaimedTaskCount")) == 0,
+		int(runner.get("current_task_id")) == 0
+			and int(broker.get("open_task_count")) == 1
+			and int(broker.get("claimed_task_count")) == 0,
 		"A worker that loses its item must release its task for republishing.",
 	)
 	_check(
@@ -364,11 +364,11 @@ func _run_stolen_wrong_item_scenario() -> void:
 	)
 	await _wait_physics_frames(30)
 	_check(
-		int(runner.get("State")) == 2,
+		int(runner.get("state")) == 2,
 		"The worker must not select another source before the retry delay expires.",
 	)
 
-	baby.Throw(Vector2.ZERO)
+	baby.throw(Vector2.ZERO)
 	var board_socket := level.get_node("Workstations/CuttingBoard/PickupSocket")
 	var delivered_wrong_item := await _wait_until(
 		func() -> bool: return _socket_item_id(board_socket) == &"baby",
@@ -380,8 +380,8 @@ func _run_stolen_wrong_item_scenario() -> void:
 			"The worker must retry and deliver its originally selected wrong item. "
 			+ "state=%s selected=%s worker=%s baby=%s held=%s socket=%s"
 			% [
-				runner.get("State"),
-				runner.get("SelectedItemId"),
+				runner.get("state"),
+				runner.get("selected_item_id"),
 				worker.global_position,
 				baby.global_position,
 				worker.get_node("PickupCarrier/HoldPoint").get_child_count(),
@@ -392,14 +392,14 @@ func _run_stolen_wrong_item_scenario() -> void:
 
 	await _wait_physics_frames(2)
 	_check(
-		int(publisher.get("CurrentTaskId")) != 0,
+		int(publisher.get("current_task_id")) != 0,
 		"Delivering the wrong item must automatically publish its action stage.",
 	)
 	await _wait_physics_frames(120)
 	_check(
-		int(runner.get("CurrentTaskId")) == 0
-		and int(broker.get("OpenTaskCount")) == 1
-		and int(broker.get("ClaimedTaskCount")) == 0,
+		int(runner.get("current_task_id")) == 0
+		and int(broker.get("open_task_count")) == 1
+		and int(broker.get("claimed_task_count")) == 0,
 		"An action task must remain unclaimed while its required knife is unavailable.",
 	)
 
@@ -407,9 +407,9 @@ func _run_stolen_wrong_item_scenario() -> void:
 	var selected_valid_tool := await _wait_until(
 		func() -> bool:
 			return (
-				int(runner.get("State")) == 4
-				and runner.get("SelectedItemId") == &"knife"
-				and int(runner.get("SelectedFailureMode")) == -1
+				int(runner.get("state")) == 4
+				and runner.get("selected_item_id") == &"knife"
+				and int(runner.get("selected_failure_mode")) == -1
 			),
 		900,
 	)
@@ -453,14 +453,14 @@ func _run_two_kitchen_scope_scenario() -> void:
 	var first_broker := first_kitchen.get_node("TaskSystem/TaskBroker")
 	var second_broker := second_kitchen.get_node("TaskSystem/TaskBroker")
 	_check(
-		int(first_broker.get("OpenTaskCount")) == 0
-		and int(second_broker.get("OpenTaskCount")) == 1,
+		int(first_broker.get("open_task_count")) == 0
+		and int(second_broker.get("open_task_count")) == 1,
 		"Manual and automatic publishers must retain independent startup behavior.",
 	)
 	_check(
-		bool(first_publisher.call("TryPublishNextTask"))
-		and int(first_broker.get("OpenTaskCount")) == 1
-		and int(second_broker.get("OpenTaskCount")) == 1,
+		bool(first_publisher.call("try_publish_next_task"))
+		and int(first_broker.get("open_task_count")) == 1
+		and int(second_broker.get("open_task_count")) == 1,
 		"Starting the manual publisher must not affect the automatic kitchen broker.",
 	)
 

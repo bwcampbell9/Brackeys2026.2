@@ -40,9 +40,9 @@ func test_level_1_score_hud() -> void:
 	assert_not_null(hud, "Level 1 should have a score HUD")
 	assert_not_null(score_label, "Level 1 score HUD should have a score label")
 	if hud != null:
-		assert_eq(hud.GetScore(), 50, "Level 1 score should start at 50")
-		hud.ApplyCustomerOrderOutcome(0)
-		assert_eq(hud.GetScore(), 55, "A correct Level 1 order should add 5 score")
+		assert_eq(hud.get_score(), 50, "Level 1 score should start at 50")
+		hud.apply_customer_order_outcome(0)
+		assert_eq(hud.get_score(), 55, "A correct Level 1 order should add 5 score")
 	if score_label != null:
 		assert_eq(score_label.text, "Score: 50 / 100")
 

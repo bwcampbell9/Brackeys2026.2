@@ -95,7 +95,7 @@ func test_moving_entities_use_compact_collision_footprints() -> void:
 		assert_true(navigation_agent != null)
 		assert_true(body_pusher != null)
 		if body_pusher != null:
-			assert_eq(body_pusher.get_script().resource_path, "res://src/BodyPusher.cs")
+			assert_eq(body_pusher.get_script().resource_path, "res://src/body_pusher.gd")
 		if body_shape != null:
 			assert_true(is_equal_approx(body_shape.radius, 12.0))
 		if navigation_agent != null:
@@ -123,7 +123,7 @@ func test_moving_entities_use_compact_collision_footprints() -> void:
 	assert_true(close_shape != null)
 	assert_true(player_pusher != null)
 	if player_pusher != null:
-		assert_eq(player_pusher.get_script().resource_path, "res://src/BodyPusher.cs")
+		assert_eq(player_pusher.get_script().resource_path, "res://src/body_pusher.gd")
 	if player_shape != null:
 		assert_true(is_equal_approx(player_shape.radius, 12.0))
 	if close_shape != null:
@@ -172,7 +172,7 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	if player == null or room_tiles == null:
 		return
 
-	assert_eq(player.get_script().resource_path, "res://src/Player.cs")
+	assert_eq(player.get_script().resource_path, "res://src/player.gd")
 	assert_true(float(player.get("Speed")) > 0.0, "Player speed must be positive.")
 	assert_eq(player.collision_layer, 4)
 	assert_eq(player.collision_mask, 7)
@@ -258,7 +258,7 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	if game_over_controller != null:
 		assert_eq(
 			game_over_controller.get_script().resource_path,
-			"res://src/GameOverController.cs",
+			"res://src/game_over_controller.gd",
 		)
 		assert_eq(game_over_controller.process_mode, Node.PROCESS_MODE_ALWAYS)
 	var hud := level.get_node_or_null("Hud") as CanvasLayer
@@ -266,7 +266,7 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 	assert_true(hud != null)
 	assert_true(score_label != null)
 	if hud != null:
-		assert_eq(hud.get_script().resource_path, "res://src/GameScoreController.cs")
+		assert_eq(hud.get_script().resource_path, "res://src/game_score_controller.gd")
 		assert_eq(int(hud.get("StartingScore")), 50)
 		assert_eq(int(hud.get("MaximumScore")), 100)
 		assert_eq(int(hud.get("CorrectOrderPoints")), 5)
@@ -311,7 +311,7 @@ func test_score_hud_uses_pixel_font_contract() -> void:
 	):
 		return
 
-	assert_eq(hud.get_script().resource_path, "res://src/GameScoreController.cs")
+	assert_eq(hud.get_script().resource_path, "res://src/game_score_controller.gd")
 	assert_eq(score_label.text, "Score: 50 / 100")
 	assert_true(score_label.has_theme_font_override("font"))
 	assert_eq(score_label.get_theme_color("font_outline_color"), Color.BLACK)
@@ -353,7 +353,7 @@ func test_player_has_composable_interaction_components() -> void:
 	):
 		return
 
-	assert_eq(carrier.get_script().resource_path, "res://src/PickupCarrier.cs")
+	assert_eq(carrier.get_script().resource_path, "res://src/pickup_carrier.gd")
 	assert_true(is_equal_approx(float(carrier.get("PickupDuration")), 0.2))
 	assert_true(float(carrier.get("ThrowForce")) > 0.0)
 	assert_true(carrier.visible, "The pickup carrier must keep held items visible.")
@@ -369,7 +369,7 @@ func test_player_has_composable_interaction_components() -> void:
 		assert_eq(throw_audio.stream.resource_path, "res://assets/sounds/throw.wav")
 		assert_false(throw_audio.autoplay)
 
-	assert_eq(interactor.get_script().resource_path, "res://src/PlayerInteractor.cs")
+	assert_eq(interactor.get_script().resource_path, "res://src/player_interactor.gd")
 	assert_eq(float(interactor.get("InteractionConeDegrees")), 140.0)
 	assert_eq(float(interactor.get("TargetFocusDistance")), 48.0)
 	assert_false(bool(interactor.get("UseTargetPriority")))
@@ -398,7 +398,7 @@ func test_player_has_composable_interaction_components() -> void:
 			assert_true(is_equal_approx(close_shape.radius, 32.01562))
 			assert_true(close_shape.radius > player_shape.radius)
 
-	assert_eq(input_manager.get_script().resource_path, "res://src/PlayerInputManager.cs")
+	assert_eq(input_manager.get_script().resource_path, "res://src/player_input_manager.gd")
 	assert_true(is_equal_approx(float(input_manager.get("HoldThreshold")), 0.2))
 
 
@@ -431,7 +431,7 @@ func test_executioner_has_the_game_over_animation_contract() -> void:
 	if sprite == null:
 		return
 
-	assert_eq(executioner.get_script().resource_path, "res://src/Executioner.cs")
+	assert_eq(executioner.get_script().resource_path, "res://src/executioner.gd")
 	assert_eq(sprite.sprite_frames.get_frame_count(&"idle"), 2)
 	assert_eq(sprite.sprite_frames.get_frame_count(&"walk"), 2)
 	assert_eq(sprite.sprite_frames.get_frame_count(&"takeout"), 5)
@@ -508,7 +508,7 @@ func test_pickup_item_has_top_down_physics_contract() -> void:
 	if item == null:
 		return
 
-	assert_eq(item.get_script().resource_path, "res://src/PickupItem.cs")
+	assert_eq(item.get_script().resource_path, "res://src/pickup_item.gd")
 	assert_eq(item.collision_layer, 2)
 	assert_eq(item.collision_mask, 7)
 	assert_eq(item.gravity_scale, 0.0)
@@ -541,7 +541,7 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 	if baby == null:
 		return
 
-	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
+	assert_eq(baby.get_script().resource_path, "res://src/baby_pickup_item.gd")
 	assert_eq(baby.get("Definition").get("Id"), &"baby")
 	assert_eq(baby.collision_layer, 2)
 	assert_eq(baby.collision_mask, 7)
@@ -558,8 +558,8 @@ func test_baby_pickup_item_has_crawl_contract() -> void:
 		assert_eq(sprite.sprite_frames.get_frame_count("crawl"), 2)
 		assert_eq(sprite.sprite_frames.get_frame_texture("crawl", 0).get_width(), 64)
 		assert_eq(sprite.sprite_frames.get_frame_texture("crawl", 1).get_width(), 64)
-		var transformed_definition := CHOP_TRANSFORMATION.Resolve(baby.get("Definition"))
-		baby.SetDefinition(transformed_definition)
+		var transformed_definition := CHOP_TRANSFORMATION.resolve(baby.get("Definition"))
+		baby.set_definition(transformed_definition)
 		assert_eq(transformed_definition.get("Id"), &"chopped_baby")
 		assert_eq(sprite.material, CHOP_TRANSFORMATION.get("FallbackMaterial"))
 
@@ -612,7 +612,7 @@ func test_knife_item_has_pickup_definition() -> void:
 	if knife == null:
 		return
 
-	assert_eq(knife.get_script().resource_path, "res://src/PickupItem.cs")
+	assert_eq(knife.get_script().resource_path, "res://src/pickup_item.gd")
 	assert_eq(knife.get("Definition"), KNIFE_DEFINITION)
 	assert_eq(KNIFE_DEFINITION.get("Id"), &"knife")
 	assert_eq(
@@ -629,7 +629,7 @@ func test_recipe_book_has_pickup_and_open_animation_contract() -> void:
 	if book == null:
 		return
 
-	assert_eq(book.get_script().resource_path, "res://src/RecipeBookItem.cs")
+	assert_eq(book.get_script().resource_path, "res://src/recipe_book_item.gd")
 	assert_eq(book.get("Definition"), RECIPE_BOOK_DEFINITION)
 	assert_eq(RECIPE_BOOK_DEFINITION.get("Id"), &"recipe_book")
 	assert_eq(book.collision_layer, 2)
@@ -713,9 +713,9 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 	):
 		return
 
-	assert_eq(task_system.get_script().resource_path, "res://src/KitchenTaskSystem.cs")
-	assert_eq(broker.get_script().resource_path, "res://src/TaskBroker.cs")
-	assert_eq(catalog.get_script().resource_path, "res://src/ItemSourceCatalog.cs")
+	assert_eq(task_system.get_script().resource_path, "res://src/kitchen_task_system.gd")
+	assert_eq(broker.get_script().resource_path, "res://src/task_broker.gd")
+	assert_eq(catalog.get_script().resource_path, "res://src/item_source_catalog.gd")
 	assert_true(navigation_region.navigation_polygon != null)
 	assert_eq(navigation_region.navigation_polygon.get_outline_count(), 1)
 	assert_eq(
@@ -748,12 +748,12 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 		)
 	assert_eq(
 		worker.get_node("WorkerVisualController").get_script().resource_path,
-		"res://src/WorkerVisualController.cs",
+		"res://src/worker_visual_controller.gd",
 	)
-	assert_eq(worker.get_node("NpcMotor").get_script().resource_path, "res://src/NpcMotor.cs")
+	assert_eq(worker.get_node("NpcMotor").get_script().resource_path, "res://src/npc_motor.gd")
 	assert_eq(
 		worker.get_node("NpcTaskRunner").get_script().resource_path,
-		"res://src/NpcTaskRunner.cs",
+		"res://src/npc_task_runner.gd",
 	)
 	var personality: Resource = worker.get_node("NpcTaskRunner").get("Personality")
 	assert_true(personality != null)
@@ -769,7 +769,7 @@ func test_main_scene_composes_scene_scoped_npc_task_system() -> void:
 	if worker_agent != null:
 		assert_true(is_equal_approx(worker_agent.radius, 12.0))
 	assert_true(worker.get_node_or_null("PickupCarrier/HoldPoint") is Node2D)
-	assert_eq(baby.get_script().resource_path, "res://src/BabyPickupItem.cs")
+	assert_eq(baby.get_script().resource_path, "res://src/baby_pickup_item.gd")
 	assert_eq(baby.get("Definition").get("Id"), &"baby")
 
 
@@ -818,7 +818,7 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 		)
 	assert_eq(
 		controller.get_script().resource_path,
-		"res://src/CustomerWanderController.cs",
+		"res://src/customer_wander_controller.gd",
 	)
 	assert_eq(
 		controller.get("UprightVisualPath"),
@@ -858,9 +858,9 @@ func test_catalog_matches_transformed_output_by_item_id() -> void:
 	level.add_child(item)
 	item.set("Definition", POTATO_DEFINITION)
 
-	assert_true(bool(socket.call("TryStore", item, 0.0)))
-	assert_true(bool(CHOP_RECIPE.call("Apply", item)))
-	socket.call("SetNpcSourceEnabled", true)
+	assert_true(bool(socket.call("try_store", item, 0.0)))
+	assert_true(bool(CHOP_RECIPE.call("apply", item)))
+	socket.call("set_npc_source_enabled", true)
 	assert_ne(item.get("Definition"), CHOPPED_POTATOES_DEFINITION)
 	assert_eq(
 		item.get("Definition").get("Id"),
@@ -944,7 +944,7 @@ func test_workstation_and_sources_expose_npc_task_contracts() -> void:
 
 	assert_eq(
 		publisher.get_script().resource_path,
-		"res://src/WorkstationTaskPublisher.cs",
+		"res://src/workstation_task_publisher.gd",
 	)
 	assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	assert_eq(publisher.get("ActionTask"), PROCESS_TASK)
@@ -999,7 +999,7 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	if socket == null or target == null:
 		return
 
-	assert_eq(socket.get_script().resource_path, "res://src/PickupSocket.cs")
+	assert_eq(socket.get_script().resource_path, "res://src/pickup_socket.gd")
 	assert_eq(socket.get("NpcApproachOffset"), Vector2(0, 72))
 	var board_sprite := board.get_node("Sprite2D") as Sprite2D
 	assert_true(board_sprite != null)
@@ -1023,15 +1023,15 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	var request := target.get_node("RequestTaskAction")
 	var configure := target.get_node("ConfigureWorkstationAction")
 	var wheel := board.get_node_or_null("RequestWheelLayer/RequestWheel")
-	assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
-	assert_eq(configure.get_script().resource_path, "res://src/ConfigureWorkstationAction.cs")
+	assert_eq(request.get_script().resource_path, "res://src/request_workstation_task_action.gd")
+	assert_eq(configure.get_script().resource_path, "res://src/configure_workstation_action.gd")
 	assert_true(wheel != null)
 	assert_true(
 		board.get_node_or_null("ConfiguredItemIndicator") == null,
 		"The selected recipe must only be shown in the request wheel.",
 	)
-	assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
-	assert_eq(process.get_script().resource_path, "res://src/TimedItemProcessAction.cs")
+	assert_eq(transfer.get_script().resource_path, "res://src/slot_transfer_action.gd")
+	assert_eq(process.get_script().resource_path, "res://src/timed_item_process_action.gd")
 	assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
 	assert_eq(process.get("SocketPath"), NodePath("../../PickupSocket"))
 	assert_eq(transfer.get("ActionId"), &"transfer")
@@ -1071,7 +1071,7 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	if presentation != null:
 		assert_eq(
 			presentation.get_script().resource_path,
-			"res://src/CuttingBoardProcessPresentation.cs",
+			"res://src/cutting_board_process_presentation.gd",
 		)
 	var chopping_audio := board.get_node_or_null("ChoppingAudio") as AudioStreamPlayer2D
 	assert_true(chopping_audio != null)
@@ -1196,14 +1196,14 @@ func test_completing_recipe_selection_immediately_publishes_request() -> void:
 	var publisher: Node = level.get_node("Workstations/CuttingBoard/WorkstationTaskPublisher")
 	var broker: Node = level.get_node("TaskSystem/TaskBroker")
 	var wheel: Control = level.get_node("Workstations/CuttingBoard/RequestWheelLayer/RequestWheel")
-	var initial_open_tasks := int(broker.get("OpenTaskCount"))
+	var initial_open_tasks := int(broker.get("open_task_count"))
 
-	assert_eq(int(publisher.get("CurrentTaskId")), 0)
-	assert_true(bool(publisher.call("BeginConfiguration")))
-	publisher.call("CompleteConfiguration")
+	assert_eq(int(publisher.get("current_task_id")), 0)
+	assert_true(bool(publisher.call("begin_configuration")))
+	publisher.call("complete_configuration")
 	assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
-	assert_eq(int(broker.get("OpenTaskCount")), initial_open_tasks + 1)
-	assert_true(int(publisher.get("CurrentTaskId")) > 0)
+	assert_eq(int(broker.get("open_task_count")), initial_open_tasks + 1)
+	assert_true(int(publisher.get("current_task_id")) > 0)
 
 
 func test_oven_composes_automatic_cooking_workstation() -> void:
@@ -1242,7 +1242,7 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 	assert_true(controller != null)
 	assert_true(publisher != null)
 	if transfer != null:
-		assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
+		assert_eq(transfer.get_script().resource_path, "res://src/slot_transfer_action.gd")
 		assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
 		assert_eq(
 			transfer.get("AdditionalSocketPaths"),
@@ -1252,15 +1252,15 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 		assert_eq(socket.position, Vector2(-8, 0))
 		assert_eq(secondary_socket.position, Vector2(8, 0))
 	if request != null:
-		assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
+		assert_eq(request.get_script().resource_path, "res://src/request_workstation_task_action.gd")
 	if configure != null:
-		assert_eq(configure.get_script().resource_path, "res://src/ConfigureWorkstationAction.cs")
+		assert_eq(configure.get_script().resource_path, "res://src/configure_workstation_action.gd")
 	if publisher != null:
 		assert_eq(int(publisher.get("RequestMode")), 1)
 		assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
 		assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	if controller != null:
-		assert_eq(controller.get_script().resource_path, "res://src/OvenCookingController.cs")
+		assert_eq(controller.get_script().resource_path, "res://src/oven_cooking_controller.gd")
 		var cooking_recipes: Array = controller.get("Recipes")
 		assert_eq(cooking_recipes.size(), 4)
 		assert_eq(
@@ -1318,7 +1318,7 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 	assert_true(presentation != null)
 	assert_true(publisher != null)
 	if controller != null:
-		assert_eq(controller.get_script().resource_path, "res://src/OvenCookingController.cs")
+		assert_eq(controller.get_script().resource_path, "res://src/oven_cooking_controller.gd")
 		assert_eq(controller.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
 		assert_eq(controller.get("SpritePath"), NodePath("../BackSprite"))
 		var cooking_recipes: Array = controller.get("Recipes")
@@ -1328,7 +1328,7 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 			POTATO_SOUP_DEFINITION,
 		)
 	if presentation != null:
-		assert_eq(presentation.get_script().resource_path, "res://src/StoveCookingPresentation.cs")
+		assert_eq(presentation.get_script().resource_path, "res://src/stove_cooking_presentation.gd")
 		assert_eq(presentation.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
 		assert_eq(presentation.get("ItemOffset"), Vector2(22, -78))
 		assert_eq(
@@ -1341,9 +1341,9 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 	if transfer != null:
 		assert_eq(transfer.get("SocketPath"), NodePath("../../ItemSpawnPoint/PickupSocket"))
 	if request != null:
-		assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
+		assert_eq(request.get_script().resource_path, "res://src/request_workstation_task_action.gd")
 	if configure != null:
-		assert_eq(configure.get_script().resource_path, "res://src/ConfigureWorkstationAction.cs")
+		assert_eq(configure.get_script().resource_path, "res://src/configure_workstation_action.gd")
 	if publisher != null:
 		assert_eq(publisher.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
 		assert_eq(int(publisher.get("RequestMode")), 1)
@@ -1354,7 +1354,7 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 func test_stove_cooking_maps_chopped_ingredients_and_other_items_to_soup() -> void:
 	var chopped_carrots := CARROT_ITEM_SCENE.instantiate()
 	chopped_carrots.set("Definition", CHOPPED_CARROTS_DEFINITION)
-	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", chopped_carrots)))
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("apply", chopped_carrots)))
 	assert_eq(chopped_carrots.get("Definition").get("Id"), CARROT_SOUP_DEFINITION.get("Id"))
 	var carrot_soup_sprite := chopped_carrots.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	assert_true(carrot_soup_sprite != null)
@@ -1369,12 +1369,12 @@ func test_stove_cooking_maps_chopped_ingredients_and_other_items_to_soup() -> vo
 
 	var chopped_potatoes := PICKUP_ITEM_SCENE.instantiate()
 	chopped_potatoes.set("Definition", CHOPPED_POTATOES_DEFINITION)
-	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", chopped_potatoes)))
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("apply", chopped_potatoes)))
 	assert_eq(chopped_potatoes.get("Definition").get("Id"), POTATO_SOUP_DEFINITION.get("Id"))
 
 	var raw_carrot := CARROT_ITEM_SCENE.instantiate()
 	raw_carrot.set("Definition", CARROT_DEFINITION)
-	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("Apply", raw_carrot)))
+	assert_true(bool(STOVE_COOK_TRANSFORMATION.call("apply", raw_carrot)))
 	assert_eq(raw_carrot.get("Definition").get("Id"), DUBIOUS_SOUP_DEFINITION.get("Id"))
 	var dubious_soup_sprite := raw_carrot.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	assert_true(dubious_soup_sprite != null)
@@ -1529,7 +1529,7 @@ func test_item_transformations_preserve_history_through_authored_outputs() -> vo
 	var input := PickupItemDefinition.new()
 	input.Id = &"input"
 	input.DisplayName = "Input"
-	var first_result := first.Resolve(input)
+	var first_result := first.resolve(input)
 
 	var second := ItemTransformation.new()
 	second.Id = &"second"
@@ -1541,13 +1541,13 @@ func test_item_transformations_preserve_history_through_authored_outputs() -> vo
 	var overrides: Array[ItemTransformationOverride] = [null, transformation_override]
 	first_result.TransformationOverrides = overrides
 
-	var second_result := second.Resolve(first_result)
+	var second_result := second.resolve(first_result)
 	var applied_ids: Array[StringName] = second_result.AppliedTransformationIds
 	assert_eq(second_result.Id, &"authored_output")
 	assert_true(applied_ids.has(&"first"))
 	assert_true(applied_ids.has(&"second"))
-	assert_false(first.CanApply(second_result))
-	assert_false(second.CanApply(second_result))
+	assert_false(first.can_apply(second_result))
+	assert_false(second.can_apply(second_result))
 
 
 func _has_key_binding(events: Array, keycode: Key) -> bool:

@@ -42,7 +42,7 @@ func _check_processing_visual(
 	hold_point: Node2D,
 	expected_sheet_suffix: String,
 ) -> void:
-	_check(bool(item.TryPickUp(hold_point, 0.0)), "The raw item must be holdable.")
+	_check(bool(item.try_pick_up(hold_point, 0.0)), "The raw item must be holdable.")
 	var static_sprite := item.get_node("Sprite2D") as Sprite2D
 	var animated_sprite := item.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	_check(static_sprite.visible, "Held raw food must remain static.")
@@ -68,12 +68,12 @@ func _check_processing_visual(
 		"The process animation must use the authored chopping sheet.",
 	)
 
-	item.PlayProcessingAnimation(processing_frames)
+	item.play_processing_animation(processing_frames)
 	await create_timer(0.2).timeout
 	animated_sprite = item.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	_check(animated_sprite.visible and not static_sprite.visible, "Processing must switch to the chopping animation.")
 	_check(animated_sprite.frame > 0, "The chopping animation must advance while processing.")
-	item.RestoreDefinitionVisual()
+	item.restore_definition_visual()
 	_check(static_sprite.visible and not animated_sprite.visible, "Canceling processing must restore the static raw sprite.")
 
 
