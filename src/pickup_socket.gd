@@ -33,6 +33,10 @@ var is_source_available: bool:
 	get:
 		return _is_npc_source_enabled and not _is_locked and item != null
 
+var requires_exclusive_reservation: bool:
+	get:
+		return true
+
 var can_return_item: bool:
 	get:
 		return false

@@ -47,6 +47,7 @@ func _test_single_baked_potato(world: Node2D) -> void:
 	var socket := oven.get_node("PickupSocket") as Node2D
 	var controller := oven.get_node("OvenCookingController") as Node
 	var sprite := oven.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	_check_default_durations(controller)
 	_select_fast_recipe(controller, &"cooked_potato")
 	_check(bool(socket.try_store(potato, 0.0)), "The oven must accept its selected ingredient.")
 	await process_frame
@@ -250,6 +251,19 @@ func _select_fast_recipe(controller: Node, output_id: StringName) -> void:
 		controller.set("SelectedCookingRecipe", fast_recipe)
 		return
 	_check(false, "Expected cooking recipe %s." % output_id)
+
+
+func _check_default_durations(controller: Node) -> void:
+	var legacy_recipe := controller.get("Recipe") as Resource
+	_check(
+		is_equal_approx(float(legacy_recipe.get("Duration")), 5.0),
+		"The oven legacy recipe must cook in 5 seconds.",
+	)
+	for recipe: Resource in controller.get("Recipes"):
+		_check(
+			is_equal_approx(float(recipe.get("Duration")), 5.0),
+			"Oven recipe %s must cook in 5 seconds." % recipe.resource_path,
+		)
 
 
 func _check(condition: bool, message: String) -> void:

@@ -9,4 +9,4 @@
 script = ExtResource("1_recipe")
 Output = ExtResource("4_output")
 Ingredients = Array[ExtResource("2_potatoes")]([ExtResource("2_potatoes"), ExtResource("3_carrots")])
-Duration = 10.0
+Duration = 5.0

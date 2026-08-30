@@ -6,4 +6,4 @@
 [resource]
 script = ExtResource("1_recipe")
 Transformation = ExtResource("2_transformation")
-Duration = 10.0
+Duration = 5.0

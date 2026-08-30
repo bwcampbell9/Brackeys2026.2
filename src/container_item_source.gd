@@ -27,6 +27,10 @@ var is_source_available: bool:
 			and _action.PickupScene != null
 		)
 
+var requires_exclusive_reservation: bool:
+	get:
+		return false
+
 var can_return_item: bool:
 	get:
 		return true

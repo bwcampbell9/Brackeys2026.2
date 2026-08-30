@@ -10,6 +10,7 @@
 ##   [code]source_node: Node2D[/code]
 ##   [code]available_definition: PickupItemDefinition[/code] (nullable)
 ##   [code]is_source_available: bool[/code]
+##   [code]requires_exclusive_reservation: bool[/code]
 ##   [code]can_return_item: bool[/code]
 ##   [code]approach_position: Vector2[/code]
 ##   [code]try_acquire(context: InteractionContext) -> bool[/code]
@@ -21,6 +22,7 @@ const REQUIRED_PROPERTIES: Array[StringName] = [
 	&"source_node",
 	&"available_definition",
 	&"is_source_available",
+	&"requires_exclusive_reservation",
 	&"can_return_item",
 	&"approach_position",
 ]

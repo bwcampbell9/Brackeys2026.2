@@ -98,7 +98,8 @@ func try_reserve_source(definition: PickupItemDefinition, requester: Node, rando
 		return null
 
 	var source: Object = candidates[random.randi_range(0, candidates.size() - 1)]
-	_reservations[source.source_node.get_instance_id()] = requester
+	if source.requires_exclusive_reservation:
+		_reservations[source.source_node.get_instance_id()] = requester
 	return source
 
 
@@ -121,7 +122,11 @@ func _get_available_sources(requester: Node) -> Array:
 			continue
 
 		var owner_id: int = node.source_node.get_instance_id()
-		if _reservations.has(owner_id) and _reservations[owner_id] != requester:
+		if (
+			node.requires_exclusive_reservation
+			and _reservations.has(owner_id)
+			and _reservations[owner_id] != requester
+		):
 			continue
 
 		sources.append(node)

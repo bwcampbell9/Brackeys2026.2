@@ -54,6 +54,10 @@ var is_source_available: bool:
 	get:
 		return is_transfer_available and Definition != null
 
+var requires_exclusive_reservation: bool:
+	get:
+		return true
+
 var current_carrier: PickupCarrier:
 	get:
 		if not is_carried:

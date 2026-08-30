@@ -27,6 +27,7 @@ const _TASK_STATUS_CLAIMED := 1
 const _FAILURE_MODE_WRONG_FETCHED_ITEM := 0
 const _RUN_STATE_RUNNING := 0
 const _RUN_STATE_FAILED := 2
+const _MINIMUM_PROGRESS_DISTANCE_SQUARED := 64.0
 
 signal state_changed(state: int)
 
@@ -52,6 +53,8 @@ var _source_reference_position := Vector2.ZERO
 var _destination_reference_position := Vector2.ZERO
 var _retry_remaining := 0.0
 var _wander_wait := 0.0
+var _progress_remaining := 0.0
+var _progress_position := Vector2.ZERO
 var _state: int = NpcWorkerState.IDLE
 
 @export var MotorPath: NodePath = NodePath("../NpcMotor")
@@ -63,6 +66,8 @@ var _state: int = NpcWorkerState.IDLE
 @export var Personality: Resource
 
 @export_range(0.1, 10, 0.1, "or_greater") var RetryDelay: float = 1.0
+
+@export_range(0.2, 10, 0.1, "or_greater") var StuckTimeout: float = 2.0
 
 @export_range(0.1, 10, 0.1, "or_greater") var WanderDelay: float = 1.5
 
@@ -172,6 +177,9 @@ func _physics_process(delta: float) -> void:
 		)
 	):
 		_begin_retry()
+		return
+
+	if _recover_stalled_navigation(delta):
 		return
 
 	match _state:
@@ -482,8 +490,49 @@ func _update_return() -> void:
 		_enter_idle()
 		return
 
+	_return_source = null
+	_carrier.throw()
 	_motor.stop()
-	_retry_remaining = RetryDelay
+	_enter_idle()
+
+
+func _recover_stalled_navigation(delta: float) -> bool:
+	var is_task_navigation := (
+		_state == NpcWorkerState.NAVIGATING_TO_SOURCE
+		or _state == NpcWorkerState.NAVIGATING_TO_DESTINATION
+	)
+	if (
+		not is_task_navigation
+		and _state != NpcWorkerState.RETURNING_ITEM
+	):
+		return false
+	if _motor.is_at_target:
+		return false
+
+	if (
+		_actor.global_position.distance_squared_to(_progress_position)
+		>= _MINIMUM_PROGRESS_DISTANCE_SQUARED
+	):
+		_reset_navigation_progress()
+		return false
+
+	_progress_remaining -= delta
+	if _progress_remaining > 0.0:
+		return false
+
+	if _state == NpcWorkerState.RETURNING_ITEM:
+		_return_source = null
+		_carrier.throw()
+		_motor.stop()
+		_enter_idle()
+	else:
+		_begin_retry()
+	return true
+
+
+func _reset_navigation_progress() -> void:
+	_progress_position = _actor.global_position
+	_progress_remaining = StuckTimeout
 
 
 func _handle_lost_task() -> void:
@@ -515,4 +564,10 @@ func _set_state(new_state: int) -> void:
 		return
 
 	_state = new_state
+	if (
+		new_state == NpcWorkerState.NAVIGATING_TO_SOURCE
+		or new_state == NpcWorkerState.NAVIGATING_TO_DESTINATION
+		or new_state == NpcWorkerState.RETURNING_ITEM
+	):
+		_reset_navigation_progress()
 	state_changed.emit(new_state)
