@@ -71,9 +71,10 @@ public partial class PlayerInputManager : Node
         else if (
             !SecondaryInteractAction.IsEmpty
             && Input.IsActionJustPressed(SecondaryInteractAction)
+            && _carrier.HeldItem?.TrySecondaryInteract() == true
         )
         {
-            _carrier.HeldItem?.TrySecondaryInteract();
+            return;
         }
 
         if (_suppressInteractionInputsUntilNeutral)
@@ -161,6 +162,7 @@ public partial class PlayerInputManager : Node
             }
             else if (
                 !wasHoldThresholdReached
+                && HasMappedTap(inputAction)
                 && !TryExecuteMappedTap(inputAction)
             )
             {
@@ -204,6 +206,22 @@ public partial class PlayerInputManager : Node
                 binding.InputAction == inputAction
                 && binding.Trigger == InteractionInputTrigger.Tap
                 && _interactor.TryExecute(binding.ActionIds, context)
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasMappedTap(StringName inputAction)
+    {
+        foreach (InteractionInputBinding binding in InteractionInputs)
+        {
+            if (
+                binding.InputAction == inputAction
+                && binding.Trigger == InteractionInputTrigger.Tap
             )
             {
                 return true;
