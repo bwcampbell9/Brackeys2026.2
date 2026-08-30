@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://src/BabyPickupItem.cs" id="1_baby"]
 [ext_resource type="Texture2D" path="res://assets/sprites/baby/baby-Sheet.png" id="2_baby_sheet"]
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="3_target"]
 [ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="4_transfer"]
 [ext_resource type="Resource" path="res://resources/items/baby.tres" id="5_definition"]
+[ext_resource type="Texture2D" path="res://assets/sprites/baby/baby_stabbed.png" id="6_stabbed"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_baby_0"]
 atlas = ExtResource("2_baby_sheet")
@@ -20,6 +21,11 @@ animations = [{
 "loop": true,
 "name": &"crawl",
 "speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("6_stabbed")}],
+"loop": false,
+"name": &"stabbed",
+"speed": 1.0
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_baby"]
@@ -35,6 +41,8 @@ gravity_scale = 0.0
 linear_damp = 8.0
 angular_damp = 8.0
 lock_rotation = true
+contact_monitor = true
+max_contacts_reported = 4
 script = ExtResource("1_baby")
 Definition = ExtResource("5_definition")
 
