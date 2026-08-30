@@ -1,5 +1,6 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=35 format=3]
 
+[ext_resource type="Script" path="res://src/CustomerOrderConfiguration.cs" id="1_orders"]
 [ext_resource type="Texture2D" path="res://assets/sprites/mlady_shubungus/mlady_shubungus-Sheet.png" id="1_sprite"]
 [ext_resource type="Script" path="res://src/CustomerVisualController.cs" id="2_visual"]
 [ext_resource type="Script" path="res://src/NpcMotor.cs" id="3_motor"]
@@ -96,6 +97,8 @@ radius = 34.0
 collision_layer = 4
 collision_mask = 7
 motion_mode = 1
+script = ExtResource("1_orders")
+PossibleRequests = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_mlady_customer")

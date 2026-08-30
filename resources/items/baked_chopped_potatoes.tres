@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="PickupItemDefinition" format=3]
+[gd_resource type="Resource" script_class="PickupItemDefinition" format=3 uid="uid://dscry6g11gk5g"]
 
 [ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
-[ext_resource type="Texture2D" path="res://assets/sprites/potato/baked-chopped-potato-Sheet.png" id="2_sheet"]
+[ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="2_nt75x"]
+[ext_resource type="Texture2D" uid="uid://jdu83jlhy2e0" path="res://assets/sprites/potato/baked-chopped-potato-Sheet.png" id="2_sheet"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_baked_chopped_potatoes_1"]
 atlas = ExtResource("2_sheet")
@@ -27,7 +28,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_baked_chopped_potatoes_3")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle",
 "speed": 3.0
 }]

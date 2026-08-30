@@ -30,6 +30,8 @@ public partial class NpcTaskRunner : Node
 	private IItemSource? _returnSource;
 	private PickupItemDefinition? _selectedDefinition;
 	private NpcTaskFailureMode? _selectedFailureMode;
+	private Vector2 _sourceReferencePosition;
+	private Vector2 _destinationReferencePosition;
 	private float _retryRemaining;
 	private float _wanderWait;
 
@@ -247,8 +249,10 @@ public partial class NpcTaskRunner : Node
 			_random.RandfRange(WanderBounds.Position.X, WanderBounds.End.X),
 			_random.RandfRange(WanderBounds.Position.Y, WanderBounds.End.Y)
 		);
-		_motor.SetTarget(wanderTarget);
-		SetState(NpcWorkerState.Wandering);
+		if (_motor.TrySetNavigableTarget(wanderTarget))
+		{
+			SetState(NpcWorkerState.Wandering);
+		}
 	}
 
 	private bool TryClaimWork()
@@ -357,7 +361,17 @@ public partial class NpcTaskRunner : Node
 		}
 
 		_source = source;
-		_motor.SetTarget(source.ApproachPosition);
+		_sourceReferencePosition = source.ApproachPosition;
+		if (
+			!_motor.TrySetApproachTarget(
+				source.SourceNode,
+				_sourceReferencePosition
+			)
+		)
+		{
+			BeginRetry();
+			return;
+		}
 		SetState(NpcWorkerState.NavigatingToSource);
 	}
 
@@ -374,11 +388,21 @@ public partial class NpcTaskRunner : Node
 		}
 
 		if (
-			_motor.TargetPosition.DistanceSquaredTo(_source.ApproachPosition)
+			_sourceReferencePosition.DistanceSquaredTo(_source.ApproachPosition)
 			> 576.0f
 		)
 		{
-			_motor.SetTarget(_source.ApproachPosition);
+			_sourceReferencePosition = _source.ApproachPosition;
+			if (
+				!_motor.TrySetApproachTarget(
+					_source.SourceNode,
+					_sourceReferencePosition
+				)
+			)
+			{
+				BeginRetry();
+				return;
+			}
 		}
 
 		if (!_motor.IsAtTarget)
@@ -447,7 +471,17 @@ public partial class NpcTaskRunner : Node
 			return;
 		}
 
-		_motor.SetTarget(_task.Destination.ApproachPosition);
+		_destinationReferencePosition = _task.Destination.ApproachPosition;
+		if (
+			!_motor.TrySetApproachTarget(
+				_task.Destination,
+				_destinationReferencePosition
+			)
+		)
+		{
+			BeginRetry();
+			return;
+		}
 		SetState(NpcWorkerState.NavigatingToDestination);
 	}
 
@@ -460,11 +494,21 @@ public partial class NpcTaskRunner : Node
 
 		Vector2 approachPosition = _task.Destination.ApproachPosition;
 		if (
-			_motor.TargetPosition.DistanceSquaredTo(approachPosition)
+			_destinationReferencePosition.DistanceSquaredTo(approachPosition)
 			> 576.0f
 		)
 		{
-			_motor.SetTarget(approachPosition);
+			_destinationReferencePosition = approachPosition;
+			if (
+				!_motor.TrySetApproachTarget(
+					_task.Destination,
+					_destinationReferencePosition
+				)
+			)
+			{
+				BeginRetry();
+				return;
+			}
 		}
 
 		if (!_motor.IsAtTarget)
@@ -557,7 +601,17 @@ public partial class NpcTaskRunner : Node
 			return;
 		}
 
-		_motor.SetTarget(_returnSource.ApproachPosition);
+		if (
+			!_motor.TrySetApproachTarget(
+				_returnSource.SourceNode,
+				_returnSource.ApproachPosition
+			)
+		)
+		{
+			_carrier.Throw();
+			EnterIdle();
+			return;
+		}
 		SetState(NpcWorkerState.ReturningItem);
 	}
 

@@ -1,6 +1,7 @@
-[gd_scene format=3 uid="uid://mvdg0dey2ov1"]
+[gd_scene load_steps=9 format=3 uid="uid://mvdg0dey2ov1"]
 
 [ext_resource type="Texture2D" uid="uid://c7o1hxlkpqvkb" path="res://assets/sprites/worker/worker.png" id="1_sprite"]
+[ext_resource type="Script" path="res://src/WorkerConfiguration.cs" id="1_worker_configuration"]
 [ext_resource type="Script" uid="uid://da23ug7lkfcpv" path="res://src/PickupCarrier.cs" id="2_carrier"]
 [ext_resource type="Script" uid="uid://ban1ufd7vpf00" path="res://src/NpcMotor.cs" id="3_motor"]
 [ext_resource type="Script" uid="uid://dw2k68gkwmy4l" path="res://src/NpcTaskRunner.cs" id="4_runner"]
@@ -56,6 +57,7 @@ animations = [{
 collision_layer = 4
 collision_mask = 7
 motion_mode = 1
+script = ExtResource("1_worker_configuration")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1528392061]
 shape = SubResource("CircleShape2D_worker")

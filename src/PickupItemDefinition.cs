@@ -4,6 +4,8 @@ using Godot.Collections;
 [GlobalClass]
 public partial class PickupItemDefinition : Resource
 {
+    private static readonly StringName IdleAnimation = new("idle");
+
     [Export]
     public StringName Id { get; set; } = new();
 
@@ -34,6 +36,24 @@ public partial class PickupItemDefinition : Resource
     [Export]
     public Array<ItemTransformationOverride> TransformationOverrides { get; set; } =
         new();
+
+    public Texture2D? GetDisplayTexture()
+    {
+        if (Texture is not null)
+        {
+            return Texture;
+        }
+        if (
+            SpriteFrames is null
+            || !SpriteFrames.HasAnimation(IdleAnimation)
+            || SpriteFrames.GetFrameCount(IdleAnimation) == 0
+        )
+        {
+            return null;
+        }
+
+        return SpriteFrames.GetFrameTexture(IdleAnimation, 0);
+    }
 
     public bool HasAppliedTransformation(StringName transformationId)
     {

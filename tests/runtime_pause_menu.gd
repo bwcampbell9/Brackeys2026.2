@@ -115,8 +115,8 @@ func _run() -> void:
 	await _send_mouse_click(play_button.get_global_rect().get_center())
 	await create_timer(1.5).timeout
 	_check(
-		current_scene != null and current_scene.scene_file_path == "res://scenes/main.tscn",
-		"Clicking Cook with the mouse must load the main scene.",
+		current_scene != null and current_scene.scene_file_path == "res://scenes/level_1.tscn",
+		"Clicking Cook with the mouse must load Level 1.",
 	)
 
 	_finish()
