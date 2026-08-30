@@ -1,9 +1,20 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://b3l63pn85rovm"]
 
-[ext_resource type="Script" path="res://src/TitleScreen.cs" id="1_titlescreen"]
+[ext_resource type="Script" uid="uid://b2xsvlc7bo1tp" path="res://src/TitleScreen.cs" id="1_titlescreen"]
 [ext_resource type="AudioStream" uid="uid://bjw040380lmsp" path="res://assets/sounds/title_music.ogg" id="2_titlemusic"]
+[ext_resource type="Texture2D" uid="uid://qh7lcd7d1e0y" path="res://assets/sprites/menu/main_menu_background.png" id="3_background"]
+[ext_resource type="Texture2D" uid="uid://dyid4v7ac8rp5" path="res://assets/sprites/menu/scroll_background.png" id="4_parchment"]
+[ext_resource type="Texture2D" uid="uid://ygmmyyemqvvm" path="res://assets/sprites/menu/scroll_roll.png" id="5_roll"]
+[ext_resource type="Texture2D" uid="uid://cwnratmud2wsb" path="res://assets/sprites/menu/title_at.png" id="6_title_at"]
+[ext_resource type="Texture2D" uid="uid://cvt8ra3tsr7od" path="res://assets/sprites/menu/title_your.png" id="7_title_your"]
+[ext_resource type="Texture2D" uid="uid://ghr6b0ekjdmf" path="res://assets/sprites/menu/title_service.png" id="8_title_service"]
+[ext_resource type="Texture2D" uid="uid://ptg677odgw0t" path="res://assets/sprites/menu/button_banner.png" id="9_banner"]
+[ext_resource type="Texture2D" uid="uid://bwwlf605oadb1" path="res://assets/sprites/menu/cook.png" id="10_cook"]
+[ext_resource type="Texture2D" uid="uid://bgtt8b717jetk" path="res://assets/sprites/menu/exit.png" id="12_exit"]
+[ext_resource type="Script" uid="uid://oanepy21hbte" path="res://src/BobbingMenuArt.cs" id="13_bobbing"]
+[ext_resource type="Script" uid="uid://dxusw00bibdri" path="res://src/MenuBannerButton.cs" id="14_button"]
 
-[node name="TitleScreen" type="Control"]
+[node name="TitleScreen" type="Control" unique_id=1533789356]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,59 +23,178 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_titlescreen")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=1117510088]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.09, 0.12, 0.14, 1)
+mouse_filter = 2
+texture = ExtResource("3_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Scroll" type="Control" parent="." unique_id=2143104121]
+custom_minimum_size = Vector2(684, 462)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -342.0
+offset_top = -231.0
+offset_right = 342.0
+offset_bottom = 231.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ParchmentMask" type="Control" parent="Scroll" unique_id=2135719579]
+clip_contents = true
+anchors_preset = 0
+offset_left = 36.5
+offset_top = 26.5
+offset_right = 647.5
+offset_bottom = 435.5
+mouse_filter = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(320, 220)
-layout_mode = 2
+[node name="Parchment" type="TextureRect" parent="Scroll/ParchmentMask" unique_id=707574157]
+layout_mode = 0
+offset_right = 611.0
+offset_bottom = 409.0
+mouse_filter = 2
+texture = ExtResource("4_parchment")
+expand_mode = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 28
+[node name="AtTitle" type="TextureRect" parent="Scroll/ParchmentMask" unique_id=1456166081]
+texture_filter = 2
+layout_mode = 0
+offset_left = 69.5
+offset_top = 57.5
+offset_right = 145.5
+offset_bottom = 106.5
+mouse_filter = 2
+texture = ExtResource("6_title_at")
+expand_mode = 1
+script = ExtResource("13_bobbing")
+Amplitude = 5.0
+Period = 4.2
+Phase = 0.0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 18
+[node name="YourTitle" type="TextureRect" parent="Scroll/ParchmentMask" unique_id=1827476442]
+texture_filter = 2
+layout_mode = 0
+offset_left = 154.5
+offset_top = 84.5
+offset_right = 305.5
+offset_bottom = 134.5
+mouse_filter = 2
+texture = ExtResource("7_title_your")
+expand_mode = 1
+script = ExtResource("13_bobbing")
+Amplitude = 5.0
+Period = 4.2
+Phase = 2.094
 
-[node name="Title" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "At Your Service"
-horizontal_alignment = 1
+[node name="ServiceTitle" type="TextureRect" parent="Scroll/ParchmentMask" unique_id=1333670952]
+texture_filter = 2
+layout_mode = 0
+offset_left = 323.5
+offset_top = 64.5
+offset_right = 556.5
+offset_bottom = 112.5
+mouse_filter = 2
+texture = ExtResource("8_title_service")
+expand_mode = 1
+script = ExtResource("13_bobbing")
+Amplitude = 5.0
+Period = 4.2
+Phase = 4.189
 
-[node name="PlayButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
+[node name="CookButton" type="TextureButton" parent="Scroll/ParchmentMask" unique_id=472722608]
+layout_mode = 0
+offset_left = 195.5
+offset_top = 220.0
+offset_right = 415.5
+offset_bottom = 285.0
 focus_neighbor_top = NodePath("../ExitButton")
 focus_neighbor_bottom = NodePath("../ExitButton")
-text = "Play"
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("9_banner")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("14_button")
+HoverRotationDegrees = -3.0
 
-[node name="ExitButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-focus_neighbor_top = NodePath("../PlayButton")
-focus_neighbor_bottom = NodePath("../PlayButton")
-text = "Exit"
+[node name="Word" type="TextureRect" parent="Scroll/ParchmentMask/CookButton" unique_id=523844564]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -45.0
+offset_top = -17.5
+offset_right = 45.0
+offset_bottom = 17.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("10_cook")
+expand_mode = 1
 
-[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+[node name="ExitButton" type="TextureButton" parent="Scroll/ParchmentMask" unique_id=1169966253]
+layout_mode = 0
+offset_left = 195.5
+offset_top = 295.0
+offset_right = 415.5
+offset_bottom = 360.0
+focus_neighbor_top = NodePath("../CookButton")
+focus_neighbor_bottom = NodePath("../CookButton")
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("9_banner")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("14_button")
+HoverRotationDegrees = -2.0
+
+[node name="Word" type="TextureRect" parent="Scroll/ParchmentMask/ExitButton" unique_id=456977386]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -39.5
+offset_top = -17.5
+offset_right = 39.5
+offset_bottom = 17.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("12_exit")
+expand_mode = 1
+
+[node name="TopRoll" type="TextureRect" parent="Scroll" unique_id=1490271035]
+layout_mode = 0
+offset_right = 684.0
+offset_bottom = 53.0
+mouse_filter = 2
+texture = ExtResource("5_roll")
+expand_mode = 1
+
+[node name="BottomRoll" type="TextureRect" parent="Scroll" unique_id=2093794568]
+layout_mode = 0
+offset_top = 409.0
+offset_right = 684.0
+offset_bottom = 462.0
+mouse_filter = 2
+texture = ExtResource("5_roll")
+expand_mode = 1
+flip_v = true
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1493187225]
 stream = ExtResource("2_titlemusic")
 autoplay = true

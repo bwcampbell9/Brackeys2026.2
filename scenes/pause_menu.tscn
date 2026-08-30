@@ -1,14 +1,19 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://byndw2765yivu"]
 
-[ext_resource type="Script" path="res://src/PauseMenu.cs" id="1_pause_menu"]
+[ext_resource type="Script" uid="uid://bkv2gh4hm3aol" path="res://src/PauseMenu.cs" id="1_pause_menu"]
+[ext_resource type="Texture2D" uid="uid://bsqjvg5ur1oox" path="res://assets/sprites/menu/pause_scroll_background.png" id="2_parchment"]
+[ext_resource type="Texture2D" uid="uid://dhucb3geurv15" path="res://assets/sprites/menu/pause_scroll_roll.png" id="3_roll"]
+[ext_resource type="Texture2D" uid="uid://c6wg2fgn53730" path="res://assets/sprites/menu/pause_resume.png" id="4_resume"]
+[ext_resource type="Texture2D" uid="uid://yi3o8vdbj20o" path="res://assets/sprites/menu/pause_main_menu.png" id="5_main_menu"]
+[ext_resource type="Texture2D" uid="uid://cdxnb8xcy1ej" path="res://assets/sprites/menu/pause_quit.png" id="6_quit"]
+[ext_resource type="Script" uid="uid://dxusw00bibdri" path="res://src/MenuBannerButton.cs" id="7_button"]
 
-[node name="PauseMenu" type="CanvasLayer"]
+[node name="PauseMenu" type="CanvasLayer" unique_id=154298115]
 process_mode = 3
 layer = 20
-visible = false
 script = ExtResource("1_pause_menu")
 
-[node name="Overlay" type="ColorRect" parent="."]
+[node name="Overlay" type="ColorRect" parent="." unique_id=1813869986]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -16,52 +21,100 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.72)
 
-[node name="CenterContainer" type="CenterContainer" parent="Overlay"]
+[node name="Scroll" type="Control" parent="Overlay" unique_id=332322800]
+custom_minimum_size = Vector2(329, 342)
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -164.5
+offset_top = -171.0
+offset_right = 164.5
+offset_bottom = 171.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="Overlay/CenterContainer"]
-custom_minimum_size = Vector2(320, 280)
-layout_mode = 2
+[node name="ParchmentMask" type="Control" parent="Overlay/Scroll" unique_id=903568015]
+clip_contents = true
+anchors_preset = 0
+offset_left = 24.0
+offset_top = 32.0
+offset_right = 305.0
+offset_bottom = 310.0
+mouse_filter = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Overlay/CenterContainer/PanelContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 28
+[node name="Parchment" type="TextureRect" parent="Overlay/Scroll/ParchmentMask" unique_id=1914516306]
+layout_mode = 0
+offset_right = 281.0
+offset_bottom = 278.0
+mouse_filter = 2
+texture = ExtResource("2_parchment")
+expand_mode = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Overlay/CenterContainer/PanelContainer/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="Title" type="Label" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "Paused"
-horizontal_alignment = 1
-
-[node name="ResumeButton" type="Button" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
+[node name="ResumeButton" type="TextureButton" parent="Overlay/Scroll/ParchmentMask" unique_id=1805192014]
+layout_mode = 0
+offset_left = 72.5
+offset_top = 53.0
+offset_right = 208.16666
+offset_bottom = 90.0
+tooltip_text = "Resume"
 focus_neighbor_top = NodePath("../QuitButton")
 focus_neighbor_bottom = NodePath("../TitleButton")
-text = "Resume"
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("4_resume")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("7_button")
 
-[node name="TitleButton" type="Button" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
+[node name="TitleButton" type="TextureButton" parent="Overlay/Scroll/ParchmentMask" unique_id=1544246484]
+layout_mode = 0
+offset_left = 55.5
+offset_top = 106.0
+offset_right = 239.5
+offset_bottom = 152.0
+tooltip_text = "Main Menu"
 focus_neighbor_top = NodePath("../ResumeButton")
 focus_neighbor_bottom = NodePath("../QuitButton")
-text = "Return to Title"
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("5_main_menu")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("7_button")
+HoverRotationDegrees = 2.5
 
-[node name="QuitButton" type="Button" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
+[node name="QuitButton" type="TextureButton" parent="Overlay/Scroll/ParchmentMask" unique_id=1545053214]
+layout_mode = 0
+offset_left = 62.5
+offset_top = 167.0
+offset_right = 220.16666
+offset_bottom = 210.0
+tooltip_text = "Quit"
 focus_neighbor_top = NodePath("../TitleButton")
 focus_neighbor_bottom = NodePath("../ResumeButton")
-text = "Quit"
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("6_quit")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("7_button")
+HoverRotationDegrees = -2.0
+
+[node name="TopRoll" type="TextureRect" parent="Overlay/Scroll" unique_id=1272053769]
+layout_mode = 0
+offset_right = 329.0
+offset_bottom = 64.0
+mouse_filter = 2
+texture = ExtResource("3_roll")
+expand_mode = 1
+
+[node name="BottomRoll" type="TextureRect" parent="Overlay/Scroll" unique_id=218634745]
+layout_mode = 0
+offset_top = 278.0
+offset_right = 329.0
+offset_bottom = 342.0
+mouse_filter = 2
+texture = ExtResource("3_roll")
+expand_mode = 1
+flip_v = true

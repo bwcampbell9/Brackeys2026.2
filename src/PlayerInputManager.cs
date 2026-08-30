@@ -24,6 +24,7 @@ public partial class PlayerInputManager : Node
     private PlayerInteractor _interactor = null!;
     private PickupCarrier _carrier = null!;
     private bool _suppressSecondaryInteractUntilReleased;
+    private bool _suppressInteractionInputsUntilNeutral;
 
     [Export(PropertyHint.Range, "0.05,2,0.01,or_greater")]
     public float HoldThreshold { get; set; } = 0.2f;
@@ -73,6 +74,21 @@ public partial class PlayerInputManager : Node
         )
         {
             _carrier.HeldItem?.TrySecondaryInteract();
+        }
+
+        if (_suppressInteractionInputsUntilNeutral)
+        {
+            bool hasActiveInteractionInput = false;
+            foreach (StringName inputAction in _inputStates.Keys)
+            {
+                hasActiveInteractionInput |=
+                    Input.IsActionPressed(inputAction)
+                    || Input.IsActionJustPressed(inputAction)
+                    || Input.IsActionJustReleased(inputAction);
+            }
+
+            _suppressInteractionInputsUntilNeutral = hasActiveInteractionInput;
+            return;
         }
 
         foreach (
@@ -169,6 +185,7 @@ public partial class PlayerInputManager : Node
         }
 
         _suppressSecondaryInteractUntilReleased = true;
+        _suppressInteractionInputsUntilNeutral = true;
         foreach (InputState state in _inputStates.Values)
         {
             state.HeldTime = 0.0f;
