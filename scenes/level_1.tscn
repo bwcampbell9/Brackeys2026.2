@@ -12,17 +12,30 @@
 [ext_resource type="PackedScene" path="res://scenes/baby_pickup_item.tscn" id="12_mbb35"]
 [ext_resource type="PackedScene" path="res://scenes/recipe_book_item.tscn" id="13_iw4em"]
 [ext_resource type="Script" uid="uid://ct4taxh4aw0tb" path="res://src/GameOverController.cs" id="15_nossa"]
-[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="16_hjqri"]
+[ext_resource type="PackedScene" uid="uid://byndw2765yivu" path="res://scenes/pause_menu.tscn" id="16_hjqri"]
 [ext_resource type="AudioStream" uid="uid://cynt36n0m0jxu" path="res://assets/sounds/game_music.mp3" id="18_1aans"]
+[ext_resource type="Script" uid="uid://bp5mfpbsnubtn" path="res://src/GameScoreController.cs" id="19_score"]
+[ext_resource type="FontFile" uid="uid://caidkm36bym2d" path="res://fonts/Pixel Game.otf" id="20_score_font"]
+[ext_resource type="AudioStream" uid="uid://bw1fh4y7dobll" path="res://assets/sounds/score_up.wav" id="21_score_up"]
+[ext_resource type="AudioStream" uid="uid://bmxdtakhe81a0" path="res://assets/sounds/score_down.wav" id="22_score_down"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_kitchen"]
-vertices = PackedVector2Array(716, 258, 628, 258, 460, 154, 564, 154, 890.90625, 63.039063, 888.0781, 449.96094, 844, 154, 844, 66, 70.96875, 65.953125, 756, 66, 716, 346, 499, 448.96875, 628, 346, 756, 154, 652, 154, 652, 66, 399.39844, 450.96094, 140, 451.75, 140, 386, 70.1875, 386, 70.28906, 346, 140, 346, 140, 258, 70.5, 258, 372, 66, 372, 154, 499, 597.9531, 948, 599.9375, 948, 962.97656, -47.0625, 962.0078, -48.929688, 599.90625, 394.6172, 596.9219, 564, 66, 460, 66)
-polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3), PackedInt32Array(4, 5, 6, 7), PackedInt32Array(8, 4, 7, 9), PackedInt32Array(10, 5, 11, 12), PackedInt32Array(6, 5, 10, 0, 13), PackedInt32Array(9, 13, 0, 14, 15), PackedInt32Array(16, 17, 18), PackedInt32Array(18, 19, 20, 21), PackedInt32Array(22, 23, 8, 24, 25), PackedInt32Array(26, 27, 28, 29, 30), PackedInt32Array(26, 30, 31), PackedInt32Array(26, 31, 16, 11), PackedInt32Array(8, 9, 15), PackedInt32Array(8, 15, 32), PackedInt32Array(16, 18, 21), PackedInt32Array(11, 16, 21, 22, 25, 2, 1, 12), PackedInt32Array(3, 14, 0), PackedInt32Array(3, 2, 33, 32), PackedInt32Array(8, 32, 33), PackedInt32Array(8, 33, 24)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(59, 54, 903, 51, 900, 462, 511, 461, 511, 586, 960, 588, 960, 975, -59, 974, -61, 588, 383, 585, 387, 463, 58, 464)])
+vertices = PackedVector2Array(884.09375, 83.046875, 886.89844, 451.0703, 844, 346, 844, 258, 496.78906, 453.39063, 716, 346, 756, 346, 628, 346, 140, 386, 72.25, 386, 72.86719, 346, 140, 346, 395.20313, 450.8125, 140, 454.7422, 140, 258, 74.21094, 258, 76.82031, 86.9375, 372, 85.52344, 372, 154, 460, 85.09375, 564, 84.59375, 564, 154, 460, 154, 652, 84.171875, 756, 83.671875, 756, 154, 652, 154, 499.1875, 599.9531, 948.03125, 601.9375, 948.96875, 962, -51.03125, 962, -51.960938, 601.90625, 392.8125, 598.9219, 844, 154, 844, 83.25, 756, 258, 716, 258, 628, 258)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3), PackedInt32Array(1, 4, 5, 6), PackedInt32Array(7, 5, 4), PackedInt32Array(8, 9, 10, 11), PackedInt32Array(12, 13, 8), PackedInt32Array(14, 15, 16, 17, 18), PackedInt32Array(19, 20, 21, 22), PackedInt32Array(23, 24, 25, 26), PackedInt32Array(27, 28, 29, 30, 31), PackedInt32Array(27, 31, 32), PackedInt32Array(4, 27, 32, 12, 22), PackedInt32Array(33, 34, 0), PackedInt32Array(33, 0, 3), PackedInt32Array(33, 3, 35, 25), PackedInt32Array(26, 25, 35, 36), PackedInt32Array(12, 8, 11), PackedInt32Array(6, 2, 1), PackedInt32Array(35, 6, 5, 36), PackedInt32Array(26, 36, 37, 21), PackedInt32Array(12, 11, 14, 18, 22), PackedInt32Array(37, 7, 4, 22, 21)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(896, 71, 899, 463, 508.99597, 465.32147, 511, 588, 960, 590, 961, 974, -63, 974, -64, 590, 381, 587, 383, 463, 59, 468, 65, 75)])
 parsed_geometry_type = 1
 parsed_collision_mask = 1
 source_geometry_mode = 1
 source_geometry_group_name = &"workstation_navigation_source"
+agent_radius = 12.0
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_customers"]
+vertices = PackedVector2Array(950, 975, -50, 975, -50, 600, 950, 600)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(960, 600, 960, 975, -60, 975, -60, 600)])
+parsed_geometry_type = 1
+parsed_collision_mask = 1
+source_geometry_mode = 1
 agent_radius = 12.0
 
 [node name="Kitchen" type="Node2D" unique_id=1599987340]
@@ -34,7 +47,7 @@ tile_set = ExtResource("1_x2xxo")
 
 [node name="Workstations" type="TileMapLayer" parent="." unique_id=346724267 groups=["workstation_navigation_source"]]
 position = Vector2(0, 14)
-tile_map_data = PackedByteArray("AAABAAYAAAAAAAAAAAAKAAQAAAAAAAAAAQAGAAEAAAAAAAAAAgABAAQAAAAAAAAAAwAMAAEAAAAAAAAABQAJAAEAAAAAAAAABAA=")
+tile_map_data = PackedByteArray("AAABAAYAAAAAAAAAAAAGAAEAAAAAAAAAAgABAAQAAAAAAAAAAwAMAAEAAAAAAAAABQAJAAEAAAAAAAAABAAIAAQAAAAAAAAAAQAKAAQAAAAAAAAAAQAMAAQAAAAAAAAAAQA=")
 tile_set = ExtResource("2_2cbcq")
 
 [node name="Rug" type="TileMapLayer" parent="." unique_id=185624029]
@@ -48,13 +61,22 @@ tile_set = ExtResource("1_x2xxo")
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=957661959]
 navigation_polygon = SubResource("NavigationPolygon_kitchen")
 
-[node name="NpcWorker" parent="." unique_id=1718931931 instance=ExtResource("3_isj1j")]
+[node name="NpcWorker" parent="NavigationRegion2D" unique_id=1718931931 instance=ExtResource("3_isj1j")]
 position = Vector2(480, 444)
 
-[node name="MladyShubungusCustomer" parent="." unique_id=850852891 instance=ExtResource("5_tr1x6")]
+[node name="NpcWorker2" parent="NavigationRegion2D" unique_id=1861508754 instance=ExtResource("3_isj1j")]
+position = Vector2(553, 388)
+
+[node name="NpcWorker3" parent="NavigationRegion2D" unique_id=1379251457 instance=ExtResource("3_isj1j")]
+position = Vector2(399, 385)
+
+[node name="CustomersNavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=1119488642]
+navigation_polygon = SubResource("NavigationPolygon_customers")
+
+[node name="MladyShubungusCustomer" parent="CustomersNavigationRegion2D" unique_id=850852891 instance=ExtResource("5_tr1x6")]
 position = Vector2(921, 788)
 
-[node name="Customer" parent="." unique_id=873843052 instance=ExtResource("4_so66j")]
+[node name="Customer" parent="CustomersNavigationRegion2D" unique_id=873843052 instance=ExtResource("4_so66j")]
 position = Vector2(-27, 793)
 
 [node name="TaskSystem" type="Node" parent="." unique_id=873822971]
@@ -70,7 +92,7 @@ script = ExtResource("10_mmfjm")
 position = Vector2(480, 270)
 
 [node name="BabyPickupItem" parent="." unique_id=1947549762 instance=ExtResource("12_mbb35")]
-position = Vector2(480, 200)
+position = Vector2(449, 932)
 
 [node name="RecipeBookItem" parent="." unique_id=2037827658 instance=ExtResource("13_iw4em")]
 position = Vector2(400, 200)
@@ -88,6 +110,29 @@ volume_db = -25.0
 autoplay = true
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
+script = ExtResource("19_score")
+
+[node name="Score" type="Label" parent="Hud" unique_id=1806985607]
+offset_left = 658.0
+offset_top = 6.0
+offset_right = 946.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.96, 0.96, 0.91, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("20_score_font")
+theme_override_font_sizes/font_size = 48
+text = "Score: 50 / 100"
+horizontal_alignment = 2
+
+[node name="ScoreUpAudio" type="AudioStreamPlayer" parent="Hud" unique_id=310512159]
+stream = ExtResource("21_score_up")
+max_polyphony = 4
+
+[node name="ScoreDownAudio" type="AudioStreamPlayer" parent="Hud" unique_id=1688297533]
+stream = ExtResource("22_score_down")
+volume_db = -1.4116215
+max_polyphony = 4
 
 [node name="Title" type="Label" parent="Hud" unique_id=510205867]
 offset_left = 56.0
