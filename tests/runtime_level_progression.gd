@@ -29,6 +29,10 @@ func _run() -> void:
 		"Winning Level 1 must play the configured win sound.",
 	)
 	_check(
+		_has_single_confetti_burst(),
+		"Winning Level 1 must show one visible confetti burst.",
+	)
+	_check(
 		_has_circle_transition(),
 		"Winning Level 1 must start the circle transition.",
 	)
@@ -44,15 +48,24 @@ func _run() -> void:
 		_count_win_audio_players() == 0,
 		"The Level 1 win sound must clean up after playback.",
 	)
+	_check(
+		_count_confetti_bursts() == 0,
+		"The Level 1 confetti burst must clean up after playback.",
+	)
 	hud = current_scene.get_node("Hud")
 	var instant_win_event := InputEventAction.new()
 	instant_win_event.action = &"debug_instant_win"
 	instant_win_event.pressed = true
 	hud._UnhandledInput(instant_win_event)
+	hud._UnhandledInput(instant_win_event)
 	await process_frame
 	_check(
 		_is_win_audio_playing(),
 		"F10 must play the configured win sound.",
+	)
+	_check(
+		_has_single_confetti_burst(),
+		"F10 must show one visible confetti burst.",
 	)
 	_check(
 		_has_circle_transition(),
@@ -70,14 +83,31 @@ func _run() -> void:
 		_count_win_audio_players() == 0,
 		"The Level 2 win sound must clean up after playback.",
 	)
+	_check(
+		_count_confetti_bursts() == 0,
+		"The Level 2 confetti burst must clean up after playback.",
+	)
 	hud = current_scene.get_node("Hud")
+	hud._UnhandledInput(instant_win_event)
 	hud._UnhandledInput(instant_win_event)
 	await process_frame
 	_check(
-		_count_win_audio_players() == 0 and not _has_circle_transition(),
-		"The terminal level must not play win audio or start another transition.",
+		_is_win_audio_playing()
+			and _has_single_confetti_burst()
+			and not _has_circle_transition(),
+		"The terminal level must celebrate without starting another transition.",
+	)
+	await create_timer(2.5, true, false, true).timeout
+	await process_frame
+	_check(
+		_count_win_audio_players() == 0 and _count_confetti_bursts() == 0,
+		"The terminal celebration must clean up after playback.",
 	)
 
+	var music_player := current_scene.get_node_or_null("MusicPlayer") as AudioStreamPlayer
+	if music_player != null:
+		music_player.stop()
+		music_player.stream = null
 	current_scene.queue_free()
 	await process_frame
 	print("level_progression_runtime=", "failed" if _failed else "passed")
@@ -98,6 +128,41 @@ func _is_win_audio_playing() -> bool:
 		if _is_win_audio_player(child) and child.playing:
 			playing_count += 1
 	return _count_win_audio_players() == 1 and playing_count == 1
+
+
+func _has_single_confetti_burst() -> bool:
+	for child in root.get_children():
+		if child.name == &"WinConfetti":
+			return (
+				_count_confetti_bursts() == 1
+				and child is CanvasLayer
+				and _count_visible_colored_pieces(child) >= 24
+			)
+	return false
+
+
+func _count_visible_colored_pieces(burst: Node) -> int:
+	var visible_piece_count := 0
+	for child in burst.get_children():
+		var piece := child as ColorRect
+		if (
+			piece != null
+			and piece.is_visible_in_tree()
+			and piece.color != Color.WHITE
+			and piece.modulate.a > 0.0
+			and piece.size.x > 0.0
+			and piece.size.y > 0.0
+		):
+			visible_piece_count += 1
+	return visible_piece_count
+
+
+func _count_confetti_bursts() -> int:
+	var burst_count := 0
+	for child in root.get_children():
+		if child.name == &"WinConfetti":
+			burst_count += 1
+	return burst_count
 
 
 func _count_win_audio_players() -> int:

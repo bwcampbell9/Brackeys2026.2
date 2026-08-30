@@ -17,6 +17,7 @@ public partial class GameScoreController : CanvasLayer
     private float _displayedScore;
     private int _displayedScoreValue;
     private int _score;
+    private bool _hasPlayedWinCelebration;
     private bool _isCompletingLevel;
 
     [Export]
@@ -191,7 +192,6 @@ public partial class GameScoreController : CanvasLayer
         else if (
             previousScore < MaximumScore
             && _score == MaximumScore
-            && !string.IsNullOrWhiteSpace(NextLevelScenePath)
         )
         {
             BeginLevelCompletion();
@@ -200,10 +200,7 @@ public partial class GameScoreController : CanvasLayer
 
     private void CompleteLevelForTesting()
     {
-        if (
-            _isCompletingLevel
-            || string.IsNullOrWhiteSpace(NextLevelScenePath)
-        )
+        if (_isCompletingLevel)
         {
             return;
         }
@@ -225,7 +222,17 @@ public partial class GameScoreController : CanvasLayer
         }
 
         _isCompletingLevel = true;
-        PlayWinSound();
+        if (!_hasPlayedWinCelebration)
+        {
+            _hasPlayedWinCelebration = true;
+            PlayWinSound();
+            ShowWinConfetti(_scoreLabel.GetGlobalRect().GetCenter());
+        }
+        if (string.IsNullOrWhiteSpace(NextLevelScenePath))
+        {
+            return;
+        }
+
         CircleTransition transition = new();
         GetTree().Root.AddChild(transition);
         Error result = await transition.TransitionToScene(
@@ -262,6 +269,13 @@ public partial class GameScoreController : CanvasLayer
         audioPlayer.Finished += audioPlayer.QueueFree;
         GetTree().Root.AddChild(audioPlayer);
         audioPlayer.Play();
+    }
+
+    private void ShowWinConfetti(Vector2 origin)
+    {
+        WinConfetti confetti = new() { Name = "WinConfetti" };
+        GetTree().Root.AddChild(confetti);
+        confetti.Burst(origin);
     }
 
     private void AnimateDisplayedScore()
