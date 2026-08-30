@@ -1,6 +1,6 @@
 ---
 name: godot-validation
-description: "Validate Godot and C# changes with a risk-based evidence ladder using diagnostics, dotnet builds/tests when available, Godot AI editor tests, scene inspection, runtime input, node state, logs, screenshots, and performance monitors. Use after edits, for regressions, reviews, test design, and completion checks."
+description: "Validate Godot, GDScript, and C# changes with a risk-based evidence ladder using diagnostics, language-specific builds when applicable, Godot AI editor tests, scene inspection, runtime input, node state, logs, screenshots, and performance monitors. Use after edits, for regressions, reviews, test design, and completion checks."
 argument-hint: "Changed behavior or files to validate"
 ---
 # Godot Validation
@@ -11,7 +11,7 @@ Read [test-strategy.md](./test-strategy.md) when choosing or adding tests.
 
 Stop at the lowest level that can falsify the claim, but climb high enough to observe engine-dependent behavior.
 
-1. **Static:** VS Code diagnostics; `dotnet build` for C# when the SDK is available.
+1. **Static:** GDScript parser/editor diagnostics; `dotnet build` only when C# is actually present and the SDK is available.
 2. **Logic:** fast deterministic tests for rules, state transitions, calculations, serialization, and seeded randomness.
 3. **Editor/scene:** Godot AI filtered tests, hierarchy inspection, required properties, resources, groups, signals, collision layers, and input actions.
 4. **Runtime:** launch the affected scene, inject actions, inspect runtime nodes/properties, and read fresh errors.

@@ -38,11 +38,11 @@ Use `../docs/worktree-collaboration.md` for ownership, handoff, integration, and
 
 ## Prerequisites
 
-- Godot .NET matching the project SDK, with the Godot AI plugin enabled and connected.
-- A compatible x64 .NET SDK (`dotnet --info` should list the required target framework).
-- VS Code C# tooling for diagnostics and debugging.
+- Standard Godot 4.7 matching the project version, with the Godot AI plugin enabled and connected.
+- Matching Godot 4.7 Web export templates for local export validation.
+- GDScript language support for editor diagnostics and navigation.
 
-Use **Tasks: Run Build Task** for the standard `dotnet build`. Engine-connected validation should use Godot AI because the Godot executable does not need to be on `PATH`.
+Use Godot's parser/import diagnostics for the static check, then run the narrowest relevant GUT or runtime journey. Engine-connected validation should use Godot AI because the Godot executable does not need to be on `PATH`.
 
 For parallel worktrees, follow the mandatory session-routing rules in `copilot-instructions.md` and the setup in `../docs/godot-ai-worktrees.md`. Resolve by canonical project path and route every supported MCP call with the exact `session_id`.
 

@@ -18,7 +18,7 @@ Integration order:
 
 Pass the complete active reservation table in every child kickoff and require the child to acknowledge its reservation before editing. A child that discovers another required path messages the coordinator and waits; only the coordinator updates reservations. Keep this coordination state in the parent session and session messages, not a tracked repository file that would itself conflict. If work is coordinated outside the Copilot app, use one shared issue/PR record with the same single-writer update rule.
 
-Assign a cohesive vertical slice to each worktree: a child scene or component, its scripts and resources, its tests, and any exclusively owned assets. Different files can still conflict semantically, so list signals, exports, groups, input actions, autoloads, resource paths, and public C# APIs that another slice consumes.
+Assign a cohesive vertical slice to each worktree: a child scene or component, its scripts and resources, its tests, and any exclusively owned assets. Different files can still conflict semantically, so list signals, exports, groups, input actions, autoloads, resource paths, and public script APIs that another slice consumes.
 
 Use one integration owner for hotspots:
 
