@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
 [ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="3_override"]
 [ext_resource type="Resource" uid="uid://c8kvwh2vkwv0p" path="res://resources/items/chopped_carrots.tres" id="4_output"]
-[ext_resource type="Texture2D" path="res://assets/sprites/carrot/carrot-Sheet.png" id="5_sheet"]
+[ext_resource type="Texture2D" uid="uid://dj0txicn4hr8x" path="res://assets/sprites/carrot/carrot-Sheet.png" id="5_sheet"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_carrot_chop_1"]
 atlas = ExtResource("5_sheet")
@@ -50,7 +50,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_carrot_chop_6")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle",
 "speed": 6.0
 }]

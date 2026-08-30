@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="PickupItemDefinition" format=3 uid="uid://cld23ml1gi6uv"]
 
 [ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
-[ext_resource type="Texture2D" path="res://assets/sprites/potato/chopped-potato.png" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://c5dnslj10hhlt" path="res://assets/sprites/potato/chopped-potato.png" id="2_texture"]
 [ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="3_override"]
 [ext_resource type="Resource" uid="uid://6hciapqedump" path="res://resources/items/potato_soup.tres" id="4_potato_soup"]
-[ext_resource type="Resource" path="res://resources/items/baked_chopped_potatoes.tres" id="5_baked"]
+[ext_resource type="Resource" uid="uid://dscry6g11gk5g" path="res://resources/items/baked_chopped_potatoes.tres" id="5_baked"]
 
 [sub_resource type="Resource" id="Resource_stove_cook_override"]
 script = ExtResource("3_override")
