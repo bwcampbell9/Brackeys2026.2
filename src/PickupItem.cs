@@ -132,6 +132,28 @@ public partial class PickupItem : RigidBody2D, IItemSource
         visual.Material = material;
     }
 
+    public void PlayProcessingAnimation(SpriteFrames frames)
+    {
+        Sprite2D? staticSprite = GetNodeOrNull<Sprite2D>("Sprite2D");
+        AnimatedSprite2D animatedSprite = EnsureAnimatedSprite();
+        if (staticSprite is not null)
+        {
+            staticSprite.Visible = false;
+        }
+
+        animatedSprite.SpriteFrames = frames;
+        animatedSprite.Visible = true;
+        animatedSprite.Material = _definition?.VisualMaterial;
+        animatedSprite.Modulate = _definition?.Modulate ?? Colors.White;
+        animatedSprite.Scale = _definition?.VisualScale ?? Vector2.One;
+        animatedSprite.Play(IdleAnimation);
+    }
+
+    public void RestoreDefinitionVisual()
+    {
+        ApplyDefinition();
+    }
+
     private void TweenToAttachment(float duration)
     {
         Tween tween = StartMotionTween()
@@ -264,11 +286,7 @@ public partial class PickupItem : RigidBody2D, IItemSource
             GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
         if (_definition.SpriteFrames is not null && animatedSprite is null)
         {
-            animatedSprite = new AnimatedSprite2D
-            {
-                Name = "AnimatedSprite2D",
-            };
-            AddChild(animatedSprite);
+            animatedSprite = EnsureAnimatedSprite();
         }
 
         bool usesDefinitionAnimation = _definition.SpriteFrames is not null
@@ -315,6 +333,23 @@ public partial class PickupItem : RigidBody2D, IItemSource
         }
 
         OnDefinitionApplied();
+    }
+
+    private AnimatedSprite2D EnsureAnimatedSprite()
+    {
+        AnimatedSprite2D? animatedSprite =
+            GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        if (animatedSprite is not null)
+        {
+            return animatedSprite;
+        }
+
+        animatedSprite = new AnimatedSprite2D
+        {
+            Name = "AnimatedSprite2D",
+        };
+        AddChild(animatedSprite);
+        return animatedSprite;
     }
 
     private CanvasItem? GetActiveVisual()

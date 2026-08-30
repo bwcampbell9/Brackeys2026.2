@@ -30,4 +30,5 @@ animations = [{
 script = ExtResource("1_definition")
 Id = &"carrot_soup"
 DisplayName = "Carrot Soup"
+Texture = SubResource("AtlasTexture_carrot_soup_1")
 SpriteFrames = SubResource("SpriteFrames_carrot_soup")

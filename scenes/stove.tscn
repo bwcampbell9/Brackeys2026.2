@@ -12,11 +12,14 @@
 [ext_resource type="Script" path="res://src/ConfigureWorkstationAction.cs" id="10_configure_action"]
 [ext_resource type="Script" path="res://src/WorkstationTaskPublisher.cs" id="11_task_publisher"]
 [ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="12_fetch_task"]
-[ext_resource type="Resource" path="res://resources/items/potato.tres" id="13_potato"]
-[ext_resource type="Resource" path="res://resources/items/carrot.tres" id="14_carrot"]
+[ext_resource type="Resource" uid="uid://cld23ml1gi6uv" path="res://resources/items/chopped_potatoes.tres" id="13_potato"]
+[ext_resource type="Resource" uid="uid://c8kvwh2vkwv0p" path="res://resources/items/chopped_carrots.tres" id="14_carrot"]
 [ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="15_definition"]
 [ext_resource type="Script" path="res://src/WorkstationRequestWheel.cs" id="16_wheel"]
 [ext_resource type="PackedScene" path="res://scenes/task_request_indicator.tscn" id="17_indicator"]
+[ext_resource type="Resource" path="res://resources/cooking_recipes/potato_soup.tres" id="18_potato_soup"]
+[ext_resource type="Resource" path="res://resources/cooking_recipes/carrot_soup.tres" id="19_carrot_soup"]
+[ext_resource type="Resource" path="res://resources/cooking_recipes/carrot_potato_soup.tres" id="20_combined_soup"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_back_cooking_1"]
 atlas = ExtResource("4_back_texture")
@@ -106,6 +109,12 @@ autoplay = "idle"
 [node name="ItemSpawnPoint" type="Node2D" parent="."]
 
 [node name="PickupSocket" type="Node2D" parent="ItemSpawnPoint" unique_id=1324864796]
+position = Vector2(-8, 0)
+script = ExtResource("1_socket")
+NpcApproachOffset = Vector2(0, 72)
+
+[node name="SecondaryPickupSocket" type="Node2D" parent="ItemSpawnPoint"]
+position = Vector2(8, 0)
 script = ExtResource("1_socket")
 NpcApproachOffset = Vector2(0, 72)
 
@@ -128,6 +137,8 @@ script = ExtResource("10_configure_action")
 [node name="TransferItemAction" type="Node" parent="InteractionTarget" unique_id=2023792658]
 script = ExtResource("3_transfer")
 SocketPath = NodePath("../../ItemSpawnPoint/PickupSocket")
+AdditionalSocketPaths = Array[NodePath]([NodePath("../../ItemSpawnPoint/SecondaryPickupSocket")])
+CookingControllerPath = NodePath("../../OvenCookingController")
 
 [node name="FrontSprite" type="AnimatedSprite2D" parent="." unique_id=1138423982]
 z_index = 1
@@ -142,12 +153,16 @@ shape = SubResource("RectangleShape2D_stove")
 [node name="OvenCookingController" type="Node" parent="." unique_id=808893759]
 script = ExtResource("6_controller")
 SocketPath = NodePath("../ItemSpawnPoint/PickupSocket")
+AdditionalSocketPaths = Array[NodePath]([NodePath("../ItemSpawnPoint/SecondaryPickupSocket")])
 SpritePath = NodePath("../BackSprite")
 Recipe = ExtResource("7_cook")
+Recipes = Array[ExtResource("18_potato_soup")]([ExtResource("18_potato_soup"), ExtResource("19_carrot_soup"), ExtResource("20_combined_soup")])
+SelectedCookingRecipe = ExtResource("18_potato_soup")
 
 [node name="StoveCookingPresentation" type="Node" parent="." unique_id=575806926]
 script = ExtResource("8_presentation")
 SocketPath = NodePath("../ItemSpawnPoint/PickupSocket")
+AdditionalSocketPaths = Array[NodePath]([NodePath("../ItemSpawnPoint/SecondaryPickupSocket")])
 
 [node name="TaskRequestIndicator" parent="." instance=ExtResource("17_indicator")]
 position = Vector2(0, -84)
@@ -175,6 +190,7 @@ script = ExtResource("16_wheel")
 position = Vector2(0, 64)
 script = ExtResource("11_task_publisher")
 SocketPath = NodePath("../ItemSpawnPoint/PickupSocket")
+CookingControllerPath = NodePath("../OvenCookingController")
 RequestMode = 1
 FetchTask = ExtResource("12_fetch_task")
 RequestedItem = ExtResource("13_potato")

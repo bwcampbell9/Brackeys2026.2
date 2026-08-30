@@ -13,6 +13,7 @@ public partial class CuttingBoardProcessPresentation : Node
     private PickupItem? _processingItem;
     private Material? _originalItemMaterial;
     private ShaderMaterial? _chopMaterial;
+    private bool _usesProcessingAnimation;
     private Tween? _knifeTween;
 
     [Export]
@@ -126,11 +127,20 @@ public partial class CuttingBoardProcessPresentation : Node
             ?? throw new InvalidOperationException(
                 "Cutting presentation requires a processing transformation."
             );
+        if (definition.ProcessingSpriteFrames is not null)
+        {
+            _usesProcessingAnimation = true;
+            _processingItem.PlayProcessingAnimation(
+                definition.ProcessingSpriteFrames
+            );
+            return;
+        }
+
         ShaderMaterial sourceMaterial =
-            transformation.Resolve(definition).VisualMaterial
-                as ShaderMaterial
+            transformation.FallbackMaterial as ShaderMaterial
+            ?? transformation.Resolve(definition).VisualMaterial as ShaderMaterial
             ?? throw new InvalidOperationException(
-                "Cutting presentation requires the output to use a shader material."
+                "Cutting presentation requires a shader material."
             );
 
         _originalItemMaterial = _processingItem.GetVisualMaterial();
@@ -150,12 +160,20 @@ public partial class CuttingBoardProcessPresentation : Node
             && GodotObject.IsInstanceValid(_processingItem)
         )
         {
-            _processingItem!.SetVisualMaterial(_originalItemMaterial);
+            if (_usesProcessingAnimation)
+            {
+                _processingItem!.RestoreDefinitionVisual();
+            }
+            else
+            {
+                _processingItem!.SetVisualMaterial(_originalItemMaterial);
+            }
         }
 
         _processingItem = null;
         _originalItemMaterial = null;
         _chopMaterial = null;
+        _usesProcessingAnimation = false;
     }
 
     private void StartKnifeAnimation()

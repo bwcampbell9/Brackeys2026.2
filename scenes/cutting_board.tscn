@@ -14,7 +14,6 @@
 [ext_resource type="Script" path="res://src/RequestWorkstationTaskAction.cs" id="12_request_action"]
 [ext_resource type="Script" path="res://src/ConfigureWorkstationAction.cs" id="13_configure_action"]
 [ext_resource type="Resource" path="res://resources/items/carrot.tres" id="14_carrot"]
-[ext_resource type="Resource" path="res://resources/items/chopped_potatoes.tres" id="15_chopped_potatoes"]
 [ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="17_definition"]
 [ext_resource type="Script" path="res://src/WorkstationRequestWheel.cs" id="18_wheel"]
 [ext_resource type="AudioStream" path="res://assets/sounds/chopping.wav" id="19_chopping_audio"]
@@ -121,4 +120,4 @@ RequestMode = 2
 FetchTask = ExtResource("9_fetch_task")
 ActionTask = ExtResource("10_action_task")
 RequestedItem = ExtResource("11_potato")
-AvailableItems = Array[ExtResource("17_definition")]([ExtResource("11_potato"), ExtResource("14_carrot"), ExtResource("15_chopped_potatoes")])
+AvailableItems = Array[ExtResource("17_definition")]([ExtResource("11_potato"), ExtResource("14_carrot")])

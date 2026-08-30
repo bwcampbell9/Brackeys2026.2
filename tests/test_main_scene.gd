@@ -29,10 +29,15 @@ const CHOP_RECIPE := preload("res://resources/recipes/chop.tres")
 const CHOP_TRANSFORMATION := preload("res://resources/transformations/chop.tres")
 const POTATO_DEFINITION := preload("res://resources/items/potato.tres")
 const CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/chopped_potatoes.tres")
+const BAKED_POTATO_DEFINITION := preload("res://resources/items/baked_potato.tres")
+const BAKED_CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/baked_chopped_potatoes.tres")
+const BAKED_CHOPPED_VEGETABLES_DEFINITION := preload("res://resources/items/baked_chopped_vegetables.tres")
 const CARROT_DEFINITION := preload("res://resources/items/carrot.tres")
 const CHOPPED_CARROTS_DEFINITION := preload("res://resources/items/chopped_carrots.tres")
+const BAKED_CHOPPED_CARROTS_DEFINITION := preload("res://resources/items/baked_chopped_carrots.tres")
 const CARROT_SOUP_DEFINITION := preload("res://resources/items/carrot_soup.tres")
 const POTATO_SOUP_DEFINITION := preload("res://resources/items/potato_soup.tres")
+const CARROT_POTATO_SOUP_DEFINITION := preload("res://resources/items/carrot_potato_soup.tres")
 const DUBIOUS_SOUP_DEFINITION := preload("res://resources/items/dubious_soup.tres")
 const STOVE_COOK_TRANSFORMATION := preload("res://resources/transformations/stove_cook.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
@@ -937,7 +942,6 @@ func test_workstation_and_sources_expose_npc_task_contracts() -> void:
 		[
 			POTATO_DEFINITION,
 			CARROT_DEFINITION,
-			CHOPPED_POTATOES_DEFINITION,
 		],
 	)
 	assert_eq(FETCH_TASK.get("Kind"), 0)
@@ -1021,9 +1025,11 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 		assert_eq(chop_material.get_shader_parameter("chop_progress"), 1.0)
 		assert_eq(chop_material.get_shader_parameter("chop_count"), 4)
 	var potato_overrides: Array = POTATO_DEFINITION.get("TransformationOverrides")
-	assert_eq(potato_overrides.size(), 1)
+	assert_eq(potato_overrides.size(), 2)
 	assert_eq(potato_overrides[0].get("TransformationId"), &"chop")
 	assert_eq(potato_overrides[0].get("Output"), CHOPPED_POTATOES_DEFINITION)
+	assert_eq(potato_overrides[1].get("TransformationId"), &"cook")
+	assert_eq(potato_overrides[1].get("Output"), BAKED_POTATO_DEFINITION)
 	assert_true(
 		CHOPPED_POTATOES_DEFINITION.get("AppliedTransformationIds").has(&"chop")
 	)
@@ -1046,6 +1052,115 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 	if chopping_audio != null:
 		assert_eq(chopping_audio.stream.resource_path, "res://assets/sounds/chopping.wav")
 		assert_false(chopping_audio.autoplay)
+
+
+func test_food_definitions_use_authored_sprite_assets() -> void:
+	var carrot_texture := CARROT_DEFINITION.get("Texture") as AtlasTexture
+	assert_true(carrot_texture != null)
+	if carrot_texture != null:
+		assert_eq(
+			carrot_texture.atlas.resource_path,
+			"res://assets/sprites/carrot/carrot-Sheet.png",
+		)
+		assert_eq(carrot_texture.region, Rect2(0, 0, 64, 64))
+	assert_eq(
+		CHOPPED_CARROTS_DEFINITION.get("Texture").resource_path,
+		"res://assets/sprites/carrot/chopped-carrot.png",
+	)
+	assert_eq(
+		CHOPPED_POTATOES_DEFINITION.get("Texture").resource_path,
+		"res://assets/sprites/potato/chopped-potato.png",
+	)
+	var chopped_carrot_overrides: Array = CHOPPED_CARROTS_DEFINITION.get(
+		"TransformationOverrides"
+	)
+	assert_eq(chopped_carrot_overrides.size(), 2)
+	assert_eq(chopped_carrot_overrides[1].get("TransformationId"), &"cook")
+	assert_eq(chopped_carrot_overrides[1].get("Output"), BAKED_CHOPPED_CARROTS_DEFINITION)
+	var chopped_potato_overrides: Array = CHOPPED_POTATOES_DEFINITION.get(
+		"TransformationOverrides"
+	)
+	assert_eq(chopped_potato_overrides.size(), 2)
+	assert_eq(chopped_potato_overrides[1].get("TransformationId"), &"cook")
+	assert_eq(chopped_potato_overrides[1].get("Output"), BAKED_CHOPPED_POTATOES_DEFINITION)
+
+	assert_eq(POTATO_DEFINITION.get("SpriteFrames"), null)
+	var potato_frames := POTATO_DEFINITION.get("ProcessingSpriteFrames") as SpriteFrames
+	assert_true(potato_frames != null)
+	if potato_frames != null:
+		assert_eq(potato_frames.get_frame_count(&"idle"), 6)
+		for frame_index in range(6):
+			var potato_frame := potato_frames.get_frame_texture(&"idle", frame_index) as AtlasTexture
+			assert_true(potato_frame != null)
+			if potato_frame == null:
+				continue
+			assert_eq(
+				potato_frame.atlas.resource_path,
+				"res://assets/sprites/potato/potato-Sheet.png",
+			)
+			assert_eq(potato_frame.region, Rect2(frame_index * 64, 0, 64, 64))
+		assert_eq(
+			POTATO_DEFINITION.get("Texture"),
+			potato_frames.get_frame_texture(&"idle", 0),
+		)
+	assert_eq(CARROT_DEFINITION.get("SpriteFrames"), null)
+	var carrot_frames := CARROT_DEFINITION.get("ProcessingSpriteFrames") as SpriteFrames
+	assert_true(carrot_frames != null)
+	if carrot_frames != null:
+		assert_eq(carrot_frames.get_frame_count(&"idle"), 6)
+		for frame_index in range(6):
+			var frame := carrot_frames.get_frame_texture(&"idle", frame_index) as AtlasTexture
+			assert_true(frame != null)
+			if frame != null:
+				assert_eq(
+					frame.atlas.resource_path,
+					"res://assets/sprites/carrot/carrot-Sheet.png",
+				)
+				assert_eq(frame.region, Rect2(frame_index * 64, 0, 64, 64))
+
+	var baked_definitions := [
+		[
+			BAKED_POTATO_DEFINITION,
+			"res://assets/sprites/potato/baked-potato-Sheet.png",
+		],
+		[
+			BAKED_CHOPPED_POTATOES_DEFINITION,
+			"res://assets/sprites/potato/baked-chopped-potato-Sheet.png",
+		],
+		[
+			BAKED_CHOPPED_CARROTS_DEFINITION,
+			"res://assets/sprites/carrot/chopped-baked-carrot-Sheet.png",
+		],
+		[
+			BAKED_CHOPPED_VEGETABLES_DEFINITION,
+			"res://assets/sprites/chopped_baked_carrots_and_potatos/chopped_baked_carrots_and_potatos-Sheet.png",
+		],
+	]
+	for expected in baked_definitions:
+		var definition := expected[0] as Resource
+		var frames := definition.get("SpriteFrames") as SpriteFrames
+		assert_true(frames != null)
+		if frames == null:
+			continue
+		assert_eq(frames.get_frame_count(&"idle"), 3)
+		for frame_index in range(3):
+			var frame := frames.get_frame_texture(&"idle", frame_index) as AtlasTexture
+			assert_true(frame != null)
+			if frame == null:
+				continue
+			assert_eq(frame.atlas.resource_path, expected[1])
+			assert_eq(frame.region, Rect2(frame_index * 64, 0, 64, 64))
+
+	var combined_soup_frames := CARROT_POTATO_SOUP_DEFINITION.get("SpriteFrames") as SpriteFrames
+	assert_true(combined_soup_frames != null)
+	if combined_soup_frames != null:
+		assert_eq(combined_soup_frames.get_frame_count(&"idle"), 2)
+		for frame_index in range(2):
+			var frame := combined_soup_frames.get_frame_texture(&"idle", frame_index) as AtlasTexture
+			assert_true(frame != null)
+			if frame != null:
+				assert_eq(frame.atlas.resource_path, "res://assets/sprites/soup/soup-Sheet.png")
+				assert_eq(frame.region, Rect2(384 + frame_index * 64, 0, 64, 64))
 
 
 func test_completing_recipe_selection_immediately_publishes_request() -> void:
@@ -1087,12 +1202,14 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 			assert_eq(cooking_frame.region, Rect2(64, 0, 64, 128))
 
 	var socket := oven.get_node_or_null("PickupSocket") as Node2D
+	var secondary_socket := oven.get_node_or_null("SecondaryPickupSocket") as Node2D
 	var transfer := oven.get_node_or_null("InteractionTarget/TransferItemAction") as Node
 	var request := oven.get_node_or_null("InteractionTarget/RequestTaskAction") as Node
 	var configure := oven.get_node_or_null("InteractionTarget/ConfigureWorkstationAction") as Node
 	var controller := oven.get_node_or_null("OvenCookingController") as Node
 	var publisher := oven.get_node_or_null("WorkstationTaskPublisher") as Node
 	assert_true(socket != null)
+	assert_true(secondary_socket != null)
 	assert_true(transfer != null)
 	assert_true(request != null)
 	assert_true(configure != null)
@@ -1101,6 +1218,13 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 	if transfer != null:
 		assert_eq(transfer.get_script().resource_path, "res://src/SlotTransferAction.cs")
 		assert_eq(transfer.get("SocketPath"), NodePath("../../PickupSocket"))
+		assert_eq(
+			transfer.get("AdditionalSocketPaths"),
+			[NodePath("../../SecondaryPickupSocket")],
+		)
+	if socket != null and secondary_socket != null:
+		assert_eq(socket.position, Vector2(-8, 0))
+		assert_eq(secondary_socket.position, Vector2(8, 0))
 	if request != null:
 		assert_eq(request.get_script().resource_path, "res://src/RequestWorkstationTaskAction.cs")
 	if configure != null:
@@ -1111,25 +1235,12 @@ func test_oven_composes_automatic_cooking_workstation() -> void:
 		assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 	if controller != null:
 		assert_eq(controller.get_script().resource_path, "res://src/OvenCookingController.cs")
-		var cook_recipe := controller.get("Recipe") as Resource
-		assert_true(cook_recipe != null)
-		if cook_recipe != null:
-			assert_eq(cook_recipe.resource_path, "res://resources/recipes/stove_cook.tres")
-			assert_eq(float(cook_recipe.get("Duration")), 10.0)
-			var stove_cook_transformation := cook_recipe.get("Transformation") as Resource
-			assert_true(stove_cook_transformation != null)
-			if stove_cook_transformation != null:
-				assert_eq(stove_cook_transformation.get("Id"), &"stove_cook")
-				assert_eq(stove_cook_transformation.get("FallbackOutput"), DUBIOUS_SOUP_DEFINITION)
-			assert_eq(cook_recipe.get("RequiredTool"), null)
-			var cook_transformation := cook_recipe.get("Transformation") as Resource
-			assert_true(cook_transformation != null)
-			if cook_transformation != null:
-				assert_eq(cook_transformation.get("Id"), &"cook")
-				assert_eq(
-					cook_transformation.get("FallbackMaterial").resource_path,
-					"res://resources/materials/cooked_brown_black.tres",
-				)
+		var cooking_recipes: Array = controller.get("Recipes")
+		assert_eq(cooking_recipes.size(), 4)
+		assert_eq(
+			controller.get("SelectedCookingRecipe").get("Output"),
+			BAKED_POTATO_DEFINITION,
+		)
 
 
 func test_stove_composes_layered_automatic_cooking_workstation() -> void:
@@ -1164,6 +1275,7 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 
 	var spawn_point := stove.get_node_or_null("ItemSpawnPoint") as Node2D
 	var socket := stove.get_node_or_null("ItemSpawnPoint/PickupSocket") as Node2D
+	var secondary_socket := stove.get_node_or_null("ItemSpawnPoint/SecondaryPickupSocket") as Node2D
 	var transfer := stove.get_node_or_null("InteractionTarget/TransferItemAction") as Node
 	var request := stove.get_node_or_null("InteractionTarget/RequestTaskAction") as Node
 	var configure := stove.get_node_or_null("InteractionTarget/ConfigureWorkstationAction") as Node
@@ -1172,6 +1284,7 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 	var publisher := stove.get_node_or_null("WorkstationTaskPublisher") as Node
 	assert_true(spawn_point != null)
 	assert_true(socket != null)
+	assert_true(secondary_socket != null)
 	assert_true(transfer != null)
 	assert_true(request != null)
 	assert_true(configure != null)
@@ -1182,15 +1295,23 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 		assert_eq(controller.get_script().resource_path, "res://src/OvenCookingController.cs")
 		assert_eq(controller.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
 		assert_eq(controller.get("SpritePath"), NodePath("../BackSprite"))
-		var cook_recipe := controller.get("Recipe") as Resource
-		assert_true(cook_recipe != null)
-		if cook_recipe != null:
-			assert_eq(cook_recipe.resource_path, "res://resources/recipes/cook.tres")
-			assert_eq(float(cook_recipe.get("Duration")), 10.0)
+		var cooking_recipes: Array = controller.get("Recipes")
+		assert_eq(cooking_recipes.size(), 3)
+		assert_eq(
+			controller.get("SelectedCookingRecipe").get("Output"),
+			POTATO_SOUP_DEFINITION,
+		)
 	if presentation != null:
 		assert_eq(presentation.get_script().resource_path, "res://src/StoveCookingPresentation.cs")
 		assert_eq(presentation.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
 		assert_eq(presentation.get("ItemOffset"), Vector2(22, -78))
+		assert_eq(
+			presentation.get("AdditionalSocketPaths"),
+			[NodePath("../ItemSpawnPoint/SecondaryPickupSocket")],
+		)
+	if socket != null and secondary_socket != null:
+		assert_eq(socket.position, Vector2(-8, 0))
+		assert_eq(secondary_socket.position, Vector2(8, 0))
 	if transfer != null:
 		assert_eq(transfer.get("SocketPath"), NodePath("../../ItemSpawnPoint/PickupSocket"))
 	if request != null:
@@ -1200,7 +1321,7 @@ func test_stove_composes_layered_automatic_cooking_workstation() -> void:
 	if publisher != null:
 		assert_eq(publisher.get("SocketPath"), NodePath("../ItemSpawnPoint/PickupSocket"))
 		assert_eq(int(publisher.get("RequestMode")), 1)
-		assert_eq(publisher.get("RequestedItem"), POTATO_DEFINITION)
+		assert_eq(publisher.get("RequestedItem"), CHOPPED_POTATOES_DEFINITION)
 		assert_eq(publisher.get("FetchTask"), FETCH_TASK)
 
 
@@ -1276,6 +1397,21 @@ func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
 		container.get("ItemDefinition").get("Id"),
 		&"potato",
 	)
+
+
+func test_carrot_container_uses_new_carrot_sprite() -> void:
+	var container := track(CARROT_CONTAINER_SCENE.instantiate()) as StaticBody2D
+	Engine.get_main_loop().root.add_child(container)
+
+	var item_indicator := container.get_node("ItemIndicator") as Sprite2D
+	var texture := item_indicator.texture as AtlasTexture
+	assert_true(texture != null)
+	if texture != null:
+		assert_eq(
+			texture.atlas.resource_path,
+			"res://assets/sprites/carrot/carrot-Sheet.png",
+		)
+		assert_eq(texture.region, Rect2(0, 0, 64, 64))
 
 
 func test_knife_container_supplies_the_knife_scene() -> void:

@@ -25,9 +25,11 @@ public partial class WorkstationTaskPublisher : Node2D
 	private PickupSocket _socket = null!;
 	private InteractionTarget _interactionTarget = null!;
 	private TimedItemProcessAction? _processAction;
+	private OvenCookingController? _cookingController;
 	private Node2D _requestIndicator = null!;
 	private AnimatedSprite2D _requestIndicatorAnimation = null!;
 	private Sprite2D _requestIndicatorIcon = null!;
+	private Sprite2D _requestIndicatorSecondaryIcon = null!;
 	private WorkstationRequestWheel? _requestWheel;
 	private Node2D? _consumerVisual;
 	private Tween? _consumptionTween;
@@ -41,6 +43,7 @@ public partial class WorkstationTaskPublisher : Node2D
 	private bool _isConfiguring;
 	private PickupItemDefinition? _currentRequestedItem;
 	private PickupItemDefinition? _requestedItem;
+	private CookingRecipe? _selectedCookingRecipe;
 	private WorkstationTaskRequestMode _requestMode;
 	private Sprite2D? _orderTimerBar;
 	private float _orderTimeRemaining;
@@ -71,12 +74,19 @@ public partial class WorkstationTaskPublisher : Node2D
 	public NodePath RequestIndicatorIconPath { get; set; } =
 		new("../TaskRequestIndicator/Icon");
 
+	[Export]
+	public NodePath RequestIndicatorSecondaryIconPath { get; set; } =
+		new("../TaskRequestIndicator/SecondaryIcon");
+
 	[Export(PropertyHint.Range, "1,60,1")]
 	public float RequestIndicatorOpenFramesPerSecond { get; set; } = 24.0f;
 
 	[Export]
 	public NodePath RequestWheelPath { get; set; } =
 		new("../RequestWheelLayer/RequestWheel");
+
+	[Export]
+	public NodePath CookingControllerPath { get; set; } = new();
 
 	[Export]
 	public WorkstationTaskRequestMode RequestMode
@@ -150,8 +160,12 @@ public partial class WorkstationTaskPublisher : Node2D
 
 	public bool CanConfigure =>
 		!_isConsuming
-		&& _socket.Item is null
-		&& AvailableItems.Count > 0;
+		&& (
+			_cookingController is not null
+				? !_cookingController.HasAnyItem
+					&& _cookingController.Recipes.Count > 0
+				: _socket.Item is null && AvailableItems.Count > 0
+		);
 
 	public bool CanPublishNextTask =>
 		(
@@ -201,9 +215,28 @@ public partial class WorkstationTaskPublisher : Node2D
 			?? throw new InvalidOperationException(
                 "WorkstationTaskPublisher requires a request indicator icon."
 			);
+		_requestIndicatorSecondaryIcon =
+			GetNodeOrNull<Sprite2D>(RequestIndicatorSecondaryIconPath)
+			?? throw new InvalidOperationException(
+                "WorkstationTaskPublisher requires a secondary request indicator icon."
+			);
 		_requestWheel = GetNodeOrNull<WorkstationRequestWheel>(
 			RequestWheelPath
 		);
+		if (!CookingControllerPath.IsEmpty)
+		{
+			_cookingController =
+				GetNodeOrNull<OvenCookingController>(CookingControllerPath)
+				?? throw new InvalidOperationException(
+					"WorkstationTaskPublisher requires a valid cooking controller."
+				);
+			_selectedCookingRecipe =
+				_cookingController.SelectedCookingRecipe;
+			if (_selectedCookingRecipe?.Ingredients.Count > 0)
+			{
+				RequestedItem = _selectedCookingRecipe.Ingredients[0];
+			}
+		}
 
 		if (ConsumeDeliveredItem)
 		{
@@ -222,7 +255,14 @@ public partial class WorkstationTaskPublisher : Node2D
 			_orderTimerBar.Visible = false;
 		}
 
-		_socket.ItemChanged += OnSocketItemChanged;
+		if (_cookingController is not null)
+		{
+			_cookingController.CookingStateChanged += OnCookingStateChanged;
+		}
+		else
+		{
+			_socket.ItemChanged += OnSocketItemChanged;
+		}
 		if (_processAction is not null)
 		{
 			_processAction.ProcessingCompleted += OnProcessingCompleted;
@@ -277,7 +317,14 @@ public partial class WorkstationTaskPublisher : Node2D
 
 	public override void _ExitTree()
 	{
-		if (GodotObject.IsInstanceValid(_socket))
+		if (
+			_cookingController is not null
+			&& GodotObject.IsInstanceValid(_cookingController)
+		)
+		{
+			_cookingController.CookingStateChanged -= OnCookingStateChanged;
+		}
+		else if (GodotObject.IsInstanceValid(_socket))
 		{
 			_socket.ItemChanged -= OnSocketItemChanged;
 		}
@@ -319,11 +366,20 @@ public partial class WorkstationTaskPublisher : Node2D
 		}
 
 		_isConfiguring = true;
-		_requestWheel.Open(
-			AvailableItems,
-			RequestedItem,
-			GetParent<Node2D>().GetGlobalTransformWithCanvas().Origin
-		);
+		Vector2 center =
+			GetParent<Node2D>().GetGlobalTransformWithCanvas().Origin;
+		if (_cookingController is not null)
+		{
+			_requestWheel.OpenRecipes(
+				_cookingController.Recipes,
+				_selectedCookingRecipe,
+				center
+			);
+		}
+		else
+		{
+			_requestWheel.Open(AvailableItems, RequestedItem, center);
+		}
 		return true;
 	}
 
@@ -346,10 +402,40 @@ public partial class WorkstationTaskPublisher : Node2D
 		}
 
 		PickupItemDefinition? selectedItem = _requestWheel?.SelectedItem;
+		CookingRecipe? selectedRecipe = _requestWheel?.SelectedRecipe;
 		_isConfiguring = false;
 		_requestWheel?.Close();
 		if (selectedItem is null)
 		{
+			return;
+		}
+
+		if (_cookingController is not null)
+		{
+			if (
+				selectedRecipe is null
+				|| selectedRecipe.Ingredients.Count == 0
+				|| (
+					_selectedCookingRecipe?.Output?.Id
+						!= selectedRecipe.Output?.Id
+					&& !_cookingController.TrySelectRecipe(selectedRecipe)
+				)
+			)
+			{
+				return;
+			}
+
+			if (
+				_selectedCookingRecipe?.Output?.Id
+				!= selectedRecipe.Output?.Id
+			)
+			{
+				_selectedCookingRecipe = selectedRecipe;
+				RequestedItem = selectedRecipe.Ingredients[0];
+				_generation++;
+				CancelCurrentTask();
+			}
+			PublishPendingTask();
 			return;
 		}
 
@@ -440,9 +526,17 @@ public partial class WorkstationTaskPublisher : Node2D
 			&& _broker.GetStatus(taskId) == NpcTaskStatus.Claimed
 			&& (
 				kind == NpcTaskKind.Fetch
-					? _socket.Item is null
+					? _cookingController is not null
+						? _cookingController.GetFirstMissingIngredient()
+							is not null
+						: _socket.Item is null
 					: _socket.Item is not null
 			);
+	}
+
+	private void OnCookingStateChanged()
+	{
+		OnSocketItemChanged();
 	}
 
 	private void OnSocketItemChanged()
@@ -490,6 +584,11 @@ public partial class WorkstationTaskPublisher : Node2D
 			|| (
 				RequestMode == WorkstationTaskRequestMode.AutomaticAction
 				&& _socket.Item is not null
+			)
+			|| (
+				_cookingController is not null
+				&& _cookingController.HasAnyItem
+				&& _cookingController.GetFirstMissingIngredient() is not null
 			)
 		)
 		{
@@ -561,6 +660,20 @@ public partial class WorkstationTaskPublisher : Node2D
 		requestedItem = null;
 		requiredTool = null;
 
+		if (_cookingController is not null)
+		{
+			PickupItemDefinition? missingIngredient =
+				_cookingController.GetFirstMissingIngredient();
+			if (FetchTask is null || missingIngredient is null)
+			{
+				return false;
+			}
+
+			task = FetchTask;
+			requestedItem = missingIngredient;
+			return true;
+		}
+
 		PickupItem? item = _socket.Item;
 		if (item is null)
 		{
@@ -593,9 +706,34 @@ public partial class WorkstationTaskPublisher : Node2D
 	private void ShowRequestIndicator(PickupItemDefinition item)
 	{
 		_currentRequestedItem = item;
-		_requestIndicatorIcon.Texture = item.Texture;
-		_requestIndicatorIcon.Modulate = item.Modulate;
-		_requestIndicatorIcon.Scale = item.VisualScale * 0.65f;
+		if (
+			_selectedCookingRecipe is { Ingredients.Count: > 1 } recipe
+		)
+		{
+			ApplyRequestIcon(
+				_requestIndicatorIcon,
+				recipe.Ingredients[0],
+				new Vector2(-9.0f, 0.0f),
+				0.45f
+			);
+			ApplyRequestIcon(
+				_requestIndicatorSecondaryIcon,
+				recipe.Ingredients[1],
+				new Vector2(9.0f, 0.0f),
+				0.45f
+			);
+			_requestIndicatorSecondaryIcon.Visible = true;
+		}
+		else
+		{
+			ApplyRequestIcon(
+				_requestIndicatorIcon,
+				item,
+				Vector2.Zero,
+				0.65f
+			);
+			_requestIndicatorSecondaryIcon.Visible = false;
+		}
 		_requestIndicator.Visible = true;
 		_requestIndicatorAnimation.Stop();
 		_requestIndicatorAnimation.Frame = 0;
@@ -603,6 +741,19 @@ public partial class WorkstationTaskPublisher : Node2D
 			RequestIndicatorOpenAnimation,
 			RequestIndicatorOpenFramesPerSecond
 		);
+	}
+
+	private static void ApplyRequestIcon(
+		Sprite2D icon,
+		PickupItemDefinition item,
+		Vector2 position,
+		float scaleMultiplier
+	)
+	{
+		icon.Position = position;
+		icon.Texture = item.Texture;
+		icon.Modulate = item.Modulate;
+		icon.Scale = item.VisualScale * scaleMultiplier;
 	}
 
 	private void ClearRequestIndicator()
@@ -615,6 +766,12 @@ public partial class WorkstationTaskPublisher : Node2D
 		if (GodotObject.IsInstanceValid(_requestIndicatorIcon))
 		{
 			_requestIndicatorIcon.Texture = null;
+			_requestIndicatorIcon.Position = Vector2.Zero;
+		}
+		if (GodotObject.IsInstanceValid(_requestIndicatorSecondaryIcon))
+		{
+			_requestIndicatorSecondaryIcon.Texture = null;
+			_requestIndicatorSecondaryIcon.Visible = false;
 		}
 		if (
 			_orderTimerBar is not null

@@ -1,8 +1,11 @@
 extends SceneTree
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
+const PICKUP_ITEM_SCENE := preload("res://scenes/pickup_item.tscn")
 const CARROT_DEFINITION := preload("res://resources/items/carrot.tres")
 const CHOPPED_POTATOES_DEFINITION := preload("res://resources/items/chopped_potatoes.tres")
+const CHOPPED_CARROTS_DEFINITION := preload("res://resources/items/chopped_carrots.tres")
+const POTATO_DEFINITION := preload("res://resources/items/potato.tres")
 
 var _failed := false
 
@@ -87,8 +90,8 @@ func _run() -> void:
 	Input.action_release(&"move_left")
 	publisher.call("CompleteConfiguration")
 	_check(
-		publisher.get("RequestedItem") == CHOPPED_POTATOES_DEFINITION,
-		"Left-stick direction must select the chopped-potatoes segment.",
+		publisher.get("RequestedItem") == POTATO_DEFINITION,
+		"Left-stick direction must select the potato segment.",
 	)
 	_check(
 		int(publisher.get("CurrentTaskId")) != previous_task_id
@@ -97,6 +100,10 @@ func _run() -> void:
 	)
 
 	var available_items: Array = publisher.get("AvailableItems")
+	_check(
+		available_items == [POTATO_DEFINITION, CARROT_DEFINITION],
+		"The cutting board wheel must only offer raw items that can be chopped.",
+	)
 	var many_items: Array = available_items.duplicate()
 	for index in 12:
 		many_items.append(available_items[index % available_items.size()])
@@ -123,6 +130,67 @@ func _run() -> void:
 		"Right shoulder must advance to the next recipe page.",
 	)
 	wheel.call("Close")
+
+	var stove := level.get_node("Stove") as StaticBody2D
+	var stove_publisher := stove.get_node("WorkstationTaskPublisher") as Node
+	var stove_wheel := stove.get_node("RequestWheelLayer/RequestWheel") as Control
+	var stove_indicator := stove.get_node("TaskRequestIndicator") as Node2D
+	_check(
+		bool(stove_publisher.call("BeginConfiguration")),
+		"The stove recipe wheel must open.",
+	)
+	Input.action_press(&"move_left", 1.0)
+	await process_frame
+	Input.action_release(&"move_left")
+	_check(
+		int(stove_wheel.get("EntryCount")) == 3,
+		"The stove wheel must expose one segment per recipe.",
+	)
+	_check(
+		int(stove_wheel.call("GetSelectedIngredientCount")) == 2,
+		"The combined soup segment must show both ingredients.",
+	)
+	_check(
+		stove_wheel.call("GetSelectedIngredient", 0) == CHOPPED_POTATOES_DEFINITION
+		and stove_wheel.call("GetSelectedIngredient", 1) == CHOPPED_CARROTS_DEFINITION,
+		"The combined soup segment must show chopped potatoes and carrots side by side.",
+	)
+	stove_publisher.call("CompleteConfiguration")
+	var primary_icon := stove_indicator.get_node("Icon") as Sprite2D
+	var secondary_icon := stove_indicator.get_node("SecondaryIcon") as Sprite2D
+	_check(
+		stove_publisher.get("RequestedItem") == CHOPPED_POTATOES_DEFINITION,
+		"Cooking requests must ask for an input rather than the output soup.",
+	)
+	_check(
+		stove_indicator.visible
+		and primary_icon.visible
+		and secondary_icon.visible
+		and primary_icon.position.x < secondary_icon.position.x,
+		"The combined recipe thought bubble must show both ingredients side by side.",
+	)
+	var first_task_id := int(stove_publisher.get("CurrentTaskId"))
+	var potatoes := PICKUP_ITEM_SCENE.instantiate() as RigidBody2D
+	potatoes.set("Definition", CHOPPED_POTATOES_DEFINITION)
+	level.add_child(potatoes)
+	var stove_socket := stove.get_node("ItemSpawnPoint/PickupSocket") as Node2D
+	_check(
+		bool(stove_socket.TryStore(potatoes, 0.0)),
+		"The first combined ingredient must fit the stove.",
+	)
+	await process_frame
+	await process_frame
+	_check(
+		int(stove_publisher.get("CurrentTaskId")) != first_task_id
+		and stove_publisher.get("CurrentRequestedItem") == CHOPPED_CARROTS_DEFINITION,
+		"Depositing the first ingredient must automatically request the second.",
+	)
+	_check(
+		stove_indicator.visible
+		and primary_icon.visible
+		and secondary_icon.visible,
+		"The thought bubble must keep both recipe ingredients visible while one is missing.",
+	)
 
 	level.queue_free()
 	await process_frame

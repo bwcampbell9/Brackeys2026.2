@@ -1,16 +1,21 @@
 using System;
+using System.Collections.Generic;
 using Godot;
+using Godot.Collections;
 
 public partial class StoveCookingPresentation : Node
 {
-    private PickupSocket _socket = null!;
+    private readonly List<PickupSocket> _sockets = new();
+    private readonly List<PickupItem> _presentedItems = new();
     private OvenCookingController _cookingController = null!;
     private AnimatedSprite2D _frontSprite = null!;
-    private PickupItem? _presentedItem;
     private float _elapsed;
 
     [Export]
     public NodePath SocketPath { get; set; } = new("../PickupSocket");
+
+    [Export]
+    public Array<NodePath> AdditionalSocketPaths { get; set; } = new();
 
     [Export]
     public NodePath CookingControllerPath { get; set; } = new("../OvenCookingController");
@@ -32,11 +37,21 @@ public partial class StoveCookingPresentation : Node
 
     public override void _Ready()
     {
-        _socket =
+        AddSocket(
             GetNodeOrNull<PickupSocket>(SocketPath)
             ?? throw new InvalidOperationException(
                 "StoveCookingPresentation requires a valid pickup socket path."
+            )
+        );
+        foreach (NodePath path in AdditionalSocketPaths)
+        {
+            AddSocket(
+                GetNodeOrNull<PickupSocket>(path)
+                ?? throw new InvalidOperationException(
+                    $"StoveCookingPresentation requires pickup socket '{path}'."
+                )
             );
+        }
         _cookingController =
             GetNodeOrNull<OvenCookingController>(CookingControllerPath)
             ?? throw new InvalidOperationException(
@@ -47,36 +62,68 @@ public partial class StoveCookingPresentation : Node
             ?? throw new InvalidOperationException(
                 "StoveCookingPresentation requires a valid front sprite path."
             );
-        _socket.ItemChanged += OnSocketItemChanged;
         SynchronizePresentation();
     }
 
     public override void _ExitTree()
     {
-        if (GodotObject.IsInstanceValid(_socket))
+        foreach (PickupSocket socket in _sockets)
         {
-            _socket.ItemChanged -= OnSocketItemChanged;
+            if (GodotObject.IsInstanceValid(socket))
+            {
+                socket.ItemChanged -= OnSocketItemChanged;
+            }
         }
     }
 
     public override void _Process(double delta)
     {
-        PickupItem? item = _socket.Item;
-        if (!_cookingController.IsCooking || item is null)
+        List<PickupItem> items = GetStoredItems();
+        if (!_cookingController.IsCooking || items.Count == 0)
         {
             ResetPresentation();
             return;
         }
 
-        if (_presentedItem != item)
+        if (!PresentationMatches(items))
         {
-            BeginPresentation(item);
+            BeginPresentation(items);
         }
 
         _elapsed += (float)delta;
         float phase = _elapsed * BobCyclesPerSecond * Mathf.Tau;
-        item.Position = ItemOffset + Vector2.Down * Mathf.Sin(phase) * BobAmplitude;
-        item.Rotation = Mathf.Sin(phase) * RotationAmplitudeDegrees * Mathf.Pi / 180.0f;
+        for (int index = 0; index < _presentedItems.Count; index++)
+        {
+            PickupItem item = _presentedItems[index];
+            float itemPhase = phase + index * 0.35f;
+            item.Position =
+                ItemOffset
+                + Vector2.Down * Mathf.Sin(itemPhase) * BobAmplitude;
+            item.Rotation =
+                Mathf.Sin(itemPhase)
+                * RotationAmplitudeDegrees
+                * Mathf.Pi
+                / 180.0f;
+        }
+    }
+
+    private void AddSocket(PickupSocket socket)
+    {
+        _sockets.Add(socket);
+        socket.ItemChanged += OnSocketItemChanged;
+    }
+
+    private List<PickupItem> GetStoredItems()
+    {
+        var items = new List<PickupItem>();
+        foreach (PickupSocket socket in _sockets)
+        {
+            if (socket.Item is PickupItem item)
+            {
+                items.Add(item);
+            }
+        }
+        return items;
     }
 
     private void OnSocketItemChanged()
@@ -86,43 +133,63 @@ public partial class StoveCookingPresentation : Node
 
     private void SynchronizePresentation()
     {
-        PickupItem? item = _socket.Item;
-        if (_cookingController.IsCooking && item is not null)
+        List<PickupItem> items = GetStoredItems();
+        if (_cookingController.IsCooking && items.Count > 0)
         {
-            BeginPresentation(item);
+            BeginPresentation(items);
             return;
         }
 
         ResetPresentation();
     }
 
-    private void BeginPresentation(PickupItem item)
+    private bool PresentationMatches(List<PickupItem> items)
     {
-        if (_presentedItem == item)
+        if (_presentedItems.Count != items.Count)
         {
-            return;
+            return false;
         }
 
+        for (int index = 0; index < items.Count; index++)
+        {
+            if (_presentedItems[index] != items[index])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void BeginPresentation(List<PickupItem> items)
+    {
         ResetPresentation();
-        _presentedItem = item;
+        _presentedItems.AddRange(items);
         _elapsed = 0.0f;
-        item.ResetAttachmentPresentation();
+        foreach (PickupItem item in _presentedItems)
+        {
+            item.ResetAttachmentPresentation();
+        }
         _frontSprite.Play("cooking");
     }
 
     private void ResetPresentation()
     {
-        if (
-            _presentedItem is not null
-            && GodotObject.IsInstanceValid(_presentedItem)
-            && _presentedItem.GetParent() == _socket
-        )
+        foreach (PickupItem item in _presentedItems)
         {
-            _presentedItem.ResetAttachmentPresentation();
-            _presentedItem.Position = ItemOffset;
+            if (
+                !GodotObject.IsInstanceValid(item)
+                || item.GetParent() is not PickupSocket socket
+                || !_sockets.Contains(socket)
+            )
+            {
+                continue;
+            }
+
+            item.ResetAttachmentPresentation();
+            item.Position = ItemOffset;
         }
 
-        _presentedItem = null;
+        _presentedItems.Clear();
         _elapsed = 0.0f;
         if (GodotObject.IsInstanceValid(_frontSprite))
         {

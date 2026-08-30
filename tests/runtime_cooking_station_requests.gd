@@ -43,11 +43,13 @@ func _run() -> void:
 		player,
 		level.get_node("Oven") as StaticBody2D,
 		"Oven",
+		&"potato",
 	)
 	await _request_at_station(
 		player,
 		level.get_node("Stove") as StaticBody2D,
 		"Stove",
+		&"chopped_potatoes",
 	)
 
 	level.queue_free()
@@ -60,6 +62,7 @@ func _request_at_station(
 	player: CharacterBody2D,
 	station: StaticBody2D,
 	station_name: String,
+	expected_item_id: StringName,
 ) -> void:
 	var publisher := station.get_node("WorkstationTaskPublisher") as Node
 	var indicator := station.get_node("TaskRequestIndicator") as Node2D
@@ -75,8 +78,9 @@ func _request_at_station(
 		"Tapping an empty %s must publish its item request." % station_name,
 	)
 	_check(
-		indicator.visible and publisher.get("CurrentRequestedItem").get("Id") == &"potato",
-		"%s must show its requested item after the player tap." % station_name,
+		indicator.visible
+		and publisher.get("CurrentRequestedItem").get("Id") == expected_item_id,
+		"%s must show its requested ingredient after the player tap." % station_name,
 	)
 	_check_request_animation(publisher, indicator, 24.0, station_name, false)
 	await _wait_process_frames(20)
@@ -100,6 +104,7 @@ func _check_request_animation(
 ) -> void:
 	var bubble := indicator.get_node("Background") as AnimatedSprite2D
 	var icon := indicator.get_node("Icon") as Sprite2D
+	var secondary_icon := indicator.get_node("SecondaryIcon") as Sprite2D
 	var timer_bar := indicator.get_node("TimerBar") as Sprite2D
 	_check(
 		bubble != null
@@ -125,6 +130,10 @@ func _check_request_animation(
 	_check(
 		timer_bar.visible == expect_timer,
 		"%s timer visibility must match its customer-order role." % label,
+	)
+	_check(
+		not secondary_icon.visible,
+		"%s must hide the unused second ingredient icon." % label,
 	)
 
 
