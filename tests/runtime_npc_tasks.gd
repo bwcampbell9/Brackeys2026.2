@@ -266,7 +266,7 @@ func _run_impossible_fetch_readiness_scenario() -> void:
 		"The scenario must start the player-requested fetch stage.",
 	)
 
-	var potato_source := level.get_node("Workstations/PotatoContainer/NpcItemSource")
+	var potato_source := level.get_node("Workstations/Container/NpcItemSource")
 	potato_source.set("ItemDefinition", null)
 	runner.process_mode = Node.PROCESS_MODE_INHERIT
 	await _wait_physics_frames(120)

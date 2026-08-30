@@ -1,47 +1,9 @@
-[gd_scene format=3 uid="uid://7fwowq6t0x5j"]
+[gd_scene load_steps=3 format=3 uid="uid://4s1bv0ldwbmi"]
 
-[ext_resource type="Script" uid="uid://danmdb4xmbt07" path="res://src/InteractionTarget.cs" id="1_target"]
-[ext_resource type="Script" uid="uid://bo36sc4yu5s0e" path="res://src/PickupContainerAction.cs" id="2_action"]
-[ext_resource type="PackedScene" path="res://scenes/pickup_item.tscn" id="3_pickup"]
-[ext_resource type="Texture2D" uid="uid://vqjtsc8lugm1" path="res://assets/sprites/workstations_tilemap/workstations.png" id="4_texture"]
-[ext_resource type="Resource" path="res://resources/items/potato.tres" id="5_definition"]
-[ext_resource type="Script" uid="uid://bmskh3wugwgoy" path="res://src/ContainerItemSource.cs" id="6_npc_source"]
+[ext_resource type="PackedScene" path="res://scenes/container.tscn" id="1_container"]
+[ext_resource type="PackedScene" path="res://scenes/pickup_item.tscn" id="2_pickup"]
+[ext_resource type="Resource" uid="uid://bjolwtrgs7uqf" path="res://resources/items/potato.tres" id="3_definition"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_container"]
-atlas = ExtResource("4_texture")
-region = Rect2(64, 0, 64, 64)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_container"]
-size = Vector2(64, 64)
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
-radius = 33.0
-
-[node name="PotatoContainer" type="StaticBody2D" unique_id=1945931628]
-collision_mask = 0
-
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1048569110]
-texture = SubResource("AtlasTexture_container")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=429047761]
-shape = SubResource("RectangleShape2D_container")
-
-[node name="InteractionTarget" type="Area2D" parent="." unique_id=1414834176]
-collision_layer = 8
-collision_mask = 0
-monitoring = false
-priority = 1
-script = ExtResource("1_target")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget" unique_id=186136135]
-shape = SubResource("CircleShape2D_interaction")
-
-[node name="PickupContainerAction" type="Node" parent="InteractionTarget" unique_id=390418724]
-script = ExtResource("2_action")
-PickupScene = ExtResource("3_pickup")
-AcceptedItem = ExtResource("5_definition")
-
-[node name="NpcItemSource" type="Node2D" parent="."]
-position = Vector2(64, 0)
-script = ExtResource("6_npc_source")
-ItemDefinition = ExtResource("5_definition")
+[node name="Container" instance=ExtResource("1_container")]
+PickupScene = ExtResource("2_pickup")
+ItemDefinition = ExtResource("3_definition")
