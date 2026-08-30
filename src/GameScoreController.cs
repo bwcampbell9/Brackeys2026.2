@@ -5,6 +5,8 @@ using Godot;
 public partial class GameScoreController : CanvasLayer
 {
     private static readonly StringName InstantWinAction = "debug_instant_win";
+    private const string WinAudioPlayerName = "WinAudio";
+    private const string WinSoundPath = "res://assets/sounds/win.wav";
     private readonly List<WorkstationTaskPublisher> _publishers = new();
     private Label _scoreLabel = null!;
     private AudioStreamPlayer _scoreUpAudio = null!;
@@ -223,6 +225,7 @@ public partial class GameScoreController : CanvasLayer
         }
 
         _isCompletingLevel = true;
+        PlayWinSound();
         CircleTransition transition = new();
         GetTree().Root.AddChild(transition);
         Error result = await transition.TransitionToScene(
@@ -234,6 +237,31 @@ public partial class GameScoreController : CanvasLayer
         {
             _isCompletingLevel = false;
         }
+    }
+
+    private void PlayWinSound()
+    {
+        if (!ResourceLoader.Exists(WinSoundPath, "AudioStream"))
+        {
+            GD.PushWarning($"Win sound not found at '{WinSoundPath}'.");
+            return;
+        }
+
+        AudioStream? stream = GD.Load<AudioStream>(WinSoundPath);
+        if (stream is null)
+        {
+            GD.PushError($"Could not load win sound at '{WinSoundPath}'.");
+            return;
+        }
+
+        AudioStreamPlayer audioPlayer = new()
+        {
+            Name = WinAudioPlayerName,
+            Stream = stream,
+        };
+        audioPlayer.Finished += audioPlayer.QueueFree;
+        GetTree().Root.AddChild(audioPlayer);
+        audioPlayer.Play();
     }
 
     private void AnimateDisplayedScore()
