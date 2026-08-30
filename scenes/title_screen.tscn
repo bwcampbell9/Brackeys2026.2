@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/TitleScreen.cs" id="1_titlescreen"]
+[ext_resource type="AudioStream" uid="uid://bjw040380lmsp" path="res://assets/sounds/title_music.ogg" id="2_titlemusic"]
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -63,3 +64,7 @@ layout_mode = 2
 focus_neighbor_top = NodePath("../PlayButton")
 focus_neighbor_bottom = NodePath("../PlayButton")
 text = "Exit"
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_titlemusic")
+autoplay = true
