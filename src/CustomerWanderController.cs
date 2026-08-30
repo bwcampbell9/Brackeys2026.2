@@ -102,20 +102,19 @@ public partial class CustomerWanderController : Node
         }
 
         _wanderWait = WanderDelay;
-        Vector2 preferredTarget = new(
-            _random.RandfRange(
-                WanderBounds.Position.X,
-                WanderBounds.End.X
-            ),
-            _random.RandfRange(
-                WanderBounds.Position.Y,
-                WanderBounds.End.Y
+        _motor.SetTarget(
+            new Vector2(
+                _random.RandfRange(
+                    WanderBounds.Position.X,
+                    WanderBounds.End.X
+                ),
+                _random.RandfRange(
+                    WanderBounds.Position.Y,
+                    WanderBounds.End.Y
+                )
             )
         );
-        if (_motor.TrySetNavigableTarget(preferredTarget))
-        {
-            ResetProgressCheck();
-        }
+        ResetProgressCheck();
     }
 
     private void ResetProgressCheck()
