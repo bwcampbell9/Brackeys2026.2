@@ -272,6 +272,35 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 		)
 	if score_label != null:
 		assert_eq(score_label.text, "Score: 50 / 100")
+		assert_true(score_label.has_theme_font_override("font"))
+		assert_eq(score_label.get_theme_color("font_outline_color"), Color.BLACK)
+		assert_eq(score_label.get_theme_constant("outline_size"), 6)
+
+
+func test_score_hud_uses_pixel_font_contract() -> void:
+	var main_scene := ResourceLoader.load(
+		"res://scenes/main.tscn",
+		"PackedScene",
+		ResourceLoader.CACHE_MODE_REPLACE,
+	) as PackedScene
+	assert_true(main_scene != null)
+	if main_scene == null:
+		return
+
+	var level := track(main_scene.instantiate())
+	var hud := level.get_node_or_null("Hud") as CanvasLayer
+	var score_label := level.get_node_or_null("Hud/Score") as Label
+
+	assert_true(hud != null)
+	assert_true(score_label != null)
+	if hud == null or score_label == null:
+		return
+
+	assert_eq(hud.get_script().resource_path, "res://src/GameScoreController.cs")
+	assert_eq(score_label.text, "Score: 50 / 100")
+	assert_true(score_label.has_theme_font_override("font"))
+	assert_eq(score_label.get_theme_color("font_outline_color"), Color.BLACK)
+	assert_eq(score_label.get_theme_constant("outline_size"), 6)
 
 
 func test_player_has_composable_interaction_components() -> void:

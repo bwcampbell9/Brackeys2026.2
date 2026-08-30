@@ -7,6 +7,9 @@ public partial class GameScoreController : CanvasLayer
     private readonly List<WorkstationTaskPublisher> _publishers = new();
     private Label _scoreLabel = null!;
     private GameOverController _gameOverController = null!;
+    private RandomNumberGenerator _random = null!;
+    private Tween? _scoreTween;
+    private float _displayedScore;
     private int _score;
 
     [Export]
@@ -31,6 +34,24 @@ public partial class GameScoreController : CanvasLayer
     public NodePath GameOverControllerPath { get; set; } =
         new("../GameOverController");
 
+    [Export(PropertyHint.Range, "0.1,2,0.05,or_greater")]
+    public float MaximumScoreTweenDuration { get; set; } = 0.65f;
+
+    [Export(PropertyHint.Range, "0.05,1,0.05,or_greater")]
+    public float ScoreTweenSecondsPerPoint { get; set; } = 0.06f;
+
+    [Export(PropertyHint.Range, "0.05,1,0.05,or_greater")]
+    public float ScorePopupIntroDuration { get; set; } = 0.18f;
+
+    [Export(PropertyHint.Range, "0.1,2,0.05,or_greater")]
+    public float ScorePopupRiseDuration { get; set; } = 0.65f;
+
+    [Export(PropertyHint.Range, "0,90,1")]
+    public float ScorePopupMaximumAngleDegrees { get; set; } = 12.0f;
+
+    [Export(PropertyHint.Range, "1,200,1,or_greater")]
+    public float ScorePopupVerticalOffset { get; set; } = 40.0f;
+
     public int Score => _score;
 
     public int GetScore()
@@ -52,7 +73,10 @@ public partial class GameScoreController : CanvasLayer
             );
         MaximumScore = Math.Max(1, MaximumScore);
         _score = Math.Clamp(StartingScore, 0, MaximumScore);
-        UpdateScoreLabel();
+        _displayedScore = _score;
+        _random = new RandomNumberGenerator();
+        _random.Randomize();
+        UpdateScoreLabel(_score);
         Callable.From(ConnectPublishers).CallDeferred();
     }
 
@@ -102,16 +126,128 @@ public partial class GameScoreController : CanvasLayer
                 "Unknown customer order outcome."
             ),
         };
-        _score = Math.Clamp(_score + scoreDelta, 0, MaximumScore);
-        UpdateScoreLabel();
+        int previousScore = _score;
+        _score = Math.Clamp(previousScore + scoreDelta, 0, MaximumScore);
+        int appliedDelta = _score - previousScore;
+        if (appliedDelta != 0)
+        {
+            ShowScoreChange(appliedDelta);
+            AnimateDisplayedScore();
+        }
         if (_score == 0)
         {
             _gameOverController.TriggerGameOver();
         }
     }
 
-    private void UpdateScoreLabel()
+    private void AnimateDisplayedScore()
     {
-        _scoreLabel.Text = $"Score: {_score} / {MaximumScore}";
+        _scoreTween?.Kill();
+        float distance = Mathf.Abs(_score - _displayedScore);
+        float duration = Mathf.Clamp(
+            distance * Mathf.Max(0.01f, ScoreTweenSecondsPerPoint),
+            0.1f,
+            Mathf.Max(0.1f, MaximumScoreTweenDuration)
+        );
+        _scoreTween = CreateTween()
+            .SetPauseMode(Tween.TweenPauseMode.Process)
+            .SetIgnoreTimeScale();
+        _scoreTween
+            .TweenMethod(
+                Callable.From<float>(SetDisplayedScore),
+                _displayedScore,
+                (float)_score,
+                duration
+            )
+            .SetTrans(Tween.TransitionType.Linear);
+        _scoreTween.Chain().TweenCallback(
+            Callable.From(() => _scoreTween = null)
+        );
+    }
+
+    private void SetDisplayedScore(float value)
+    {
+        _displayedScore = value;
+        UpdateScoreLabel(Mathf.RoundToInt(value));
+    }
+
+    private void ShowScoreChange(int scoreDelta)
+    {
+        Label popup = new()
+        {
+            Name = "ScoreChange",
+            Text = scoreDelta > 0 ? $"+{scoreDelta}" : scoreDelta.ToString(),
+            Position =
+                _scoreLabel.Position
+                + new Vector2(0.0f, Mathf.Max(1.0f, ScorePopupVerticalOffset)),
+            Size = _scoreLabel.Size,
+            HorizontalAlignment = _scoreLabel.HorizontalAlignment,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Rotation = Mathf.DegToRad(
+                _random.RandfRange(
+                    -Mathf.Max(0.0f, ScorePopupMaximumAngleDegrees),
+                    Mathf.Max(0.0f, ScorePopupMaximumAngleDegrees)
+                )
+            ),
+            Scale = Vector2.One * 0.65f,
+            Modulate = new Color(1.0f, 1.0f, 1.0f, 0.0f),
+        };
+        popup.PivotOffset = popup.Size * 0.5f;
+        popup.AddThemeFontOverride("font", _scoreLabel.GetThemeFont("font"));
+        popup.AddThemeFontSizeOverride(
+            "font_size",
+            _scoreLabel.GetThemeFontSize("font_size")
+        );
+        popup.AddThemeColorOverride(
+            "font_color",
+            _scoreLabel.GetThemeColor("font_color")
+        );
+        popup.AddThemeColorOverride(
+            "font_outline_color",
+            _scoreLabel.GetThemeColor("font_outline_color")
+        );
+        popup.AddThemeConstantOverride(
+            "outline_size",
+            _scoreLabel.GetThemeConstant("outline_size")
+        );
+        AddChild(popup);
+
+        float introDuration = Mathf.Max(0.05f, ScorePopupIntroDuration);
+        float riseDuration = Mathf.Max(0.1f, ScorePopupRiseDuration);
+        Tween popupTween = CreateTween()
+            .SetPauseMode(Tween.TweenPauseMode.Process)
+            .SetIgnoreTimeScale();
+        popupTween
+            .TweenProperty(popup, "scale", Vector2.One, introDuration)
+            .SetTrans(Tween.TransitionType.Back)
+            .SetEase(Tween.EaseType.Out);
+        popupTween
+            .Parallel()
+            .TweenProperty(popup, "modulate:a", 1.0f, introDuration);
+        popupTween
+            .TweenProperty(
+                popup,
+                "position",
+                _scoreLabel.Position,
+                riseDuration
+            )
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.In);
+        popupTween
+            .Parallel()
+            .TweenProperty(popup, "rotation", 0.0f, riseDuration);
+        popupTween
+            .Parallel()
+            .TweenProperty(popup, "scale", Vector2.One * 0.8f, riseDuration);
+        popupTween
+            .Parallel()
+            .TweenProperty(popup, "modulate:a", 0.0f, riseDuration);
+        popupTween.TweenCallback(Callable.From(popup.QueueFree));
+    }
+
+    private void UpdateScoreLabel(int displayedScore)
+    {
+        _scoreLabel.Text = $"Score: {displayedScore} / {MaximumScore}";
     }
 }

@@ -16,6 +16,7 @@ func _run() -> void:
 
 	var runner := current_scene.get_node("NpcWorker/NpcTaskRunner")
 	var hud := current_scene.get_node("Hud")
+	var score_label := current_scene.get_node("Hud/Score") as Label
 	var game_over_controller := current_scene.get_node("GameOverController")
 	var overlay := game_over_controller.get_child(0) as ColorRect
 	runner.process_mode = Node.PROCESS_MODE_DISABLED
@@ -23,6 +24,31 @@ func _run() -> void:
 	_check(int(hud.GetScore()) == 50, "Score must start at 50.")
 	hud.ApplyCustomerOrderOutcome(0)
 	_check(int(hud.GetScore()) == 55, "A correct order must add 5 score.")
+	var popup := hud.get_node_or_null("ScoreChange") as Label
+	_check(popup != null and popup.text == "+5", "A score gain must show its delta.")
+	if popup != null:
+		var popup_start_y := popup.position.y
+		_check(
+			popup_start_y > score_label.position.y,
+			"The score delta must appear below the score.",
+		)
+		await create_timer(0.15, true, false, true).timeout
+		_check(
+			score_label.text != "Score: 50 / 100"
+				and score_label.text != "Score: 55 / 100",
+			"The score display must tween through intermediate numbers.",
+		)
+		await create_timer(0.2, true, false, true).timeout
+		_check(
+			popup.position.y < popup_start_y,
+			"The score delta must rise toward the score.",
+		)
+	await create_timer(0.55, true, false, true).timeout
+	_check(score_label.text == "Score: 55 / 100", "The score display must reach 55.")
+	_check(
+		hud.get_node_or_null("ScoreChange") == null,
+		"The score delta must disappear after reaching the score.",
+	)
 	hud.ApplyCustomerOrderOutcome(1)
 	_check(int(hud.GetScore()) == 51, "A wrong order must remove 4 score.")
 	hud.ApplyCustomerOrderOutcome(2)
@@ -44,6 +70,19 @@ func _run() -> void:
 
 	hud.ApplyCustomerOrderOutcome(1)
 	_check(int(hud.GetScore()) == 0, "Score must remain clamped at zero.")
+	await create_timer(0.9, true, false, true).timeout
+	_check(
+		score_label.text == "Score: 0 / 100",
+		"The score display must finish its tween while game over is paused.",
+	)
+	var remaining_popups := 0
+	for child in hud.get_children():
+		if child is Label and str(child.name).begins_with("ScoreChange"):
+			remaining_popups += 1
+	_check(
+		remaining_popups == 0,
+		"Score popups must clean up while game over is paused.",
+	)
 
 	paused = false
 	current_scene.queue_free()
