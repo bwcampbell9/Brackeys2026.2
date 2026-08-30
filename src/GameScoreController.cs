@@ -13,10 +13,13 @@ public partial class GameScoreController : CanvasLayer
     public NodePath ScoreLabelPath { get; set; } = new("Score");
 
     [Export]
-    public int CorrectOrderPoints { get; set; } = 1;
+    public int CorrectOrderPoints { get; set; } = 5;
 
     [Export]
-    public int FailedOrderPenalty { get; set; } = 1;
+    public int WrongOrderPenalty { get; set; } = 4;
+
+    [Export]
+    public int MissedOrderPenalty { get; set; } = 8;
 
     [Export(PropertyHint.Range, "1,10000,1,or_greater")]
     public int MaximumScore { get; set; } = 100;
@@ -29,6 +32,11 @@ public partial class GameScoreController : CanvasLayer
         new("../GameOverController");
 
     public int Score => _score;
+
+    public int GetScore()
+    {
+        return _score;
+    }
 
     public override void _Ready()
     {
@@ -83,9 +91,17 @@ public partial class GameScoreController : CanvasLayer
 
     public void ApplyCustomerOrderOutcome(CustomerOrderOutcome outcome)
     {
-        int scoreDelta = outcome == CustomerOrderOutcome.Correct
-            ? CorrectOrderPoints
-            : -FailedOrderPenalty;
+        int scoreDelta = outcome switch
+        {
+            CustomerOrderOutcome.Correct => CorrectOrderPoints,
+            CustomerOrderOutcome.Wrong => -WrongOrderPenalty,
+            CustomerOrderOutcome.Missed => -MissedOrderPenalty,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(outcome),
+                outcome,
+                "Unknown customer order outcome."
+            ),
+        };
         _score = Math.Clamp(_score + scoreDelta, 0, MaximumScore);
         UpdateScoreLabel();
         if (_score == 0)

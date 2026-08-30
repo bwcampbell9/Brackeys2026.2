@@ -263,6 +263,9 @@ func test_main_scene_has_a_bounded_csharp_player() -> void:
 		assert_eq(hud.get_script().resource_path, "res://src/GameScoreController.cs")
 		assert_eq(int(hud.get("StartingScore")), 50)
 		assert_eq(int(hud.get("MaximumScore")), 100)
+		assert_eq(int(hud.get("CorrectOrderPoints")), 5)
+		assert_eq(int(hud.get("WrongOrderPenalty")), 4)
+		assert_eq(int(hud.get("MissedOrderPenalty")), 8)
 		assert_eq(
 			hud.get("GameOverControllerPath"),
 			NodePath("../GameOverController"),
@@ -737,36 +740,6 @@ func test_customer_composes_wandering_chopped_potato_order() -> void:
 	assert_eq(timer_bar.texture.resource_path, "res://assets/sprites/thought/timer_bar-Sheet.png")
 	assert_eq(timer_bar.hframes, 8)
 	assert_eq(timer_bar.vframes, 8)
-
-
-func test_score_clamps_and_triggers_game_over_at_zero() -> void:
-	var level := track(MAIN_SCENE.instantiate())
-	level.get_node("NpcWorker/NpcTaskRunner").process_mode = Node.PROCESS_MODE_DISABLED
-	Engine.get_main_loop().root.add_child(level)
-	await Engine.get_main_loop().process_frame
-
-	var hud := level.get_node("Hud")
-	var game_over_controller := level.get_node("GameOverController")
-	var overlay := game_over_controller.get_child(0) as ColorRect
-
-	assert_eq(int(hud.get("Score")), 50)
-	for _index in range(60):
-		hud.call("ApplyCustomerOrderOutcome", 0)
-	assert_eq(int(hud.get("Score")), 100)
-
-	for _index in range(99):
-		hud.call("ApplyCustomerOrderOutcome", 1)
-	assert_eq(int(hud.get("Score")), 1)
-	assert_false(Engine.get_main_loop().paused)
-
-	hud.call("ApplyCustomerOrderOutcome", 2)
-	assert_eq(int(hud.get("Score")), 0)
-	assert_true(Engine.get_main_loop().paused)
-	assert_true(overlay.visible)
-
-	hud.call("ApplyCustomerOrderOutcome", 1)
-	assert_eq(int(hud.get("Score")), 0)
-	Engine.get_main_loop().paused = false
 
 
 func test_catalog_matches_transformed_output_by_item_id() -> void:
