@@ -623,7 +623,9 @@ public partial class WorkstationTaskPublisher : Node2D
 
 	private void OnCookingStateChanged()
 	{
-		OnSocketItemChanged();
+		_generation++;
+		_actionFinished = false;
+		ReconcileTask();
 	}
 
 	private void OnSocketItemChanged()

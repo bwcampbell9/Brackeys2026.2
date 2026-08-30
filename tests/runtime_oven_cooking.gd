@@ -28,6 +28,7 @@ func _run() -> void:
 	root.add_child(world)
 	await _test_single_baked_potato(world)
 	await _test_combined_recipe_waits_and_consumes(world)
+	await _test_invalid_recipe_does_not_expose_ingredient(world)
 	await _test_baby_uses_legacy_game_over_recipe(world)
 	await _test_legacy_fallback(world)
 	world.queue_free()
@@ -61,6 +62,10 @@ func _test_single_baked_potato(world: Node2D) -> void:
 		"Baked potatoes must use all three authored frames.",
 	)
 	_check(sprite.animation == &"idle", "The oven must return to idle after cooking.")
+	_check(
+		bool(socket.get("IsSourceAvailable")),
+		"A finished oven dish must become available for an NPC to collect.",
+	)
 	oven.queue_free()
 	potato.queue_free()
 	await process_frame
@@ -141,6 +146,36 @@ func _test_combined_recipe_waits_and_consumes(world: Node2D) -> void:
 	oven.queue_free()
 	potatoes.queue_free()
 	extra_carrots.queue_free()
+	await process_frame
+
+
+func _test_invalid_recipe_does_not_expose_ingredient(world: Node2D) -> void:
+	var oven := OVEN_SCENE.instantiate() as StaticBody2D
+	var potato := POTATO_SCENE.instantiate() as RigidBody2D
+	world.add_child(oven)
+	world.add_child(potato)
+	await process_frame
+
+	var socket := oven.get_node("PickupSocket") as Node2D
+	var controller := oven.get_node("OvenCookingController") as Node
+	for recipe: Resource in controller.get("Recipes"):
+		if recipe.get("Output").get("Id") != &"cooked_potato":
+			continue
+		var invalid_recipe := recipe.duplicate()
+		invalid_recipe.set("Duration", 0.0)
+		controller.set("SelectedCookingRecipe", invalid_recipe)
+		break
+
+	_check(bool(socket.TryStore(potato, 0.0)), "The oven fixture must accept the ingredient.")
+	await process_frame
+	_check(not bool(controller.get("IsCooking")), "A zero-duration recipe must not start cooking.")
+	_check(
+		not bool(socket.get("IsSourceAvailable")),
+		"An ingredient must not become an NPC source unless cooking succeeds.",
+	)
+
+	oven.queue_free()
+	potato.queue_free()
 	await process_frame
 
 

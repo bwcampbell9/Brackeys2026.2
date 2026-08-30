@@ -153,6 +153,7 @@ public partial class OvenCookingController : Node
             return;
         }
 
+        EnableNpcOutputSource(_cookingItems[0]);
         StopCooking();
         EmitSignal(SignalName.CookingStateChanged);
 
@@ -381,6 +382,18 @@ public partial class OvenCookingController : Node
         finally
         {
             _isApplyingRecipe = false;
+        }
+    }
+
+    private void EnableNpcOutputSource(PickupItem output)
+    {
+        foreach (PickupSocket socket in _sockets)
+        {
+            if (socket.Item == output)
+            {
+                socket.SetNpcSourceEnabled(true);
+                return;
+            }
         }
     }
 

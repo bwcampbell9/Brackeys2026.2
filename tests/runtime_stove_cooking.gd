@@ -63,6 +63,10 @@ func _test_single_soup(world: Node2D) -> void:
 	_check(soup_sprite.sprite_frames.get_frame_count(&"idle") == 2, "Potato soup must have two frames.")
 	_check(back_sprite.animation == &"idle", "The stove back must return to idle.")
 	_check(front_sprite.animation == &"idle", "The stove front must return to idle.")
+	_check(
+		bool(socket.get("IsSourceAvailable")),
+		"A finished stove dish must become available for an NPC to collect.",
+	)
 	stove.queue_free()
 	potatoes.queue_free()
 	await process_frame
