@@ -597,6 +597,22 @@ public partial class NpcTaskRunner : Node
 		StartReturningItem();
 	}
 
+	public void CancelCurrentTaskAndReset()
+	{
+		if (_task is not null && _broker is not null)
+		{
+			_broker.Cancel(_task.Id);
+		}
+		_catalog?.Release(_source, this);
+		_source = null;
+		_returnSource = null;
+		_task = null;
+		_selectedDefinition = null;
+		_selectedFailureMode = null;
+		_motor.Stop();
+		EnterIdle();
+	}
+
 	private void EnterIdle()
 	{
 		_task = null;

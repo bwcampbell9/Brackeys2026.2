@@ -1,0 +1,141 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="PackedScene" uid="uid://b688vrtt4173h" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://bwnef5k3486q" path="res://scenes/cutting_board.tscn" id="2_board"]
+[ext_resource type="PackedScene" uid="uid://mvdg0dey2ov1" path="res://scenes/npc_worker.tscn" id="3_worker"]
+[ext_resource type="PackedScene" path="res://scenes/customer.tscn" id="4_customer"]
+[ext_resource type="PackedScene" path="res://scenes/potato_container.tscn" id="5_potatoes"]
+[ext_resource type="PackedScene" path="res://scenes/carrot_container.tscn" id="6_carrots"]
+[ext_resource type="PackedScene" path="res://scenes/knife_container.tscn" id="7_knives"]
+[ext_resource type="PackedScene" path="res://scenes/container.tscn" id="8_container"]
+[ext_resource type="PackedScene" path="res://scenes/pickup_item.tscn" id="9_pickup"]
+[ext_resource type="Script" path="res://src/KitchenTaskSystem.cs" id="10_task_system"]
+[ext_resource type="Script" path="res://src/TaskBroker.cs" id="11_broker"]
+[ext_resource type="Script" path="res://src/ItemSourceCatalog.cs" id="12_catalog"]
+[ext_resource type="Script" path="res://src/TutorialLevelController.cs" id="13_tutorial"]
+[ext_resource type="Script" path="res://src/WorkerItemTransferAction.cs" id="14_worker_transfer"]
+[ext_resource type="Script" path="res://src/NpcPersonality.cs" id="15_personality"]
+[ext_resource type="Script" path="res://src/NpcFailureTendency.cs" id="16_tendency"]
+[ext_resource type="Resource" path="res://resources/items/chopped_potatoes.tres" id="17_chopped_potatoes"]
+[ext_resource type="FontFile" uid="uid://caidkm36bym2d" path="res://fonts/Pixel Game.otf" id="18_font"]
+[ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="19_definition"]
+[ext_resource type="Resource" path="res://resources/items/potato.tres" id="20_potato"]
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_tutorial"]
+vertices = PackedVector2Array(64, 64, 896, 64, 896, 476, 64, 476)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(64, 64, 896, 64, 896, 476, 64, 476)])
+agent_radius = 12.0
+
+[sub_resource type="Resource" id="NpcFailureTendency_tutorial"]
+script = ExtResource("16_tendency")
+Mode = 0
+Weight = 1.0
+
+[sub_resource type="Resource" id="NpcPersonality_tutorial"]
+script = ExtResource("15_personality")
+FailureChance = 1.0
+FailureTendencies = Array[ExtResource("16_tendency")]([SubResource("NpcFailureTendency_tutorial")])
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_worker_interaction"]
+radius = 36.0
+
+[node name="TutorialKitchen" type="Node2D"]
+
+[node name="Backdrop" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="ColorRect" type="ColorRect" parent="Backdrop"]
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.12, 0.16, 0.17, 1)
+mouse_filter = 2
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
+navigation_polygon = SubResource("NavigationPolygon_tutorial")
+parsed_geometry_type = 1
+parsed_collision_mask = 1
+source_geometry_mode = 1
+source_geometry_group_name = &"workstation_navigation_source"
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(480, 350)
+
+[node name="CuttingBoard" parent="." instance=ExtResource("2_board")]
+position = Vector2(480, 200)
+groups = ["workstation_navigation_source"]
+
+[node name="WorkstationTaskPublisher" parent="CuttingBoard" index="9"]
+RequestMode = 2
+AvailableItems = Array[ExtResource("19_definition")]([ExtResource("20_potato")])
+
+[node name="RequestTaskAction" parent="CuttingBoard/InteractionTarget" index="1"]
+Enabled = false
+
+[node name="PotatoContainer" parent="." instance=ExtResource("5_potatoes")]
+position = Vector2(200, 180)
+groups = ["workstation_navigation_source"]
+
+[node name="CarrotContainer" parent="." instance=ExtResource("6_carrots")]
+position = Vector2(200, 340)
+groups = ["workstation_navigation_source"]
+
+[node name="KnifeContainer" parent="." instance=ExtResource("7_knives")]
+position = Vector2(480, 440)
+groups = ["workstation_navigation_source"]
+
+[node name="TutorialWorker" parent="." instance=ExtResource("3_worker")]
+position = Vector2(380, 350)
+
+[node name="NpcTaskRunner" parent="TutorialWorker" index="7"]
+Personality = SubResource("NpcPersonality_tutorial")
+RandomSeed = 17
+WanderBounds = Rect2(360, 320, 80, 80)
+
+[node name="InteractionTarget" type="Area2D" parent="TutorialWorker"]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TutorialWorker/InteractionTarget"]
+shape = SubResource("CircleShape2D_worker_interaction")
+
+[node name="WorkerItemTransferAction" type="Node" parent="TutorialWorker/InteractionTarget"]
+script = ExtResource("14_worker_transfer")
+
+[node name="TutorialCustomer" parent="." instance=ExtResource("4_customer")]
+position = Vector2(760, 210)
+
+[node name="CustomerWanderController" parent="TutorialCustomer" index="8"]
+process_mode = 4
+UprightVisualOffset = Vector2(0, -80)
+
+[node name="WorkstationTaskPublisher" parent="TutorialCustomer" index="12"]
+OrderDurationSeconds = 120.0
+
+[node name="TaskSystem" type="Node" parent="."]
+script = ExtResource("10_task_system")
+
+[node name="TaskBroker" type="Node" parent="TaskSystem"]
+script = ExtResource("11_broker")
+
+[node name="ItemSourceCatalog" type="Node" parent="TaskSystem"]
+script = ExtResource("12_catalog")
+
+[node name="TutorialPrompt" type="Label" parent="."]
+offset_left = -180.0
+offset_top = -32.0
+offset_right = 180.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(1, 0.91, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.02, 0.02, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("18_font")
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TutorialLevelController" type="Node" parent="."]
+script = ExtResource("13_tutorial")

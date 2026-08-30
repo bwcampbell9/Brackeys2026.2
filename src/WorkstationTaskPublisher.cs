@@ -596,6 +596,18 @@ public partial class WorkstationTaskPublisher : Node2D
 		}
 	}
 
+	public void ClearCurrentTask()
+	{
+		if (_broker is not null && _currentTaskId != 0)
+		{
+			_broker.Cancel(_currentTaskId);
+		}
+
+		_currentTaskId = 0;
+		_currentRequestedItem = null;
+		ClearRequestIndicator();
+	}
+
 	private void CancelCurrentTask()
 	{
 		if (_broker is not null && _currentTaskId != 0)

@@ -15,6 +15,9 @@ public partial class RequestWorkstationTaskAction : InteractionAction
     public NodePath PublisherPath { get; set; } =
         new("../../WorkstationTaskPublisher");
 
+    [Export]
+    public bool Enabled { get; set; } = true;
+
     public override void _Ready()
     {
         _publisher =
@@ -26,7 +29,9 @@ public partial class RequestWorkstationTaskAction : InteractionAction
 
     public override bool IsAvailable(InteractionContext context)
     {
-        return context.Carrier.HeldItem is null && _publisher.CanPublishNextTask;
+        return Enabled
+            && context.Carrier.HeldItem is null
+            && _publisher.CanPublishNextTask;
     }
 
     public override bool Execute(InteractionContext context)
