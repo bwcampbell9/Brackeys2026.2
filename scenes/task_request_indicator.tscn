@@ -1,0 +1,49 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Texture2D" uid="uid://tv2lvw2rttsw" path="res://assets/sprites/thought/thought-Sheet.png" id="1_bubble"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_1"]
+atlas = ExtResource("1_bubble")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_2"]
+atlas = ExtResource("1_bubble")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_3"]
+atlas = ExtResource("1_bubble")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_4"]
+atlas = ExtResource("1_bubble")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bubble"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_4")
+}],
+"loop": false,
+"name": &"open",
+"speed": 1.0
+}]
+
+[node name="TaskRequestIndicator" type="Node2D"]
+visible = false
+z_index = 10
+
+[node name="Background" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_bubble")
+animation = &"open"
+
+[node name="Icon" type="Sprite2D" parent="."]
