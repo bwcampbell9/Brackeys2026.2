@@ -652,7 +652,7 @@ static func _apply_request_icon(
 	scale_multiplier: float
 ) -> void:
 	icon.position = pos
-	icon.texture = item.Texture
+	icon.texture = item.get_texture()
 	icon.modulate = item.Modulate
 	icon.scale = item.VisualScale * scale_multiplier
 

@@ -293,17 +293,18 @@ func _draw_ingredient_group(ingredients: Array[PickupItemDefinition], center: Ve
 	var max_icon_size := _item_radius * 1.5 if ingredients.size() == 1 else _item_radius * 0.9
 	for index in ingredients.size():
 		var ingredient := ingredients[index]
-		if ingredient.Texture == null:
+		var texture := ingredient.get_texture()
+		if texture == null:
 			continue
 
-		var icon_size: Vector2 = ingredient.Texture.get_size() * ingredient.VisualScale * 0.55
+		var icon_size: Vector2 = texture.get_size() * ingredient.VisualScale * 0.55
 		var max_dimension := maxf(icon_size.x, icon_size.y)
 		if max_dimension > max_icon_size:
 			icon_size *= max_icon_size / max_dimension
 
 		var icon_center := center + Vector2.RIGHT * (start_x + index * spacing)
 		draw_texture_rect(
-			ingredient.Texture,
+			texture,
 			Rect2(icon_center - icon_size * 0.5, icon_size),
 			false,
 			ingredient.Modulate

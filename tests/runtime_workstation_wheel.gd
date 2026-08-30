@@ -108,7 +108,7 @@ func _run() -> void:
 	for index in 12:
 		many_items.append(available_items[index % available_items.size()])
 	wheel.call(
-		"Open",
+		"open",
 		many_items,
 		CARROT_DEFINITION,
 		Vector2(480.0, 270.0),

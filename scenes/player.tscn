@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://src/body_pusher.gd" id="6_pusher"]
 [ext_resource type="AudioStream" path="res://assets/sounds/pickup.wav" id="7_pickup_audio"]
 [ext_resource type="AudioStream" path="res://assets/sounds/throw.wav" id="8_throw_audio"]
+[ext_resource type="Script" uid="uid://bch5bcn8pat2j" path="res://src/interaction_input_binding.gd" id="9_input_binding"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_vk56l"]
 radius = 12.0
@@ -73,6 +74,24 @@ radius = 73.00685
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_close_interaction"]
 radius = 32.01562
+
+[sub_resource type="Resource" id="Resource_input_tap"]
+script = ExtResource("9_input_binding")
+InputAction = &"interact"
+Trigger = 0
+ActionIds = Array[StringName]([&"transfer"])
+
+[sub_resource type="Resource" id="Resource_input_hold"]
+script = ExtResource("9_input_binding")
+InputAction = &"interact"
+Trigger = 1
+ActionIds = Array[StringName]([&"process"])
+
+[sub_resource type="Resource" id="Resource_input_configure"]
+script = ExtResource("9_input_binding")
+InputAction = &"configure_workstation"
+Trigger = 1
+ActionIds = Array[StringName]([&"configure"])
 
 [node name="Player" type="CharacterBody2D" unique_id=1644566602]
 collision_layer = 4
@@ -143,3 +162,4 @@ shape = SubResource("CircleShape2D_close_interaction")
 
 [node name="InputManager" type="Node" parent="." unique_id=849512019]
 script = ExtResource("5_input_manager")
+InteractionInputs = Array[ExtResource("9_input_binding")]([SubResource("Resource_input_tap"), SubResource("Resource_input_hold"), SubResource("Resource_input_configure")])

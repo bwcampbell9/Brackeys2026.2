@@ -52,8 +52,8 @@ func resolve(input: PickupItemDefinition) -> PickupItemDefinition:
 		if uses_generated_fallback
 		else output_template.DisplayName
 	)
-	result.Texture = output_template.Texture
-	result.SpriteFrames = output_template.SpriteFrames
+	result.set_texture(output_template.get_texture())
+	result.set_sprite_frames(output_template.get_sprite_frames())
 	result.Modulate = output_template.Modulate
 	result.VisualScale = output_template.VisualScale
 	result.VisualMaterial = (

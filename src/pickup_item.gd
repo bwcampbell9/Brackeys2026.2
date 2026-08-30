@@ -266,10 +266,11 @@ func _apply_definition() -> void:
 
 	var static_sprite := get_node_or_null("Sprite2D") as Sprite2D
 	var animated_sprite := get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
-	if _definition.SpriteFrames != null and animated_sprite == null:
+	var definition_frames := _definition.get_sprite_frames()
+	if definition_frames != null and animated_sprite == null:
 		animated_sprite = _ensure_animated_sprite()
 
-	var uses_definition_animation := _definition.SpriteFrames != null and animated_sprite != null
+	var uses_definition_animation := definition_frames != null and animated_sprite != null
 	var uses_scene_animation := (
 		static_sprite == null
 		and animated_sprite != null
@@ -282,7 +283,7 @@ func _apply_definition() -> void:
 	if animated_sprite != null:
 		animated_sprite.visible = uses_animation
 		if uses_definition_animation:
-			animated_sprite.sprite_frames = _definition.SpriteFrames
+			animated_sprite.sprite_frames = definition_frames
 			animated_sprite.play(IDLE_ANIMATION)
 		elif not uses_scene_animation:
 			animated_sprite.stop()
@@ -294,8 +295,9 @@ func _apply_definition() -> void:
 		if visual is Node2D:
 			(visual as Node2D).scale = _definition.VisualScale
 
-		if visual is Sprite2D and _definition.Texture != null:
-			(visual as Sprite2D).texture = _definition.Texture
+		var definition_texture := _definition.get_texture()
+		if visual is Sprite2D and definition_texture != null:
+			(visual as Sprite2D).texture = definition_texture
 
 	_on_definition_applied()
 

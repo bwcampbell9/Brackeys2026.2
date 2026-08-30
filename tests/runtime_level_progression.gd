@@ -57,8 +57,8 @@ func _run() -> void:
 	var instant_win_event := InputEventAction.new()
 	instant_win_event.action = &"debug_instant_win"
 	instant_win_event.pressed = true
-	hud._UnhandledInput(instant_win_event)
-	hud._UnhandledInput(instant_win_event)
+	hud._unhandled_input(instant_win_event)
+	hud._unhandled_input(instant_win_event)
 	await process_frame
 	_check(
 		_is_win_audio_playing(),
@@ -89,8 +89,8 @@ func _run() -> void:
 		"The Level 2 confetti burst must clean up after playback.",
 	)
 	hud = current_scene.get_node("Hud")
-	hud._UnhandledInput(instant_win_event)
-	hud._UnhandledInput(instant_win_event)
+	hud._unhandled_input(instant_win_event)
+	hud._unhandled_input(instant_win_event)
 	await process_frame
 	_check(
 		_is_win_audio_playing()

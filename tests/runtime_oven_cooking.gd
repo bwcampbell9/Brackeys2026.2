@@ -15,7 +15,7 @@ class GameOverSpy:
 
 	var triggered := false
 
-	func TriggerGameOverAt(_global_position: Vector2) -> void:
+	func trigger_game_over_at(_global_position: Vector2) -> void:
 		triggered = true
 
 
@@ -220,7 +220,8 @@ func _test_legacy_fallback(world: Node2D) -> void:
 	await process_frame
 	var socket := oven.get_node("PickupSocket") as Node2D
 	var controller := oven.get_node("OvenCookingController") as Node
-	controller.set("Recipes", [])
+	var no_recipes: Array[CookingRecipe] = []
+	controller.set("Recipes", no_recipes)
 	controller.set("SelectedCookingRecipe", null)
 	var fallback_recipe := (controller.get("Recipe") as Resource).duplicate()
 	fallback_recipe.set("Duration", 0.1)

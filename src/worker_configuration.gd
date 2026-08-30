@@ -3,7 +3,7 @@ extends CharacterBody2D
 
 @export_group("Worker Difficulty")
 
-@export_range(0, 1, 0.01) var ErrorRate: float = 0.6
+@export_custom(PROPERTY_HINT_RANGE, "0,1,0.01") var ErrorRate: float = 0.6
 
 @export_group("Dependencies")
 

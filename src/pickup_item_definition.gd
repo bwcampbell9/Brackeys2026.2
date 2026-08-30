@@ -5,35 +5,89 @@ extends Resource
 ## transformations that have already been applied to reach this state.
 
 const _IDLE_ANIMATION: StringName = &"idle"
+const _TEXTURE_PROPERTY: StringName = &"Texture"
+const _SPRITE_FRAMES_PROPERTY: StringName = &"SpriteFrames"
 
 @export var Id: StringName = &""
 @export var DisplayName: String = ""
-@export var Texture: Texture2D = null
-## Declared before `SpriteFrames` below: both properties share the built-in
-## `SpriteFrames` type name, and declaring the plain `SpriteFrames` member first
-## would shadow that type identifier for any later property in this script that
-## still needs to reference it as a type. Export order has no effect on how
-## `.tres` resources bind these properties (they are matched by name).
 @export var ProcessingSpriteFrames: SpriteFrames = null
-@export var SpriteFrames: SpriteFrames = null
 @export var Modulate: Color = Color.WHITE
 @export var VisualScale: Vector2 = Vector2.ONE
 @export var VisualMaterial: Material = null
 @export var AppliedTransformationIds: Array[StringName] = []
 @export var TransformationOverrides: Array[ItemTransformationOverride] = []
 
+var _texture: Texture2D
+var _sprite_frames: SpriteFrames
+
+
+func _get_property_list() -> Array[Dictionary]:
+	return [
+		{
+			"name": _TEXTURE_PROPERTY,
+			"type": TYPE_OBJECT,
+			"hint": PROPERTY_HINT_RESOURCE_TYPE,
+			"hint_string": "Texture2D",
+			"usage": PROPERTY_USAGE_DEFAULT,
+		},
+		{
+			"name": _SPRITE_FRAMES_PROPERTY,
+			"type": TYPE_OBJECT,
+			"hint": PROPERTY_HINT_RESOURCE_TYPE,
+			"hint_string": "SpriteFrames",
+			"usage": PROPERTY_USAGE_DEFAULT,
+		},
+	]
+
+
+func _get(property: StringName) -> Variant:
+	match property:
+		_TEXTURE_PROPERTY:
+			return _texture
+		_SPRITE_FRAMES_PROPERTY:
+			return _sprite_frames
+	return null
+
+
+func _set(property: StringName, value: Variant) -> bool:
+	match property:
+		_TEXTURE_PROPERTY:
+			_texture = value as Texture2D
+			return true
+		_SPRITE_FRAMES_PROPERTY:
+			_sprite_frames = value as SpriteFrames
+			return true
+	return false
+
+
+func get_texture() -> Texture2D:
+	return _texture
+
+
+func set_texture(value: Texture2D) -> void:
+	_texture = value
+
+
+func get_sprite_frames() -> SpriteFrames:
+	return _sprite_frames
+
+
+func set_sprite_frames(value: SpriteFrames) -> void:
+	_sprite_frames = value
+
+
 func get_display_texture() -> Texture2D:
-	if Texture != null:
-		return Texture
+	if _texture != null:
+		return _texture
 
 	if (
-		SpriteFrames == null
-		or not SpriteFrames.has_animation(_IDLE_ANIMATION)
-		or SpriteFrames.get_frame_count(_IDLE_ANIMATION) == 0
+		_sprite_frames == null
+		or not _sprite_frames.has_animation(_IDLE_ANIMATION)
+		or _sprite_frames.get_frame_count(_IDLE_ANIMATION) == 0
 	):
 		return null
 
-	return SpriteFrames.get_frame_texture(_IDLE_ANIMATION, 0)
+	return _sprite_frames.get_frame_texture(_IDLE_ANIMATION, 0)
 
 func has_applied_transformation(transformation_id: StringName) -> bool:
 	return AppliedTransformationIds.has(transformation_id)

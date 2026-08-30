@@ -35,7 +35,7 @@ func matches(item, tool = _NO_TOOL_ARGUMENT) -> bool:
 	if not (definition is PickupItemDefinition) or not Transformation.can_apply(definition):
 		return false
 
-	if tool == _NO_TOOL_ARGUMENT:
+	if tool is StringName and tool == _NO_TOOL_ARGUMENT:
 		return true
 
 	if RequiredTool == null:
