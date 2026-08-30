@@ -653,13 +653,24 @@ func test_recipe_book_has_pickup_and_open_animation_contract() -> void:
 	var overlay_layer := book.get_node("RecipeOverlay") as CanvasLayer
 	var overlay_root := book.get_node("RecipeOverlay/OverlayRoot") as Control
 	var overlay_image := book.get_node("RecipeOverlay/OverlayRoot/Book") as TextureRect
+	var first_page := overlay_image.texture as AtlasTexture
 	assert_eq(overlay_layer.layer, 5)
 	assert_false(overlay_root.visible)
+	assert_true(first_page != null)
+	if first_page == null:
+		return
 	assert_eq(
-		overlay_image.texture.resource_path,
-		"res://assets/sprites/recipe_book/recipe_book_large.png",
+		first_page.atlas.resource_path,
+		"res://assets/sprites/recipe_book/recipe_book_large_pages-Sheet.png",
 	)
 	assert_eq(overlay_image.mouse_filter, Control.MOUSE_FILTER_IGNORE)
+	assert_true(book.get_node("RecipeOverlay/OverlayRoot/PageTwo") is TextureRect)
+	assert_true(book.get_node("RecipeOverlay/OverlayRoot/PreviousPageButton") is Button)
+	assert_true(book.get_node("RecipeOverlay/OverlayRoot/NextPageButton") is Button)
+	var forward_page_audio := book.get_node("ForwardPageAudio") as AudioStreamPlayer2D
+	var backward_page_audio := book.get_node("BackwardPageAudio") as AudioStreamPlayer2D
+	assert_eq(forward_page_audio.stream.resource_path, "res://assets/sounds/page_turn_1.wav")
+	assert_eq(backward_page_audio.stream.resource_path, "res://assets/sounds/page_turn_2.wav")
 
 
 func test_main_scene_has_one_baby_pickup() -> void:
