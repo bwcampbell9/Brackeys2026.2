@@ -1,10 +1,12 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/BabyPickupItem.cs" id="1_baby"]
 [ext_resource type="Texture2D" path="res://assets/sprites/baby/baby-Sheet.png" id="2_baby_sheet"]
 [ext_resource type="Script" path="res://src/InteractionTarget.cs" id="3_target"]
 [ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="4_transfer"]
 [ext_resource type="Resource" path="res://resources/items/baby.tres" id="5_definition"]
+[ext_resource type="AudioStream" path="res://assets/sounds/baby_cry_1.wav" id="6_cry1"]
+[ext_resource type="AudioStream" path="res://assets/sounds/baby_cry_2.wav" id="7_cry2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_baby_0"]
 atlas = ExtResource("2_baby_sheet")
@@ -37,6 +39,7 @@ angular_damp = 8.0
 lock_rotation = true
 script = ExtResource("1_baby")
 Definition = ExtResource("5_definition")
+CrySounds = Array[AudioStream]([ExtResource("6_cry1"), ExtResource("7_cry2")])
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_baby")
@@ -45,6 +48,8 @@ shape = SubResource("CircleShape2D_baby")
 sprite_frames = SubResource("SpriteFrames_baby")
 animation = &"crawl"
 frame = 0
+
+[node name="CryAudio" type="AudioStreamPlayer2D" parent="."]
 
 [node name="InteractionTarget" type="Area2D" parent="."]
 collision_layer = 8

@@ -107,6 +107,15 @@ public partial class CuttingBoardProcessPresentation : Node
     {
         EndChopPreview(restoreOriginalMaterial: false);
         ResetPresentation();
+
+        if (item is BabyPickupItem)
+        {
+            GetTree().CallGroup(
+                GameOverController.GameOverGroup,
+                nameof(GameOverController.TriggerGameOverAt),
+                item.GlobalPosition
+            );
+        }
     }
 
     private void StartChopPreview()

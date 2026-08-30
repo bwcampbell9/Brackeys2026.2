@@ -77,6 +77,15 @@ public partial class OvenCookingController : Node
         }
 
         StopCooking();
+
+        if (item is BabyPickupItem)
+        {
+            GetTree().CallGroup(
+                GameOverController.GameOverGroup,
+                nameof(GameOverController.TriggerGameOverAt),
+                item.GlobalPosition
+            );
+        }
     }
 
     private void OnSocketItemChanged()

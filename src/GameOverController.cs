@@ -6,6 +6,8 @@ public partial class GameOverController : CanvasLayer
 	private enum GameOverPhase
 	{
 		Playing,
+		PanningToDeath,
+		PanningToPlayer,
 		Fading,
 		ExecutionerIdle,
 		ExecutionerWalking,
@@ -19,16 +21,32 @@ public partial class GameOverController : CanvasLayer
 	private static readonly StringName ProgressParameter = "progress";
 	private const string ExecutionerScenePath = "res://scenes/executioner.tscn";
 	private const string TitleScenePath = "res://scenes/title_screen.tscn";
+	private const string BabyDeathSoundPath = "res://assets/sounds/baby_death.wav";
+
+	public static readonly StringName GameOverGroup = "game_over_controllers";
 
 	private Node2D _player = null!;
+	private Camera2D _camera = null!;
 	private ColorRect _overlay = null!;
 	private ShaderMaterial _overlayMaterial = null!;
+	private AudioStreamPlayer _deathAudio = null!;
 	private Executioner? _executioner;
 	private GameOverPhase _phase;
 	private double _elapsed;
+	private Vector2 _cameraPanStartPosition;
+	private Vector2 _deathGlobalPosition;
 
 	[Export]
 	public NodePath PlayerPath { get; set; } = "../Player";
+
+	[Export(PropertyHint.Range, "0.05,5,0.05,or_greater")]
+	public float DeathPanDuration { get; set; } = 0.5f;
+
+	[Export(PropertyHint.Range, "0,5,0.05,or_greater")]
+	public float DeathPanHoldDuration { get; set; } = 0.6f;
+
+	[Export(PropertyHint.Range, "0.05,5,0.05,or_greater")]
+	public float ReturnPanDuration { get; set; } = 0.5f;
 
 	[Export(PropertyHint.Range, "0.1,5,0.1,or_greater")]
 	public float RevealDuration { get; set; } = 0.75f;
@@ -46,6 +64,7 @@ public partial class GameOverController : CanvasLayer
 		ExecutionerIdleDuration = Mathf.Max(ExecutionerIdleDuration, 0.1f);
 		ExecutionerWalkSpeed = Mathf.Max(ExecutionerWalkSpeed, 10.0f);
 		_player = GetNode<Node2D>(PlayerPath);
+		_camera = _player.GetNode<Camera2D>("Camera2D");
 
 		_overlayMaterial = new ShaderMaterial
 		{
@@ -59,16 +78,21 @@ public partial class GameOverController : CanvasLayer
 		};
 		_overlay.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
 		AddChild(_overlay);
+
+		_deathAudio = new AudioStreamPlayer
+		{
+			Stream = GD.Load<AudioStream>(BabyDeathSoundPath),
+		};
+		AddChild(_deathAudio);
+
+		AddToGroup(GameOverGroup);
 	}
 
 	public override void _Process(double delta)
 	{
 		if (!GetTree().Paused && Input.IsActionJustPressed(GameOverAction))
 		{
-			if (_phase == GameOverPhase.Playing)
-			{
-				BeginGameOver();
-			}
+			TriggerGameOver();
 		}
 
 		if (_phase == GameOverPhase.Playing || _phase == GameOverPhase.Complete)
@@ -77,8 +101,34 @@ public partial class GameOverController : CanvasLayer
 		}
 
 		_elapsed += delta;
+
+		if (_phase == GameOverPhase.PanningToDeath)
+		{
+			UpdateCameraPan(_cameraPanStartPosition, _deathGlobalPosition, DeathPanDuration);
+			if (_elapsed >= DeathPanDuration + DeathPanHoldDuration)
+			{
+				_cameraPanStartPosition = _camera.GlobalPosition;
+				_phase = GameOverPhase.PanningToPlayer;
+				_elapsed = 0.0;
+			}
+			return;
+		}
+
+		if (_phase == GameOverPhase.PanningToPlayer)
+		{
+			UpdateCameraPan(_cameraPanStartPosition, _player.GlobalPosition, ReturnPanDuration);
+			if (_elapsed >= ReturnPanDuration)
+			{
+				_phase = GameOverPhase.Fading;
+				_elapsed = 0.0;
+				_overlay.Visible = true;
+			}
+			return;
+		}
+
 		Vector2 viewportSize = GetViewport().GetVisibleRect().Size;
-		Vector2 focusUv = _player.GlobalPosition / viewportSize;
+		Vector2 screenPosition = GetViewport().CanvasTransform * _player.GlobalPosition;
+		Vector2 focusUv = screenPosition / viewportSize;
 		_overlayMaterial.SetShaderParameter(FocusUvParameter, focusUv);
 
 		if (_phase == GameOverPhase.Fading)
@@ -112,12 +162,32 @@ public partial class GameOverController : CanvasLayer
 		}
 	}
 
-	private void BeginGameOver()
+	public void TriggerGameOver()
 	{
-		_phase = GameOverPhase.Fading;
+		TriggerGameOverAt(_player.GlobalPosition);
+	}
+
+	public void TriggerGameOverAt(Vector2 deathGlobalPosition)
+	{
+		if (_phase != GameOverPhase.Playing)
+		{
+			return;
+		}
+
+		_deathAudio.Play();
+		_deathGlobalPosition = deathGlobalPosition;
+		_cameraPanStartPosition = _camera.GlobalPosition;
+		_phase = GameOverPhase.PanningToDeath;
 		_elapsed = 0.0;
-		_overlay.Visible = true;
 		GetTree().Paused = true;
+	}
+
+	private void UpdateCameraPan(Vector2 fromGlobalPosition, Vector2 toGlobalPosition, float duration)
+	{
+		float progress = duration > 0.0f
+			? Mathf.Clamp((float)(_elapsed / duration), 0.0f, 1.0f)
+			: 1.0f;
+		_camera.GlobalPosition = fromGlobalPosition.Lerp(toGlobalPosition, progress);
 	}
 
 	private void SpawnExecutioner()
