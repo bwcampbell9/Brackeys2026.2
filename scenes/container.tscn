@@ -1,9 +1,9 @@
 [gd_scene load_steps=12 format=3]
 
-[ext_resource type="Script" path="res://src/Container.cs" id="1_container"]
-[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="2_target"]
-[ext_resource type="Script" path="res://src/PickupContainerAction.cs" id="3_action"]
-[ext_resource type="Script" path="res://src/ContainerItemSource.cs" id="6_npc_source"]
+[ext_resource type="Script" path="res://src/container.gd" id="1_container"]
+[ext_resource type="Script" path="res://src/interaction_target.gd" id="2_target"]
+[ext_resource type="Script" path="res://src/pickup_container_action.gd" id="3_action"]
+[ext_resource type="Script" path="res://src/container_item_source.gd" id="6_npc_source"]
 [ext_resource type="Texture2D" uid="uid://bju1sus4vefvj" path="res://assets/sprites/container/container-Sheet.png" id="7_texture"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle"]

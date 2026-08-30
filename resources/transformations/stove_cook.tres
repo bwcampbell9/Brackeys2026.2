@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ItemTransformation" format=3 uid="uid://dn54j3ijp1nhs"]
 
-[ext_resource type="Script" uid="uid://dp10syqiux21j" path="res://src/ItemTransformation.cs" id="1_transformation"]
+[ext_resource type="Script" uid="uid://dkxmtns2x4ji0" path="res://src/item_transformation.gd" id="1_transformation"]
 [ext_resource type="Resource" uid="uid://djpixwff4rqfx" path="res://resources/items/dubious_soup.tres" id="2_dubious_soup"]
 
 [resource]

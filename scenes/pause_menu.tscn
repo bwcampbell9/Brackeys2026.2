@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://byndw2765yivu"]
 
-[ext_resource type="Script" uid="uid://bkv2gh4hm3aol" path="res://src/PauseMenu.cs" id="1_pause_menu"]
+[ext_resource type="Script" uid="uid://cvbh4fp4nmht7" path="res://src/pause_menu.gd" id="1_pause_menu"]
 [ext_resource type="Texture2D" uid="uid://bsqjvg5ur1oox" path="res://assets/sprites/menu/pause_scroll_background.png" id="2_parchment"]
 [ext_resource type="Texture2D" uid="uid://dhucb3geurv15" path="res://assets/sprites/menu/pause_scroll_roll.png" id="3_roll"]
 [ext_resource type="Texture2D" uid="uid://c6wg2fgn53730" path="res://assets/sprites/menu/pause_resume.png" id="4_resume"]
 [ext_resource type="Texture2D" uid="uid://yi3o8vdbj20o" path="res://assets/sprites/menu/pause_main_menu.png" id="5_main_menu"]
 [ext_resource type="Texture2D" uid="uid://cdxnb8xcy1ej" path="res://assets/sprites/menu/pause_quit.png" id="6_quit"]
-[ext_resource type="Script" uid="uid://dxusw00bibdri" path="res://src/MenuBannerButton.cs" id="7_button"]
+[ext_resource type="Script" uid="uid://bd8brrrx7a7n3" path="res://src/menu_banner_button.gd" id="7_button"]
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=154298115]
 process_mode = 3

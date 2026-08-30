@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="CookingRecipe" format=3]
 
-[ext_resource type="Script" path="res://src/CookingRecipe.cs" id="1_recipe"]
+[ext_resource type="Script" path="res://src/cooking_recipe.gd" id="1_recipe"]
 [ext_resource type="Resource" uid="uid://cld23ml1gi6uv" path="res://resources/items/chopped_potatoes.tres" id="2_potatoes"]
 [ext_resource type="Resource" uid="uid://c8kvwh2vkwv0p" path="res://resources/items/chopped_carrots.tres" id="3_carrots"]
 [ext_resource type="Resource" path="res://resources/items/baked_chopped_vegetables.tres" id="4_output"]

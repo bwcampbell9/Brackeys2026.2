@@ -1,10 +1,10 @@
 [gd_scene load_steps=9 format=3]
 
-[ext_resource type="Script" path="res://src/PickupItem.cs" id="1_pickup"]
+[ext_resource type="Script" path="res://src/pickup_item.gd" id="1_pickup"]
 [ext_resource type="Texture2D" path="res://assets/sprites/potato/potato-Sheet.png" id="2_sheet"]
 [ext_resource type="Resource" path="res://resources/items/potato.tres" id="3_definition"]
-[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="4_target"]
-[ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="5_transfer"]
+[ext_resource type="Script" path="res://src/interaction_target.gd" id="4_target"]
+[ext_resource type="Script" path="res://src/pickup_transfer_action.gd" id="5_transfer"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_potato_idle"]
 atlas = ExtResource("2_sheet")

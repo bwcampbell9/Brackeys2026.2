@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ItemTransformation" format=3 uid="uid://clda7o0njmqn7"]
 
-[ext_resource type="Script" uid="uid://dp10syqiux21j" path="res://src/ItemTransformation.cs" id="1_transformation"]
+[ext_resource type="Script" uid="uid://dkxmtns2x4ji0" path="res://src/item_transformation.gd" id="1_transformation"]
 [ext_resource type="Material" uid="uid://dwsk1haatd4u3" path="res://resources/materials/chopped_fracture.tres" id="2_material"]
 
 [resource]

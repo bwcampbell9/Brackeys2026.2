@@ -1,13 +1,13 @@
 [gd_scene load_steps=9 format=3 uid="uid://mvdg0dey2ov1"]
 
 [ext_resource type="Texture2D" uid="uid://c7o1hxlkpqvkb" path="res://assets/sprites/worker/worker.png" id="1_sprite"]
-[ext_resource type="Script" path="res://src/WorkerConfiguration.cs" id="1_worker_configuration"]
-[ext_resource type="Script" uid="uid://da23ug7lkfcpv" path="res://src/PickupCarrier.cs" id="2_carrier"]
-[ext_resource type="Script" uid="uid://ban1ufd7vpf00" path="res://src/NpcMotor.cs" id="3_motor"]
-[ext_resource type="Script" uid="uid://dw2k68gkwmy4l" path="res://src/NpcTaskRunner.cs" id="4_runner"]
+[ext_resource type="Script" path="res://src/worker_configuration.gd" id="1_worker_configuration"]
+[ext_resource type="Script" uid="uid://cwewl3d1vfa6b" path="res://src/pickup_carrier.gd" id="2_carrier"]
+[ext_resource type="Script" uid="uid://d1q8w56235ylw" path="res://src/npc_motor.gd" id="3_motor"]
+[ext_resource type="Script" uid="uid://c4polnigpfgle" path="res://src/npc_task_runner.gd" id="4_runner"]
 [ext_resource type="Resource" uid="uid://c3gwrfqp6g7in" path="res://resources/npc_personalities/kitchen_worker.tres" id="5_personality"]
-[ext_resource type="Script" uid="uid://dslt4oxxii36p" path="res://src/WorkerVisualController.cs" id="6_visual"]
-[ext_resource type="Script" path="res://src/BodyPusher.cs" id="7_pusher"]
+[ext_resource type="Script" uid="uid://buemyhhcrpys0" path="res://src/worker_visual_controller.gd" id="6_visual"]
+[ext_resource type="Script" path="res://src/body_pusher.gd" id="7_pusher"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_worker"]
 radius = 12.0

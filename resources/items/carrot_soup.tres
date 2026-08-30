@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="PickupItemDefinition" format=3 uid="uid://cw0ykycqs1uyw"]
 
-[ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
-[ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="2_fd5jc"]
+[ext_resource type="Script" uid="uid://ygflqenoq2ek" path="res://src/pickup_item_definition.gd" id="1_definition"]
+[ext_resource type="Script" uid="uid://cs7vnp6yd7pxm" path="res://src/item_transformation_override.gd" id="2_fd5jc"]
 [ext_resource type="Texture2D" uid="uid://b4fy1x1nrrj13" path="res://assets/sprites/soup/soup-Sheet.png" id="2_soup_sheet"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_carrot_soup_1"]

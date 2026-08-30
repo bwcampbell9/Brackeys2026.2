@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="PickupItemDefinition" format=3 uid="uid://ba2sxccuag0i1"]
 
-[ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
-[ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="1_kdccu"]
+[ext_resource type="Script" uid="uid://ygflqenoq2ek" path="res://src/pickup_item_definition.gd" id="1_definition"]
+[ext_resource type="Script" uid="uid://cs7vnp6yd7pxm" path="res://src/item_transformation_override.gd" id="1_kdccu"]
 [ext_resource type="Texture2D" uid="uid://dr1u5qmdm5gua" path="res://assets/sprites/recipe_book/recipe_book-Sheet.png" id="2_book_sheet"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_recipe_book_icon"]

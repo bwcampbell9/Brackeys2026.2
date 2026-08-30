@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="NpcTaskDefinition" format=3]
 
-[ext_resource type="Script" uid="uid://cfcu7r64uqam0" path="res://src/NpcTaskDefinition.cs" id="1_task"]
+[ext_resource type="Script" uid="uid://bjyq81iof6l15" path="res://src/npc_task_definition.gd" id="1_task"]
 
 [resource]
 script = ExtResource("1_task")

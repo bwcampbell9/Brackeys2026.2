@@ -1,9 +1,9 @@
 [gd_scene load_steps=13 format=3]
 
-[ext_resource type="Script" path="res://src/BabyPickupItem.cs" id="1_baby"]
+[ext_resource type="Script" path="res://src/baby_pickup_item.gd" id="1_baby"]
 [ext_resource type="Texture2D" path="res://assets/sprites/baby/baby-Sheet.png" id="2_baby_sheet"]
-[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="3_target"]
-[ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="4_transfer"]
+[ext_resource type="Script" path="res://src/interaction_target.gd" id="3_target"]
+[ext_resource type="Script" path="res://src/pickup_transfer_action.gd" id="4_transfer"]
 [ext_resource type="Resource" path="res://resources/items/baby.tres" id="5_definition"]
 [ext_resource type="AudioStream" path="res://assets/sounds/baby_cry_1.wav" id="6_cry1"]
 [ext_resource type="AudioStream" path="res://assets/sounds/baby_cry_2.wav" id="7_cry2"]

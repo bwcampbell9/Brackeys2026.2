@@ -1,10 +1,10 @@
 [gd_scene load_steps=23 format=3]
 
-[ext_resource type="Script" path="res://src/RecipeBookItem.cs" id="1_book"]
+[ext_resource type="Script" path="res://src/recipe_book_item.gd" id="1_book"]
 [ext_resource type="Texture2D" path="res://assets/sprites/recipe_book/recipe_book-Sheet.png" id="2_sheet"]
 [ext_resource type="Resource" path="res://resources/items/recipe_book.tres" id="3_definition"]
-[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="4_target"]
-[ext_resource type="Script" path="res://src/PickupTransferAction.cs" id="5_transfer"]
+[ext_resource type="Script" path="res://src/interaction_target.gd" id="4_target"]
+[ext_resource type="Script" path="res://src/pickup_transfer_action.gd" id="5_transfer"]
 [ext_resource type="Texture2D" path="res://assets/sprites/recipe_book/recipe_book_large_pages-Sheet.png" id="6_overlay"]
 [ext_resource type="AudioStream" path="res://assets/sounds/open_cookbook.wav" id="7_open_audio"]
 [ext_resource type="AudioStream" path="res://assets/sounds/close_cookbook.wav" id="8_close_audio"]

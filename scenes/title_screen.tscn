@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b3l63pn85rovm"]
 
-[ext_resource type="Script" uid="uid://b2xsvlc7bo1tp" path="res://src/TitleScreen.cs" id="1_titlescreen"]
+[ext_resource type="Script" uid="uid://bq66u65vln5k5" path="res://src/title_screen.gd" id="1_titlescreen"]
 [ext_resource type="AudioStream" uid="uid://bjw040380lmsp" path="res://assets/sounds/title_music.ogg" id="2_titlemusic"]
 [ext_resource type="Texture2D" uid="uid://qh7lcd7d1e0y" path="res://assets/sprites/menu/main_menu_background.png" id="3_background"]
 [ext_resource type="Texture2D" uid="uid://dyid4v7ac8rp5" path="res://assets/sprites/menu/scroll_background.png" id="4_parchment"]
@@ -11,8 +11,8 @@
 [ext_resource type="Texture2D" uid="uid://ptg677odgw0t" path="res://assets/sprites/menu/button_banner.png" id="9_banner"]
 [ext_resource type="Texture2D" uid="uid://bwwlf605oadb1" path="res://assets/sprites/menu/cook.png" id="10_cook"]
 [ext_resource type="Texture2D" uid="uid://bgtt8b717jetk" path="res://assets/sprites/menu/exit.png" id="12_exit"]
-[ext_resource type="Script" uid="uid://oanepy21hbte" path="res://src/BobbingMenuArt.cs" id="13_bobbing"]
-[ext_resource type="Script" uid="uid://dxusw00bibdri" path="res://src/MenuBannerButton.cs" id="14_button"]
+[ext_resource type="Script" uid="uid://en0fkyhwqjye" path="res://src/bobbing_menu_art.gd" id="13_bobbing"]
+[ext_resource type="Script" uid="uid://bd8brrrx7a7n3" path="res://src/menu_banner_button.gd" id="14_button"]
 [ext_resource type="FontFile" uid="uid://caidkm36bym2d" path="res://fonts/Pixel Game.otf" id="15_menu_font"]
 
 [node name="TitleScreen" type="Control" unique_id=1533789356]

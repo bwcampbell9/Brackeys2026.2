@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://b688vrtt4173h"]
 
-[ext_resource type="Script" uid="uid://ctmeerlksnla3" path="res://src/Player.cs" id="1_3vyb7"]
+[ext_resource type="Script" uid="uid://dcolf1to5oh7r" path="res://src/player.gd" id="1_3vyb7"]
 [ext_resource type="Texture2D" uid="uid://csgtl5sfcv67b" path="res://assets/sprites/player/player-Sheet.png" id="2_qlg0r"]
 [ext_resource type="Texture2D" uid="uid://5wgtybvpja56" path="res://assets/sprites/player/arm.png" id="2_tuyoq"]
-[ext_resource type="Script" uid="uid://da23ug7lkfcpv" path="res://src/PickupCarrier.cs" id="3_carrier"]
-[ext_resource type="Script" uid="uid://cegdgwgjjqtc6" path="res://src/PlayerInteractor.cs" id="4_interactor"]
-[ext_resource type="Script" uid="uid://bywui5r73mebh" path="res://src/PlayerInputManager.cs" id="5_input_manager"]
-[ext_resource type="Script" path="res://src/BodyPusher.cs" id="6_pusher"]
+[ext_resource type="Script" uid="uid://cwewl3d1vfa6b" path="res://src/pickup_carrier.gd" id="3_carrier"]
+[ext_resource type="Script" uid="uid://d5epgcs2hagb" path="res://src/player_interactor.gd" id="4_interactor"]
+[ext_resource type="Script" uid="uid://b0ypgciklc2u3" path="res://src/player_input_manager.gd" id="5_input_manager"]
+[ext_resource type="Script" path="res://src/body_pusher.gd" id="6_pusher"]
 [ext_resource type="AudioStream" path="res://assets/sounds/pickup.wav" id="7_pickup_audio"]
 [ext_resource type="AudioStream" path="res://assets/sounds/throw.wav" id="8_throw_audio"]
 

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="PickupItemDefinition" format=3 uid="uid://c4ykwp1th5vyj"]
 
-[ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
-[ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="2_4jhfq"]
+[ext_resource type="Script" uid="uid://ygflqenoq2ek" path="res://src/pickup_item_definition.gd" id="1_definition"]
+[ext_resource type="Script" uid="uid://cs7vnp6yd7pxm" path="res://src/item_transformation_override.gd" id="2_4jhfq"]
 [ext_resource type="Texture2D" uid="uid://cbx2lu31jilho" path="res://assets/sprites/carrot/chopped-baked-carrot-Sheet.png" id="2_sheet"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_baked_chopped_carrots_1"]
