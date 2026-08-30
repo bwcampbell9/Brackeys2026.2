@@ -7,6 +7,7 @@ public partial class CuttingBoardProcessPresentation : Node
 
     private TimedItemProcessAction _processAction = null!;
     private ProgressBar _progressBar = null!;
+    private AudioStreamPlayer2D _choppingAudio = null!;
     private Node2D _board = null!;
     private PickupItem? _knife;
     private PickupItem? _processingItem;
@@ -20,6 +21,9 @@ public partial class CuttingBoardProcessPresentation : Node
 
     [Export]
     public NodePath ProgressBarPath { get; set; } = new("../ProgressBar");
+
+    [Export]
+    public NodePath ChoppingAudioPath { get; set; } = new("../ChoppingAudio");
 
     [Export]
     public Vector2 RaisedOffset { get; set; } = new(-10.0f, -28.0f);
@@ -46,6 +50,11 @@ public partial class CuttingBoardProcessPresentation : Node
             GetNodeOrNull<ProgressBar>(ProgressBarPath)
             ?? throw new InvalidOperationException(
                 "CuttingBoardProcessPresentation requires a progress bar."
+            );
+        _choppingAudio =
+            GetNodeOrNull<AudioStreamPlayer2D>(ChoppingAudioPath)
+            ?? throw new InvalidOperationException(
+                "CuttingBoardProcessPresentation requires a chopping audio player."
             );
 
         _processAction.ProcessingStarted += OnProcessingStarted;
@@ -75,6 +84,7 @@ public partial class CuttingBoardProcessPresentation : Node
         _progressBar.Value = 0.0;
         _progressBar.Visible = true;
         StartKnifeAnimation();
+        _choppingAudio.Play();
     }
 
     private void OnProgressChanged(float progress)
@@ -196,6 +206,11 @@ public partial class CuttingBoardProcessPresentation : Node
     private void ResetPresentation()
     {
         EndChopPreview(restoreOriginalMaterial: true);
+        if (GodotObject.IsInstanceValid(_choppingAudio))
+        {
+            _choppingAudio.Stop();
+        }
+
         if (
             GodotObject.IsInstanceValid(_knife)
             && !_knife!.IsAvailable

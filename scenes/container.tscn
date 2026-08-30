@@ -1,0 +1,75 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://src/Container.cs" id="1_container"]
+[ext_resource type="Script" path="res://src/InteractionTarget.cs" id="2_target"]
+[ext_resource type="Script" path="res://src/PickupContainerAction.cs" id="3_action"]
+[ext_resource type="Script" path="res://src/ContainerItemSource.cs" id="6_npc_source"]
+[ext_resource type="Texture2D" uid="uid://bju1sus4vefvj" path="res://assets/sprites/container/container-Sheet.png" id="7_texture"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idle"]
+atlas = ExtResource("7_texture")
+region = Rect2(0, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_take_2"]
+atlas = ExtResource("7_texture")
+region = Rect2(64, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_take_3"]
+atlas = ExtResource("7_texture")
+region = Rect2(128, 0, 64, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_take_4"]
+atlas = ExtResource("7_texture")
+region = Rect2(192, 0, 64, 128)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_container"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_idle")}],
+"loop": true,
+"name": &"idle",
+"speed": 4.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_idle")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_take_2")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_take_3")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_take_4")}],
+"loop": false,
+"name": &"take",
+"speed": 10.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_container"]
+size = Vector2(64, 64)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 33.0
+
+[node name="Container" type="StaticBody2D"]
+collision_mask = 0
+script = ExtResource("1_container")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -32)
+sprite_frames = SubResource("SpriteFrames_container")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="ItemIndicator" type="Sprite2D" parent="."]
+z_index = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_container")
+
+[node name="InteractionTarget" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+priority = 1
+script = ExtResource("2_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionTarget"]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="PickupContainerAction" type="Node" parent="InteractionTarget"]
+script = ExtResource("3_action")
+
+[node name="NpcItemSource" type="Node2D" parent="."]
+position = Vector2(64, 0)
+script = ExtResource("6_npc_source")

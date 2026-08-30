@@ -25,6 +25,8 @@ func _run() -> void:
 	var carrier := player.get_node("PickupCarrier")
 	var hold_point := player.get_node("PickupCarrier/HoldPoint") as Node2D
 	var sprite := book.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	var open_audio := book.get_node("OpenCookbookAudio") as AudioStreamPlayer2D
+	var close_audio := book.get_node("CloseCookbookAudio") as AudioStreamPlayer2D
 	var overlay_root := book.get_node("RecipeOverlay/OverlayRoot") as Control
 	var overlay_image := book.get_node("RecipeOverlay/OverlayRoot/Book") as TextureRect
 	_check(not overlay_root.visible, "The recipe overlay must start hidden.")
@@ -65,6 +67,10 @@ func _run() -> void:
 		sprite.animation == &"open" and sprite.is_playing(),
 		"Secondary interaction must start the opening animation while held.",
 	)
+	_check(
+		open_audio.playing,
+		"Opening the recipe book must play the cookbook sound.",
+	)
 	_check(bool(book.get("IsOpening")), "The book must report that it is opening.")
 	_check(
 		not bool(book.TrySecondaryInteract()),
@@ -93,10 +99,19 @@ func _run() -> void:
 		"The recipe overlay must settle in its visible position.",
 	)
 
+	var open_audio_position := open_audio.get_playback_position()
 	Input.action_press("secondary_interact")
 	await _wait_physics_frames(2)
 	Input.action_release("secondary_interact")
 	_check(sprite.is_playing(), "Secondary interaction must start closing an open book.")
+	_check(
+		open_audio.get_playback_position() > open_audio_position,
+		"Closing the recipe book must not restart the cookbook sound.",
+	)
+	_check(
+		close_audio.playing,
+		"Closing the recipe book must play the close cookbook sound.",
+	)
 	_check(bool(book.get("IsClosing")), "The book must report that it is closing.")
 	_check(
 		not bool(book.TrySecondaryInteract()),

@@ -3,6 +3,8 @@ using Godot;
 
 public partial class PickupContainerAction : InteractionAction
 {
+    public event Action? ItemTransferred;
+
     public PickupContainerAction()
     {
         ActionId = InteractionActionIds.Transfer;
@@ -53,6 +55,7 @@ public partial class PickupContainerAction : InteractionAction
                     ReturnDuration,
                     ReturnSpinTurns
                 );
+                ItemTransferred?.Invoke();
                 return true;
             }
 
@@ -70,6 +73,7 @@ public partial class PickupContainerAction : InteractionAction
         item.GlobalPosition = container.GlobalPosition;
         if (context.Carrier.TryHold(item))
         {
+            ItemTransferred?.Invoke();
             return true;
         }
 

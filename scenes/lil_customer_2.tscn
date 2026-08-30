@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/lil_shubungus_2/lil_shubungus_2-Sheet.png" id="1_sprite"]
 [ext_resource type="Script" path="res://src/CustomerVisualController.cs" id="2_visual"]
@@ -11,6 +11,13 @@
 [ext_resource type="Resource" path="res://resources/tasks/fetch_workstation_item.tres" id="9_fetch_task"]
 [ext_resource type="Resource" path="res://resources/items/knife.tres" id="10_knife"]
 [ext_resource type="Script" path="res://src/BodyPusher.cs" id="11_pusher"]
+[ext_resource type="AudioStream" path="res://assets/sounds/eating_1.wav" id="12_eating_1"]
+[ext_resource type="AudioStream" path="res://assets/sounds/eating_2.wav" id="13_eating_2"]
+[ext_resource type="AudioStream" path="res://assets/sounds/eating_3.wav" id="14_eating_3"]
+[ext_resource type="AudioStream" path="res://assets/sounds/hmm_1.wav" id="15_hmm_1"]
+[ext_resource type="AudioStream" path="res://assets/sounds/hmm_2.wav" id="16_hmm_2"]
+[ext_resource type="AudioStream" path="res://assets/sounds/hmm_3.wav" id="17_hmm_3"]
+[ext_resource type="AudioStream" path="res://assets/sounds/hmm_4.wav" id="18_hmm_4"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lil_2_1"]
 atlas = ExtResource("1_sprite")
@@ -82,6 +89,10 @@ animation = &"idle"
 autoplay = "idle"
 [node name="CustomerVisualController" type="Node" parent="."]
 script = ExtResource("2_visual")
+EatingSounds = Array[AudioStream]([ExtResource("12_eating_1"), ExtResource("13_eating_2"), ExtResource("14_eating_3")])
+HmmSounds = Array[AudioStream]([ExtResource("15_hmm_1"), ExtResource("16_hmm_2"), ExtResource("17_hmm_3"), ExtResource("18_hmm_4")])
+[node name="EatingAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="HmmAudio" type="AudioStreamPlayer2D" parent="."]
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
 path_desired_distance = 18.0
 target_desired_distance = 18.0

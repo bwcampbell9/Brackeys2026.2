@@ -19,7 +19,7 @@ func _run() -> void:
 
 	var player := level.get_node("Player") as CharacterBody2D
 	var hold_point := player.get_node("PickupCarrier/HoldPoint") as Node2D
-	var potato_container := level.get_node("Workstations/PotatoContainer") as StaticBody2D
+	var potato_container := level.get_node("Workstations/Container") as StaticBody2D
 	var board := level.get_node("Workstations/CuttingBoard") as StaticBody2D
 	var board_socket := board.get_node("PickupSocket") as Node2D
 	var progress_bar := board.get_node("ProgressBar") as ProgressBar

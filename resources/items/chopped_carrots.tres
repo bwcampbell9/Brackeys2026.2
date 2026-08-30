@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="2_3hhif"]
 [ext_resource type="Texture2D" uid="uid://ouvr1ga272dv" path="res://assets/sprites/carrot/carrot.png" id="2_texture"]
 [ext_resource type="Material" path="res://resources/materials/chopped_fracture.tres" id="3_material"]
-[ext_resource type="Resource" path="res://resources/items/carrot_soup.tres" id="5_carrot_soup"]
+[ext_resource type="Resource" uid="uid://cw0ykycqs1uyw" path="res://resources/items/carrot_soup.tres" id="5_carrot_soup"]
 
 [sub_resource type="Resource" id="Resource_stove_cook_override"]
 script = ExtResource("2_3hhif")

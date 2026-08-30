@@ -8,6 +8,8 @@ public partial class RecipeBookItem : PickupItem
         new(0.0f, -304.0f);
 
     private AnimatedSprite2D _sprite = null!;
+    private AudioStreamPlayer2D _openAudio = null!;
+    private AudioStreamPlayer2D _closeAudio = null!;
     private Control _overlayRoot = null!;
     private TextureRect _overlayImage = null!;
     private Tween? _overlayTween;
@@ -29,6 +31,8 @@ public partial class RecipeBookItem : PickupItem
     {
         base._Ready();
         _sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+        _openAudio = GetNode<AudioStreamPlayer2D>("OpenCookbookAudio");
+        _closeAudio = GetNode<AudioStreamPlayer2D>("CloseCookbookAudio");
         _overlayRoot = GetNode<Control>("RecipeOverlay/OverlayRoot");
         _overlayImage = _overlayRoot.GetNode<TextureRect>("Book");
 
@@ -83,11 +87,13 @@ public partial class RecipeBookItem : PickupItem
         {
             IsClosing = true;
             _sprite.PlayBackwards(OpenAnimation);
+            _closeAudio.Play();
         }
         else
         {
             IsOpening = true;
             _sprite.Play(OpenAnimation);
+            _openAudio.Play();
         }
 
         return true;

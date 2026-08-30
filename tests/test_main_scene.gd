@@ -11,6 +11,7 @@ const BABY_PICKUP_ITEM_SCENE := preload("res://scenes/baby_pickup_item.tscn")
 const KNIFE_ITEM_SCENE := preload("res://scenes/knife_item.tscn")
 const RECIPE_BOOK_ITEM_SCENE := preload("res://scenes/recipe_book_item.tscn")
 const CUTTING_BOARD_SCENE := preload("res://scenes/cutting_board.tscn")
+const CONTAINER_SCENE := preload("res://scenes/container.tscn")
 const POTATO_CONTAINER_SCENE := preload("res://scenes/potato_container.tscn")
 const CARROT_CONTAINER_SCENE := preload("res://scenes/carrot_container.tscn")
 const KNIFE_CONTAINER_SCENE := preload("res://scenes/knife_container.tscn")
@@ -36,6 +37,17 @@ const DUBIOUS_SOUP_DEFINITION := preload("res://resources/items/dubious_soup.tre
 const STOVE_COOK_TRANSFORMATION := preload("res://resources/transformations/stove_cook.tres")
 const KNIFE_DEFINITION := preload("res://resources/items/knife.tres")
 const RECIPE_BOOK_DEFINITION := preload("res://resources/items/recipe_book.tres")
+const EATING_SOUND_PATHS := [
+	"res://assets/sounds/eating_1.wav",
+	"res://assets/sounds/eating_2.wav",
+	"res://assets/sounds/eating_3.wav",
+]
+const HMM_SOUND_PATHS := [
+	"res://assets/sounds/hmm_1.wav",
+	"res://assets/sounds/hmm_2.wav",
+	"res://assets/sounds/hmm_3.wav",
+	"res://assets/sounds/hmm_4.wav",
+]
 const EXPECTED_INPUTS := {
 	"move_left": {"keycodes": [KEY_A, KEY_LEFT], "axis": 0, "axis_value": -1.0},
 	"move_right": {"keycodes": [KEY_D, KEY_RIGHT], "axis": 0, "axis_value": 1.0},
@@ -258,6 +270,10 @@ func test_player_has_composable_interaction_components() -> void:
 	assert_true(hold_point != null, "The pickup carrier must contain a hold point.")
 	assert_true(interactor != null, "The player must contain an interactor.")
 	assert_true(input_manager != null, "The player must contain an input manager.")
+	var pickup_audio := player.get_node_or_null("PickupAudio") as AudioStreamPlayer2D
+	assert_true(pickup_audio != null, "The player must contain pickup audio.")
+	var throw_audio := player.get_node_or_null("ThrowAudio") as AudioStreamPlayer2D
+	assert_true(throw_audio != null, "The player must contain throw audio.")
 	assert_true(player_shape != null, "The player must have a circular collision shape.")
 	if (
 		carrier == null
@@ -277,6 +293,12 @@ func test_player_has_composable_interaction_components() -> void:
 		carrier.get_node_or_null("PickupArea") == null,
 		"The carrier must not own interaction sensing.",
 	)
+	if pickup_audio != null:
+		assert_eq(pickup_audio.stream.resource_path, "res://assets/sounds/pickup.wav")
+		assert_false(pickup_audio.autoplay)
+	if throw_audio != null:
+		assert_eq(throw_audio.stream.resource_path, "res://assets/sounds/throw.wav")
+		assert_false(throw_audio.autoplay)
 
 	assert_eq(interactor.get_script().resource_path, "res://src/PlayerInteractor.cs")
 	assert_eq(float(interactor.get("InteractionConeDegrees")), 140.0)
@@ -349,6 +371,40 @@ func test_executioner_has_the_game_over_animation_contract() -> void:
 	assert_true(sprite.sprite_frames.get_animation_loop(&"walk"))
 	assert_false(sprite.sprite_frames.get_animation_loop(&"takeout"))
 	assert_false(sprite.sprite_frames.get_animation_loop(&"chop"))
+
+
+func test_customers_randomly_select_from_the_eating_sounds() -> void:
+	var customer_scenes := [
+		CUSTOMER_SCENE,
+		MLADY_CUSTOMER_SCENE,
+		LIL_CUSTOMER_SCENE,
+		LIL_CUSTOMER_2_SCENE,
+	]
+	for customer_scene: PackedScene in customer_scenes:
+		var customer := track(customer_scene.instantiate()) as CharacterBody2D
+		var controller := customer.get_node_or_null("CustomerVisualController") as Node
+		var eating_audio := customer.get_node_or_null("EatingAudio") as AudioStreamPlayer2D
+		assert_true(controller != null)
+		assert_true(eating_audio != null)
+		if controller != null:
+			var eating_sounds: Array = controller.get("EatingSounds")
+			assert_eq(eating_sounds.size(), EATING_SOUND_PATHS.size())
+			for sound_index in eating_sounds.size():
+				assert_eq(eating_sounds[sound_index].resource_path, EATING_SOUND_PATHS[sound_index])
+			var hmm_sounds: Array = controller.get("HmmSounds")
+			assert_eq(hmm_sounds.size(), HMM_SOUND_PATHS.size())
+			for sound_index in hmm_sounds.size():
+				assert_eq(hmm_sounds[sound_index].resource_path, HMM_SOUND_PATHS[sound_index])
+			assert_eq(float(controller.get("InitialMinimumHmmDelaySeconds")), 5.0)
+			assert_eq(float(controller.get("InitialMaximumHmmDelaySeconds")), 15.0)
+			assert_eq(float(controller.get("MinimumHmmDelaySeconds")), 5.0)
+			assert_eq(float(controller.get("MaximumHmmDelaySeconds")), 15.0)
+		if eating_audio != null:
+			assert_false(eating_audio.autoplay)
+		var hmm_audio := customer.get_node_or_null("HmmAudio") as AudioStreamPlayer2D
+		assert_true(hmm_audio != null)
+		if hmm_audio != null:
+			assert_false(hmm_audio.autoplay)
 
 
 func test_input_manager_has_separate_rebindable_tap_and_hold_mappings() -> void:
@@ -870,6 +926,11 @@ func test_cutting_board_composes_transfer_process_and_socket() -> void:
 			presentation.get_script().resource_path,
 			"res://src/CuttingBoardProcessPresentation.cs",
 		)
+	var chopping_audio := board.get_node_or_null("ChoppingAudio") as AudioStreamPlayer2D
+	assert_true(chopping_audio != null)
+	if chopping_audio != null:
+		assert_eq(chopping_audio.stream.resource_path, "res://assets/sounds/chopping.wav")
+		assert_false(chopping_audio.autoplay)
 
 
 func test_completing_recipe_selection_immediately_publishes_request() -> void:
@@ -1068,32 +1129,37 @@ func test_potato_container_owns_its_visual_collision_and_interaction() -> void:
 
 	assert_eq(container.collision_layer, 1)
 	assert_eq(container.collision_mask, 0)
-	var container_sprite := container.get_node("Sprite2D") as Sprite2D
+	var container_sprite := container.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	assert_true(container_sprite != null)
-	var container_texture := container_sprite.texture as AtlasTexture
-	assert_true(container_texture != null)
-	if container_texture != null:
+	var frames := container_sprite.sprite_frames
+	assert_true(frames != null)
+	if frames != null:
 		assert_eq(
-			container_texture.atlas.resource_path,
-			"res://assets/sprites/workstations_tilemap/workstations.png",
+			frames.get_animation_names(),
+			PackedStringArray([&"idle", &"take"]),
 		)
-		assert_eq(container_texture.region, Rect2(64, 0, 64, 64))
+		assert_eq(frames.get_frame_count(&"idle"), 1)
+		assert_eq(frames.get_frame_count(&"take"), 4)
+		assert_eq(frames.get_animation_speed(&"take"), 10.0)
+		assert_false(frames.get_animation_loop(&"take"))
 	var shape := container.get_node("CollisionShape2D").shape as RectangleShape2D
 	assert_true(shape != null)
 	if shape != null:
 		assert_eq(shape.size, Vector2(64, 64))
+	var item_indicator := container.get_node("ItemIndicator") as Sprite2D
+	assert_true(item_indicator != null)
+	if item_indicator != null:
+		assert_eq(
+			item_indicator.position,
+			container.get_node("CollisionShape2D").position,
+		)
 	assert_eq(
-		container.get_node("InteractionTarget/PickupContainerAction").get("PickupScene"),
+		container.get("PickupScene"),
 		PICKUP_ITEM_SCENE,
 	)
 	assert_eq(
-		container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem").get("Id"),
+		container.get("ItemDefinition").get("Id"),
 		&"potato",
-	)
-	assert_true(
-		float(
-			container.get_node("InteractionTarget/PickupContainerAction").get("ReturnDuration")
-		) > 0.0
 	)
 
 
@@ -1104,44 +1170,15 @@ func test_knife_container_supplies_the_knife_scene() -> void:
 	if container == null:
 		return
 
-	var texture := container.get_node("Sprite2D").texture as AtlasTexture
-	assert_true(texture != null)
-	if texture != null:
-		assert_eq(
-			texture.atlas.resource_path,
-			"res://assets/sprites/workstations_tilemap/workstations.png",
-		)
-		assert_eq(texture.region, Rect2(192, 0, 64, 64))
 	assert_eq(
-		container.get_node("InteractionTarget/PickupContainerAction").get("PickupScene"),
+		container.get("PickupScene"),
 		KNIFE_ITEM_SCENE,
 	)
 	assert_eq(
-		container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem"),
+		container.get("ItemDefinition"),
 		KNIFE_DEFINITION,
 	)
-	assert_true(
-		float(
-			container.get_node("InteractionTarget/PickupContainerAction").get("ReturnSpinTurns")
-		) > 0.0
-	)
-
-
-func test_carrot_container_supplies_the_carrot_scene() -> void:
-	var container := track(CARROT_CONTAINER_SCENE.instantiate()) as StaticBody2D
-
-	assert_true(container != null)
-	if container == null:
-		return
-
-	var texture := container.get_node("Sprite2D").texture as Texture2D
-	assert_true(texture != null)
-	if texture != null:
-		assert_eq(texture.resource_path, "res://assets/sprites/carrot_container/carrot_container.png")
-	var action := container.get_node("InteractionTarget/PickupContainerAction")
-	assert_eq(action.get("PickupScene").resource_path, "res://scenes/carrot_item.tscn")
-	assert_eq(action.get("AcceptedItem"), CARROT_DEFINITION)
-	assert_eq(container.get_node("NpcItemSource").get("ItemDefinition"), CARROT_DEFINITION)
+	assert_true(container.get_node("ItemIndicator") is Sprite2D)
 
 
 func test_main_scene_has_interactable_container_and_cutting_board() -> void:
@@ -1195,10 +1232,7 @@ func test_main_scene_has_interactable_container_and_cutting_board() -> void:
 	assert_true(carrot_container != null)
 	if carrot_container != null:
 		assert_eq(carrot_container.position, Vector2(96, 302))
-		assert_eq(
-			carrot_container.get_node("InteractionTarget/PickupContainerAction").get("AcceptedItem"),
-			CARROT_DEFINITION,
-		)
+		assert_eq(carrot_container.get("ItemDefinition"), CARROT_DEFINITION)
 	var oven := level.get_node_or_null("Oven") as StaticBody2D
 	assert_true(oven != null)
 	if oven != null:

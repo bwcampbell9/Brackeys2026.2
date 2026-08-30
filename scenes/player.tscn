@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://cegdgwgjjqtc6" path="res://src/PlayerInteractor.cs" id="4_interactor"]
 [ext_resource type="Script" uid="uid://bywui5r73mebh" path="res://src/PlayerInputManager.cs" id="5_input_manager"]
 [ext_resource type="Script" path="res://src/BodyPusher.cs" id="6_pusher"]
+[ext_resource type="AudioStream" path="res://assets/sounds/pickup.wav" id="7_pickup_audio"]
+[ext_resource type="AudioStream" path="res://assets/sounds/throw.wav" id="8_throw_audio"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_vk56l"]
 radius = 12.0
@@ -105,6 +107,12 @@ script = ExtResource("3_carrier")
 
 [node name="HoldPoint" type="Node2D" parent="PickupCarrier" unique_id=1355219190]
 position = Vector2(0, -58)
+
+[node name="PickupAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("7_pickup_audio")
+
+[node name="ThrowAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("8_throw_audio")
 
 [node name="Interactor" type="Node2D" parent="." unique_id=1574406776]
 visible = false

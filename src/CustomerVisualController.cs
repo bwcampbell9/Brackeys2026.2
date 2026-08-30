@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using Godot.Collections;
 
 public partial class CustomerVisualController : Node
 {
@@ -10,7 +11,11 @@ public partial class CustomerVisualController : Node
     private CharacterBody2D _actor = null!;
     private NpcMotor _motor = null!;
     private WorkstationTaskPublisher _taskPublisher = null!;
+    private AudioStreamPlayer2D _eatingAudio = null!;
+    private AudioStreamPlayer2D _hmmAudio = null!;
+    private RandomNumberGenerator _random = null!;
     private StringName _currentAnimation = new();
+    private float _hmmDelayRemaining;
 
     [Export]
     public NodePath SpritePath { get; set; } = new("../AnimatedSprite2D");
@@ -21,6 +26,30 @@ public partial class CustomerVisualController : Node
     [Export]
     public NodePath TaskPublisherPath { get; set; } =
         new("../WorkstationTaskPublisher");
+
+    [Export]
+    public NodePath EatingAudioPath { get; set; } = new("../EatingAudio");
+
+    [Export]
+    public Array<AudioStream> EatingSounds { get; set; } = new();
+
+    [Export]
+    public NodePath HmmAudioPath { get; set; } = new("../HmmAudio");
+
+    [Export]
+    public Array<AudioStream> HmmSounds { get; set; } = new();
+
+    [Export(PropertyHint.Range, "1,60,1,or_greater")]
+    public float InitialMinimumHmmDelaySeconds { get; set; } = 5.0f;
+
+    [Export(PropertyHint.Range, "1,60,1,or_greater")]
+    public float InitialMaximumHmmDelaySeconds { get; set; } = 15.0f;
+
+    [Export(PropertyHint.Range, "1,300,1,or_greater")]
+    public float MinimumHmmDelaySeconds { get; set; } = 5.0f;
+
+    [Export(PropertyHint.Range, "1,300,1,or_greater")]
+    public float MaximumHmmDelaySeconds { get; set; } = 15.0f;
 
     public override void _Ready()
     {
@@ -44,6 +73,22 @@ public partial class CustomerVisualController : Node
             ?? throw new InvalidOperationException(
                 "CustomerVisualController requires a WorkstationTaskPublisher."
             );
+        _eatingAudio =
+            GetNodeOrNull<AudioStreamPlayer2D>(EatingAudioPath)
+            ?? throw new InvalidOperationException(
+                "CustomerVisualController requires an eating audio player."
+            );
+        _hmmAudio =
+            GetNodeOrNull<AudioStreamPlayer2D>(HmmAudioPath)
+            ?? throw new InvalidOperationException(
+                "CustomerVisualController requires a hmm audio player."
+            );
+        _random = new RandomNumberGenerator();
+        _random.Randomize();
+        ScheduleNextHmm(
+            InitialMinimumHmmDelaySeconds,
+            InitialMaximumHmmDelaySeconds
+        );
         SetAnimation(IdleAnimation);
     }
 
@@ -54,6 +99,7 @@ public partial class CustomerVisualController : Node
         {
             _sprite.FlipH = _actor.Velocity.X > 0.0f;
         }
+        UpdateHmmAudio((float)delta);
         SetAnimation(
             _taskPublisher.IsConsuming
                 ? EatingAnimation
@@ -72,5 +118,38 @@ public partial class CustomerVisualController : Node
 
         _currentAnimation = animation;
         _sprite.Play(animation);
+        if (animation == EatingAnimation && EatingSounds.Count > 0)
+        {
+            _eatingAudio.Stream = EatingSounds[
+                _random.RandiRange(0, EatingSounds.Count - 1)
+            ];
+            _eatingAudio.Play();
+        }
+    }
+
+    private void UpdateHmmAudio(float delta)
+    {
+        _hmmDelayRemaining -= delta;
+        if (_hmmDelayRemaining > 0.0f || _hmmAudio.Playing || HmmSounds.Count == 0)
+        {
+            return;
+        }
+
+        _hmmAudio.Stream = HmmSounds[_random.RandiRange(0, HmmSounds.Count - 1)];
+        _hmmAudio.Play();
+        ScheduleNextHmm();
+    }
+
+    private void ScheduleNextHmm()
+    {
+        ScheduleNextHmm(MinimumHmmDelaySeconds, MaximumHmmDelaySeconds);
+    }
+
+    private void ScheduleNextHmm(float minimumDelaySeconds, float maximumDelaySeconds)
+    {
+        _hmmDelayRemaining = _random.RandfRange(
+            minimumDelaySeconds,
+            Mathf.Max(minimumDelaySeconds, maximumDelaySeconds)
+        );
     }
 }
