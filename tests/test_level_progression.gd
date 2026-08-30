@@ -58,7 +58,10 @@ func test_title_starts_the_game_and_levels_advance_in_order() -> void:
 	assert_true(bool(level_3_hud.get("RevealNextLevelAtViewportCenter")))
 
 	var win_screen := track(_instantiate_scene(WIN_SCREEN_PATH)) as Control
-	assert_eq(win_screen.get("HeadingText"), "You Win!")
+	assert_eq(
+		win_screen.get_node("Scroll/ParchmentMask/Heading").get("text"),
+		"You Win!",
+	)
 	assert_true(win_screen.has_node("Scroll/ParchmentMask/CookButton"))
 	assert_true(win_screen.has_node("Scroll/ParchmentMask/TutorialButton"))
 	assert_true(win_screen.has_node("Scroll/ParchmentMask/ExitButton"))
