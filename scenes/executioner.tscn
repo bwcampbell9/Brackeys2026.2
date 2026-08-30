@@ -2,6 +2,8 @@
 
 [ext_resource type="Texture2D" path="res://assets/sprites/executioner/executioner-Sheet.png" id="1_sprite"]
 [ext_resource type="Script" path="res://src/Executioner.cs" id="2_executioner"]
+[ext_resource type="AudioStream" path="res://assets/sounds/executioner_walk.wav" id="3_walk_audio"]
+[ext_resource type="AudioStream" path="res://assets/sounds/execution_chop.wav" id="4_chop_audio"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle_1"]
 atlas = ExtResource("1_sprite")
@@ -93,3 +95,9 @@ script = ExtResource("2_executioner")
 sprite_frames = SubResource("SpriteFrames_executioner")
 animation = &"idle"
 autoplay = "idle"
+
+[node name="WalkAudio" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_walk_audio")
+
+[node name="ChopAudio" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_chop_audio")
