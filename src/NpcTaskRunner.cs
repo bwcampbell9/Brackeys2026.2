@@ -511,9 +511,18 @@ public partial class NpcTaskRunner : Node
 			}
 		}
 
-		if (!_motor.IsAtTarget)
+		bool canDeliverToCustomer =
+			_task.Definition.Kind == NpcTaskKind.Fetch
+			&& _task.Destination.CanReceiveNpcDeliveryFrom(
+				_actor.GlobalPosition
+			);
+		if (!_motor.IsAtTarget && !canDeliverToCustomer)
 		{
 			return;
+		}
+		if (canDeliverToCustomer)
+		{
+			_motor.Stop();
 		}
 
 		InteractionContext context = new(_actor, _carrier);

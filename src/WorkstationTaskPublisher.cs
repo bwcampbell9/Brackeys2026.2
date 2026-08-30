@@ -146,6 +146,9 @@ public partial class WorkstationTaskPublisher : Node2D
 	[Export(PropertyHint.Range, "0,60,0.5,or_greater")]
 	public float OrderCooldownSeconds { get; set; } = 5.0f;
 
+	[Export(PropertyHint.Range, "1,100,1,or_greater,suffix:px")]
+	public float NpcDeliveryRange { get; set; } = 34.0f;
+
 	public Vector2 ApproachPosition => GlobalPosition;
 
 	public long CurrentTaskId => _currentTaskId;
@@ -163,6 +166,13 @@ public partial class WorkstationTaskPublisher : Node2D
 		&& !_isConsuming
 		&& _currentTaskId != 0
 		&& _orderTimeRemaining > 0.0f;
+
+	public bool CanReceiveNpcDeliveryFrom(Vector2 globalPosition)
+	{
+		return IsAcceptingCustomerDelivery
+			&& _interactionTarget.GlobalPosition.DistanceSquaredTo(globalPosition)
+				<= NpcDeliveryRange * NpcDeliveryRange;
+	}
 
 	public bool CanConfigure =>
 		!_isConsuming

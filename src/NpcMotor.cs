@@ -3,6 +3,7 @@ using Godot;
 
 public partial class NpcMotor : Node
 {
+    private const float WaypointDistance = 6.0f;
     private const int WorkstationApproachSampleCount = 8;
     private const float MaximumApproachProjectionDistance = 24.0f;
 
@@ -59,7 +60,7 @@ public partial class NpcMotor : Node
                     "NpcMotor requires the configured PickupCarrier."
                 );
         }
-        _navigationAgent.PathDesiredDistance = ArrivalDistance;
+        _navigationAgent.PathDesiredDistance = WaypointDistance;
         _navigationAgent.TargetDesiredDistance = ArrivalDistance;
     }
 
