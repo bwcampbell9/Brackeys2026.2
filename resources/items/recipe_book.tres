@@ -1,10 +1,9 @@
-[gd_resource type="Resource" script_class="PickupItemDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="PickupItemDefinition" format=3 uid="uid://ba2sxccuag0i1"]
 
-[ext_resource type="Script" path="res://src/PickupItemDefinition.cs" id="1_definition"]
+[ext_resource type="Script" uid="uid://dej7dqvseevj8" path="res://src/PickupItemDefinition.cs" id="1_definition"]
+[ext_resource type="Script" uid="uid://bfhmaq7g4qb4v" path="res://src/ItemTransformationOverride.cs" id="1_kdccu"]
 
 [resource]
 script = ExtResource("1_definition")
 Id = &"recipe_book"
 DisplayName = "Recipe Book"
-Modulate = Color(1, 1, 1, 1)
-VisualScale = Vector2(1, 1)

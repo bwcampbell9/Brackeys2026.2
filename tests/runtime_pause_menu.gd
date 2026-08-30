@@ -29,11 +29,22 @@ func _run() -> void:
 	_check(paused, "The pause action must pause the scene tree.")
 	_check(pause_menu.visible, "The pause action must show the pause menu.")
 	_check(
+		root.gui_get_focus_owner() == null,
+		"Opening pause without controller input must not select a button.",
+	)
+	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
+	_check(
 		root.gui_get_focus_owner() == pause_menu.get_node(
-			"Overlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ResumeButton"
+			"Overlay/Scroll/ParchmentMask/ResumeButton"
 		),
 		"Opening the pause menu must focus Resume for controller input.",
 	)
+	await _send_mouse_motion()
+	_check(
+		root.gui_get_focus_owner() == null,
+		"Mouse input must clear controller button selection.",
+	)
+	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
 
 	Input.action_press(&"game_over")
 	await process_frame
@@ -48,7 +59,7 @@ func _run() -> void:
 	await _send_action(&"ui_down")
 	_check(
 		root.gui_get_focus_owner() == pause_menu.get_node(
-			"Overlay/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TitleButton"
+			"Overlay/Scroll/ParchmentMask/TitleButton"
 		),
 		"Controller navigation must move focus to Return to Title.",
 	)
@@ -76,26 +87,36 @@ func _run() -> void:
 	await _send_action(&"pause")
 	await _send_action(&"ui_down")
 	await _send_action(&"ui_accept")
-	await process_frame
-	await process_frame
+	await create_timer(1.5).timeout
 	_check(
 		current_scene != null
 		and current_scene.scene_file_path == "res://scenes/title_screen.tscn",
 		"Return to Title must load the title screen.",
 	)
 	_check(not paused, "Returning to the title screen must leave the scene tree unpaused.")
+	await create_timer(2.0).timeout
 
 	var play_button := current_scene.get_node(
-		"CenterContainer/PanelContainer/MarginContainer/VBoxContainer/PlayButton"
+		"Scroll/ParchmentMask/CookButton"
 	)
 	var exit_button := current_scene.get_node(
-		"CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ExitButton"
+		"Scroll/ParchmentMask/ExitButton"
 	)
-	_check(root.gui_get_focus_owner() == play_button, "The title screen must focus Play.")
+	_check(root.gui_get_focus_owner() == play_button, "The title screen must focus Cook.")
 	await _send_action(&"ui_down")
+	_check(root.gui_get_focus_owner() == exit_button, "Controller navigation must focus Exit.")
+	await _send_mouse_motion()
+	_check(root.gui_get_focus_owner() == null, "Mouse input must clear title button selection.")
+	await _send_joy_button(JOY_BUTTON_LEFT_STICK)
 	_check(
-		root.gui_get_focus_owner() == exit_button,
-		"Controller navigation must move focus between title screen buttons.",
+		root.gui_get_focus_owner() == play_button,
+		"Controller input must restore title focus to Cook.",
+	)
+	await _send_mouse_click(play_button.get_global_rect().get_center())
+	await create_timer(1.5).timeout
+	_check(
+		current_scene != null and current_scene.scene_file_path == "res://scenes/main.tscn",
+		"Clicking Cook with the mouse must load the main scene.",
 	)
 
 	_finish()
@@ -156,6 +177,33 @@ func _send_joy_button(button_index: int) -> void:
 	Input.parse_input_event(release)
 	await process_frame
 	await process_frame
+	await process_frame
+
+
+func _send_mouse_motion() -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = Vector2(20, 20)
+	motion.relative = Vector2(1, 0)
+	Input.parse_input_event(motion)
+	await process_frame
+
+
+func _send_mouse_click(position: Vector2) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.button_mask = MOUSE_BUTTON_MASK_LEFT
+	press.position = position
+	press.global_position = position
+	press.pressed = true
+	root.push_input(press, true)
+	await process_frame
+
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.position = position
+	release.global_position = position
+	release.pressed = false
+	root.push_input(release, true)
 	await process_frame
 
 

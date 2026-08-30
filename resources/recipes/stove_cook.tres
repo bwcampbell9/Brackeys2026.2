@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="ProcessingRecipe" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ProcessingRecipe" format=3 uid="uid://drvdf8ovaodtj"]
 
-[ext_resource type="Script" path="res://src/ProcessingRecipe.cs" id="1_recipe"]
-[ext_resource type="Resource" path="res://resources/transformations/stove_cook.tres" id="2_transformation"]
+[ext_resource type="Script" uid="uid://ctje8hy7dfcx3" path="res://src/ProcessingRecipe.cs" id="1_recipe"]
+[ext_resource type="Resource" uid="uid://dn54j3ijp1nhs" path="res://resources/transformations/stove_cook.tres" id="2_transformation"]
 
 [resource]
 script = ExtResource("1_recipe")
