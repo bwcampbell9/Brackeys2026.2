@@ -2,20 +2,20 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Godot C#: Build",
+      "label": "Godot: Validate project",
       "type": "process",
-      "command": "${env:USERPROFILE}\\.dotnet\\dotnet.exe",
+      "command": "${env:GODOT_EXE}",
       "args": [
-        "build"
+        "--headless",
+        "--editor",
+        "--quit",
+        "--path",
+        "${workspaceFolder}"
       ],
       "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "DOTNET_ROOT": "${env:USERPROFILE}\\.dotnet",
-          "PATH": "${env:USERPROFILE}\\.dotnet;${env:PATH}"
-        }
+        "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": "$msCompile",
+      "problemMatcher": [],
       "group": {
         "kind": "build",
         "isDefault": true
