@@ -14,6 +14,10 @@
 [ext_resource type="Script" uid="uid://ct4taxh4aw0tb" path="res://src/GameOverController.cs" id="15_nossa"]
 [ext_resource type="PackedScene" uid="uid://byndw2765yivu" path="res://scenes/pause_menu.tscn" id="16_hjqri"]
 [ext_resource type="AudioStream" uid="uid://cynt36n0m0jxu" path="res://assets/sounds/game_music.mp3" id="18_1aans"]
+[ext_resource type="Script" uid="uid://bp5mfpbsnubtn" path="res://src/GameScoreController.cs" id="19_score"]
+[ext_resource type="FontFile" uid="uid://caidkm36bym2d" path="res://fonts/Pixel Game.otf" id="20_score_font"]
+[ext_resource type="AudioStream" uid="uid://bw1fh4y7dobll" path="res://assets/sounds/score_up.wav" id="21_score_up"]
+[ext_resource type="AudioStream" path="res://assets/sounds/score_down.wav" id="22_score_down"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_kitchen"]
 vertices = PackedVector2Array(716, 346, 886.89844, 451.0703, 496.78906, 453.39063, 628, 346, 140, 386, 72.25, 386, 72.86719, 346, 140, 346, 395.20313, 450.8125, 140, 454.7422, 140, 258, 74.21094, 258, 76.82031, 86.9375, 372, 85.52344, 372, 154, 460, 85.09375, 564, 84.59375, 564, 154, 460, 154, 652, 154, 652, 84.171875, 756, 83.671875, 756, 154, 716, 258, 499.1875, 599.9531, 948.03125, 601.9375, 948.96875, 962, -51.03125, 962, -51.960938, 601.90625, 392.8125, 598.9219, 844, 83.25, 884.09375, 83.046875, 844, 154, 628, 258)
@@ -100,6 +104,29 @@ volume_db = -25.0
 autoplay = true
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1368431633]
+script = ExtResource("19_score")
+
+[node name="Score" type="Label" parent="Hud"]
+offset_left = 658.0
+offset_top = 6.0
+offset_right = 946.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.96, 0.96, 0.91, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("20_score_font")
+theme_override_font_sizes/font_size = 48
+text = "Score: 50 / 100"
+horizontal_alignment = 2
+
+[node name="ScoreUpAudio" type="AudioStreamPlayer" parent="Hud"]
+stream = ExtResource("21_score_up")
+max_polyphony = 4
+
+[node name="ScoreDownAudio" type="AudioStreamPlayer" parent="Hud"]
+stream = ExtResource("22_score_down")
+volume_db = -1.4116215
+max_polyphony = 4
 
 [node name="Title" type="Label" parent="Hud" unique_id=510205867]
 offset_left = 56.0

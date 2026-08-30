@@ -30,6 +30,22 @@ func test_worker_navigation_area() -> void:
 	var worker = scene.get_node("NavigationRegion2D/NpcWorker")
 	assert_not_null(worker, "Worker should be under NavigationRegion2D")
 
+func test_level_1_score_hud() -> void:
+	var scene = load("res://scenes/level_1.tscn").instantiate()
+	add_child(scene)
+	await get_tree().process_frame
+
+	var hud = scene.get_node_or_null("Hud")
+	var score_label = scene.get_node_or_null("Hud/Score") as Label
+	assert_not_null(hud, "Level 1 should have a score HUD")
+	assert_not_null(score_label, "Level 1 score HUD should have a score label")
+	if hud != null:
+		assert_eq(hud.GetScore(), 50, "Level 1 score should start at 50")
+		hud.ApplyCustomerOrderOutcome(0)
+		assert_eq(hud.GetScore(), 55, "A correct Level 1 order should add 5 score")
+	if score_label != null:
+		assert_eq(score_label.text, "Score: 50 / 100")
+
 func test_customer_wander_bounds() -> void:
 	var scene = load("res://scenes/customer.tscn").instantiate()
 	add_child(scene)
